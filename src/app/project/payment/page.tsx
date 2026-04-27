@@ -62,7 +62,7 @@ export default function Page() {
           title={"Checkout"}
         />
         <SectionPaymentSummary theme={theme} data={cart}/>
-        <SectionPaymentMethod theme={theme} total={total} data={projectData}/>
+        <SectionPaymentMethod theme={theme} total={total} data={projectData} setPopup={setPopup}/>
         <SectionPaymentUpload 
           theme={theme}
           setLoading={setLoading}

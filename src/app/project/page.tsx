@@ -14,7 +14,8 @@ export default function Home() {
   const { user, loading } = useUserContext();
   const { popup, setPopup } = useAuthGuard();
   const { projects, activeData, isLoading } = useProjectData();
-
+  console.log("loading", loading);
+  console.log("user", user);
   return (
     <>
       <Popup

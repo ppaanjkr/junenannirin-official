@@ -9,10 +9,12 @@ export default function SectionPaymentMethod({
   theme,
   total,
   data,
+  setPopup,
 }: {
   theme: Theme;
   total: number;
   data: any;
+  setPopup: (v: any) => void;
 }) {
   return (
     <section
@@ -63,6 +65,18 @@ export default function SectionPaymentMethod({
           style={{
             borderColor: `${theme.secondary}`,
             color: `${theme.secondary}`,
+          }}
+          onClick={() => {
+            if (!data?.account_no) return;
+
+            const cleaned = data.account_no.replace(/-/g, ""); 
+            navigator.clipboard.writeText(cleaned);
+
+            setPopup({
+              open: true,
+              type: "success",
+              message: "Copied!",
+            });
           }}
         >
           COPY

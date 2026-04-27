@@ -1,4 +1,5 @@
 "use client";
+
 import LoadingOverlay from "@/components/LoadingOverlay";
 import Popup from "@/components/ModalPopup";
 import ButtonTeam from "@/components/register/ButtonTeam";
@@ -6,7 +7,7 @@ import SectionBack from "@/components/SectionBack";
 import SectionContact from "@/components/SectionContact";
 import { useUserContext } from "@/context/UserContext";
 import useAuthGuard from "@/hooks/useAuthGuard";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
 
 const options = [
@@ -17,7 +18,31 @@ const options = [
 
 export default function Page() {
   const router = useRouter();
-  const { user } = useUserContext();
+  const { user, setUser } = useUserContext();
+
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const userParam = params.get("user");
+
+    if (!userParam) return;
+
+    try {
+      const parsed = JSON.parse(decodeURIComponent(userParam));
+
+      localStorage.setItem("user", JSON.stringify(parsed));
+      setUser(parsed);
+    } catch (err) {
+      console.error(err);
+    }
+  }, []);
+
+  useEffect(() => {
+    if (!user) return;
+
+    if (user.status === "EXIST") {
+      router.replace("/project");
+    }
+  }, [user]);
 
   const [loading, setLoading] = useState(false);
 
@@ -32,19 +57,6 @@ export default function Page() {
     name: "",
     address: "",
   });
-
-  useEffect(() => {
-    if (!user) return;
-
-    if (user.status === "EXIST") {
-      router.replace("/project");
-    }
-
-    setForm((prev) => ({
-      ...prev,
-      lineUserId: user.lineUserId,
-    }));
-  }, [user]);
 
   const [phone, setPhone] = useState("");
 
@@ -88,6 +100,7 @@ export default function Page() {
 
     const payload = {
       ...form,
+      lineUserId: user?.lineUserId,
     };
 
     if (form.phone[0] !== "0" || form.phone.length !== 10) {
@@ -98,7 +111,7 @@ export default function Page() {
     try {
       const res = await fetch(process.env.NEXT_PUBLIC_API_URL!, {
         method: "POST",
-        body: JSON.stringify(form),
+        body: JSON.stringify(payload),
       });
 
       const data = await res.json();

@@ -140,7 +140,7 @@ export default function SectionPaymentUpload({
 
       setTimeout(() => {
         window.location.href = "/project";
-      }, 1500);
+      }, 1200);
 
     } catch (err: any) {
       console.error(err);
@@ -322,6 +322,7 @@ export default function SectionPaymentUpload({
 
           {/* INPUT */}
           <input
+            disabled={loading}
             ref={fileRef}
             type="file"
             accept="image/*"

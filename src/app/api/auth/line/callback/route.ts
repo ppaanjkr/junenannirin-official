@@ -74,4 +74,5 @@ export async function GET(req: NextRequest) {
   return NextResponse.redirect(new URL(redirectPath, req.url));
 
   // return NextResponse.json(gasData);
+
 }
