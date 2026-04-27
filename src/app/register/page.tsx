@@ -1,0 +1,285 @@
+"use client";
+import LoadingOverlay from "@/components/LoadingOverlay";
+import Popup from "@/components/ModalPopup";
+import ButtonTeam from "@/components/register/ButtonTeam";
+import SectionBack from "@/components/SectionBack";
+import SectionContact from "@/components/SectionContact";
+import { useUserContext } from "@/context/UserContext";
+import useAuthGuard from "@/hooks/useAuthGuard";
+import { useRouter } from "next/navigation";
+import { useEffect, useState } from "react";
+
+const options = [
+  { value: "june", label: "🐈‍⬛ June" },
+  { value: "dollar", label: "🍗 Dollar" },
+  { value: "darling", label: "🎀 Darling" },
+];
+
+export default function Page() {
+  const router = useRouter();
+  const { user } = useUserContext();
+
+  const [loading, setLoading] = useState(false);
+
+  const { popup, setPopup } = useAuthGuard();
+
+  const [form, setForm] = useState({
+    action: "createUser",
+    lineUserId: "",
+    username: "",
+    phone: "",
+    team: "june",
+    name: "",
+    address: "",
+  });
+
+  useEffect(() => {
+    if (!user) return;
+
+    if (user.status === "EXIST") {
+      router.replace("/project");
+    }
+
+    setForm((prev) => ({
+      ...prev,
+      lineUserId: user.lineUserId,
+    }));
+  }, [user]);
+
+  const [phone, setPhone] = useState("");
+
+  function handleChange(e: React.ChangeEvent<HTMLInputElement>) {
+    const value = e.target.value.replace(/\D/g, "").slice(0, 10);
+
+    setPhone(value);
+
+    setForm((prev) => ({
+      ...prev,
+      phone: value,
+    }));
+  }
+
+  function handleKeyDown(e: React.KeyboardEvent<HTMLInputElement>) {
+    // allow control keys
+    if (
+      ["Backspace", "Delete", "ArrowLeft", "ArrowRight", "Tab"].includes(e.key)
+    ) {
+      return;
+    }
+
+    // allow only numbers
+    if (!/^\d$/.test(e.key)) {
+      e.preventDefault();
+    }
+  }
+
+  function handlePaste(e: React.ClipboardEvent<HTMLInputElement>) {
+    const paste = e.clipboardData.getData("text");
+
+    // allow only numbers , max 10 digits
+    if (!/^\d{1,10}$/.test(paste)) {
+      e.preventDefault();
+    }
+  }
+
+  async function handleSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    setLoading(true);
+
+    const payload = {
+      ...form,
+    };
+
+    if (form.phone[0] !== "0" || form.phone.length !== 10) {
+      setPopup({ open: true, message: "Invalid phone number", type: "error" });
+      setLoading(false);
+    }
+
+    try {
+      const res = await fetch(process.env.NEXT_PUBLIC_API_URL!, {
+        method: "POST",
+        body: JSON.stringify(form),
+      });
+
+      const data = await res.json();
+
+      if (data.status === "EXIST") {
+        setLoading(false);
+        setPopup({
+          open: true,
+          type: "error",
+          message: "You are already a member",
+        });
+
+        setTimeout(() => {
+          router.replace("/project");
+        }, 1500);
+
+        return;
+      }
+
+      if (data.status === "USERNAME_DUPLICATE") {
+        setLoading(false);
+        setPopup({
+          open: true,
+          type: "error",
+          message: "Username already taken",
+        });
+
+        return;
+      } else if (data.status === "PHONENUMBER_DUPLICATE") {
+        setLoading(false);
+        setPopup({
+          open: true,
+          type: "error",
+          message: "Phonenumber already taken",
+        });
+
+        return;
+      } else if (data.status === "CREATED") {
+        setLoading(false);
+        const user = {
+          uuid: data.user?.uuid,
+          lineUserId: data.user?.lineUserId,
+          username: data.user?.username,
+          phone: data.user?.phone,
+          team: data.user?.team,
+          name: data.user?.name,
+          address: data.user?.address,
+          status: data.user?.active,
+          expireAt: Date.now() + 6 * 60 * 60 * 1000,
+        };
+
+        localStorage.setItem("user", JSON.stringify(user));
+
+        setPopup({
+          open: true,
+          type: "success",
+          message: "Register success!",
+        });
+
+        setTimeout(() => {
+          router.replace("/project");
+        }, 1500);
+      }
+    } catch (err) {
+      setLoading(false);
+      console.error(err);
+    }
+  }
+  return (
+    <>
+      {loading && <LoadingOverlay />}
+      <Popup
+        open={popup.open}
+        type={popup.type}
+        message={popup.message}
+        onClose={() => setPopup({ ...popup, open: false })}
+      />
+      <main className="max-w-5xl mx-auto px-6 py-4 md:max-w-3xl">
+        <SectionBack
+          onclick={() => router.replace("/project")}
+          title={"Register"}
+        />
+        <section className="rounded-md bg-white shadow-sm p-4">
+          <div className="flex justify-center">
+            <span className="px-3 py-2 rounded-full bg-pinkAccent text-sm font-semibold">
+              🍒 New Member
+            </span>
+          </div>
+
+          <form onSubmit={handleSubmit} className="mt-4">
+            <div className="grid grid-cols-12 gap-3">
+              <div className="col-span-12 md:col-span-6 flex flex-col gap-1">
+                <div>
+                  <span className="font-semibold">Username</span>
+                  <span className="text-red-500">*</span>
+                </div>
+                <input
+                  type="text"
+                  id="username"
+                  className="px-4 py-2 bg-pinkAccent/60 rounded-lg outline-none border-none"
+                  maxLength={50}
+                  autoComplete="off"
+                  required
+                  value={form.username}
+                  onChange={(e) =>
+                    setForm({ ...form, username: e.target.value })
+                  }
+                />
+              </div>
+              <div className="col-span-12 md:col-span-6 flex flex-col gap-1">
+                <div>
+                  <span className="font-semibold">Phonenumber</span>
+                  <span className="text-red-500">*</span>
+                </div>
+                <input
+                  type="text"
+                  id="phone"
+                  className="px-4 py-2 bg-pinkAccent/60 rounded-lg outline-none border-none"
+                  maxLength={10}
+                  autoComplete="off"
+                  required
+                  value={phone}
+                  onChange={handleChange}
+                  onKeyDown={handleKeyDown}
+                  onPaste={handlePaste}
+                  inputMode="numeric"
+                />
+              </div>
+              <div className="col-span-12 flex flex-col gap-1 mb-2">
+                <div>
+                  <span className="font-semibold">Pick your team</span>
+                  <span className="text-red-500">*</span>
+                </div>
+                <ButtonTeam
+                  name="team"
+                  options={options}
+                  value={form.team}
+                  onChange={(val) => setForm({ ...form, team: val })}
+                />
+              </div>
+              <div className="col-span-12 md:col-span-6 flex flex-col gap-1">
+                <div>
+                  <span className="font-semibold">Shipping Name</span>
+                </div>
+                <input
+                  type="text"
+                  id="name"
+                  className="px-4 py-2 bg-pinkAccent/60 rounded-lg outline-none border-none"
+                  autoComplete="off"
+                  value={form.name}
+                  onChange={(e) => setForm({ ...form, name: e.target.value })}
+                />
+              </div>
+              <div className="col-span-12 flex flex-col gap-1">
+                <div>
+                  <span className="font-semibold">Address</span>
+                </div>
+                <textarea
+                  id="address"
+                  rows={3}
+                  className="px-4 py-2 bg-pinkAccent/60 rounded-lg outline-none border-none"
+                  autoComplete="off"
+                  value={form.address}
+                  onChange={(e) =>
+                    setForm({ ...form, address: e.target.value })
+                  }
+                />
+              </div>
+              <div className="col-span-12">
+                <button
+                  type="submit"
+                  className="px-4 py-2 bg-pinkSecondary/80 text-white rounded-lg w-full mt-5"
+                >
+                  Register
+                </button>
+              </div>
+            </div>
+          </form>
+        </section>
+        <SectionContact />
+      </main>
+    </>
+  );
+}

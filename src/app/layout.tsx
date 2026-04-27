@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Kanit } from "next/font/google";
 import "./globals.css";
+import UserProvider from "../context/UserProvider";
 
 const kanit = Kanit({
   subsets: ["thai", "latin"],
@@ -21,7 +22,9 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body className={kanit.className + ""}>{children}</body>
+      <body className={kanit.className + ""}>
+        <UserProvider>{children}</UserProvider>
+        </body>
     </html>
   );
 }
