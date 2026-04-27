@@ -1,5 +1,5 @@
 import { formatThaiDateWithTime } from "@/lib/formatThaiDate";
-import type { ActiveProjectData } from "../api/types";
+import type { ActiveProjectData } from "@/lib/api/types";
 import { driveThumb } from "@/lib/workUtils";
 import { formatTHB } from "@/lib/formatTHB";
 

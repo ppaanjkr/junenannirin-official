@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Reward } from "../api/types";
+import { Reward } from "@/lib/api/types";
 import { driveThumb } from "@/lib/workUtils";
 import ImagePreviewModal from "@/components/ImagePreviewModal";
 
