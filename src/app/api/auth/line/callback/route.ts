@@ -57,6 +57,7 @@ export async function GET(req: NextRequest) {
     name: gasData.user?.name,
     address: gasData.user?.address,
     status: gasData.status,
+    active: gasData.user?.active,
     expireAt: Date.now() + 6 * 60 * 60 * 1000,
   };
 

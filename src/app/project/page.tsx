@@ -9,13 +9,31 @@ import ActiveShop from "@/components/project/ActiveShop";
 import { useUserContext } from "@/context/UserContext";
 import useAuthGuard from "@/hooks/useAuthGuard";
 import useProjectData from "@/hooks/useProjectData";
+import { useEffect } from "react";
 
 export default function Home() {
-  const { user, loading } = useUserContext();
+  const { user, loading, setUser } = useUserContext();
   const { popup, setPopup } = useAuthGuard();
   const { projects, activeData, isLoading } = useProjectData();
-  console.log("loading", loading);
-  console.log("user", user);
+
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const userParam = params.get("user");
+
+    if (!userParam) return;
+
+    try {
+      const parsed = JSON.parse(decodeURIComponent(userParam));
+
+      localStorage.setItem("user", JSON.stringify(parsed));
+      setUser(parsed);
+
+      window.history.replaceState({}, "", window.location.pathname);
+    } catch (err) {
+      console.error(err);
+    }
+  }, []);
+  
   return (
     <>
       <Popup
@@ -35,11 +53,11 @@ export default function Home() {
               (activeData.project.type === "donation" ? (
                 <ActiveProject data={activeData} />
               ) : (
-                <ActiveShop data={activeData} user={user}/>
+                <ActiveShop data={activeData} user={user} />
               ))}
           </>
         )}
-        <SectionContact /> 
+        <SectionContact />
       </main>
     </>
   );
