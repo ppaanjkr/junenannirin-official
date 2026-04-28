@@ -20,6 +20,8 @@ export default function Page() {
   const router = useRouter();
   const { user, setUser } = useUserContext();
 
+  const [tempUser, setTempUser] = useState<any>(null);
+
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     const userParam = params.get("user");
@@ -29,20 +31,40 @@ export default function Page() {
     try {
       const parsed = JSON.parse(decodeURIComponent(userParam));
 
-      localStorage.setItem("user", JSON.stringify(parsed));
-      setUser(parsed);
+      setTempUser(parsed);
+
+      sessionStorage.setItem("tempUser", JSON.stringify(parsed));
+
+      window.history.replaceState({}, "", window.location.pathname);
     } catch (err) {
       console.error(err);
     }
   }, []);
 
   useEffect(() => {
-    if (!user) return;
+    if (tempUser) return;
 
-    if (user.status === "EXIST") {
-      router.replace("/project");
-    }
-  }, [user]);
+    const stored = sessionStorage.getItem("tempUser");
+    if (!stored) return;
+
+    try {
+      const parsed = JSON.parse(stored);
+      setTempUser(parsed);
+    } catch {}
+  }, []);
+
+ useEffect(() => {
+  if (!tempUser) return;
+
+  if (tempUser.status === "EXIST") {
+    localStorage.setItem("user", JSON.stringify(tempUser)); // login จริง
+    setUser(tempUser);
+
+    sessionStorage.removeItem("tempUser");
+
+    router.replace("/project");
+  }
+}, [tempUser]);
 
   const [loading, setLoading] = useState(false);
 
@@ -100,7 +122,7 @@ export default function Page() {
 
     const payload = {
       ...form,
-      lineUserId: user?.lineUserId,
+      lineUserId: tempUser?.lineUserId,
     };
 
     if (form.phone[0] !== "0" || form.phone.length !== 10) {
@@ -164,6 +186,9 @@ export default function Page() {
         };
 
         localStorage.setItem("user", JSON.stringify(user));
+        setUser(user);
+
+        sessionStorage.removeItem("tempUser");
 
         setPopup({
           open: true,
@@ -173,7 +198,7 @@ export default function Page() {
 
         setTimeout(() => {
           router.replace("/project");
-        }, 1500);
+        }, 1200);
       }
     } catch (err) {
       setLoading(false);
