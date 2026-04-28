@@ -17,6 +17,14 @@ export default function Navbar({ user }: { user: any }) {
   }
 
   const handleLogout = () => {
+    setUser(null);
+    
+    // localStorage.clear();
+    localStorage.removeItem("user");
+    localStorage.removeItem("fc_project");
+    localStorage.removeItem("cart");
+    localStorage.removeItem("fc_order");
+
     setIsProfileOpen(false);
     setIsMobileOpen(false);
 
