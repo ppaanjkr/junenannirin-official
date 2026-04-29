@@ -25,7 +25,7 @@ export default function Navbar({ user }: { user: any }) {
     localStorage.removeItem("fc_project");
     localStorage.removeItem("cart");
     localStorage.removeItem("fc_order");
-    
+
     setUser(null);
 
     setIsProfileOpen(false);
@@ -110,7 +110,10 @@ export default function Navbar({ user }: { user: any }) {
                     >
                       Profile
                     </button>
-                    <button className="block px-4 py-2 hover:bg-primary cursor-pointer hover:bg-pinkAccent/50">
+                    <button
+                      className="block px-4 py-2 hover:bg-primary cursor-pointer hover:bg-pinkAccent/50"
+                      onClick={() => handleGoToPage("history")}
+                    >
                       History
                     </button>
                     {user?.team === "admin" && (
@@ -143,7 +146,10 @@ export default function Navbar({ user }: { user: any }) {
           >
             Profile
           </button>
-          <button className="w-full text-left block px-3 py-2 hover:text-secondary border-b border-pinkAccent">
+          <button
+            className="w-full text-left block px-3 py-2 hover:text-secondary border-b border-pinkAccent"
+            onClick={() => handleGoToPage("history")}
+          >
             History
           </button>
           {user?.team === "admin" && (

@@ -1,21 +1,23 @@
 "use client";
+import SectionHistoryDonation from "@/components/history/HistoryDonation";
+import SectionHistoryShop from "@/components/history/HistoryShop";
+import TabButton from "@/components/history/TabButton";
 import LoadingOverlay from "@/components/LoadingOverlay";
 import Popup from "@/components/ModalPopup";
-import SectionEditProfile from "@/components/profile/SectionEditProfile";
-import SectionProfile from "@/components/profile/SectionProfile";
 import SectionBack from "@/components/SectionBack";
 import { useUserContext } from "@/context/UserContext";
 import useAuthGuard from "@/hooks/useAuthGuard";
-import useProfileSummary from "@/hooks/useProfile";
+import { useProfileHistory } from "@/hooks/useProfile";
 import { useRouter } from "next/navigation";
 import { use, useEffect, useState } from "react";
 
 export default function Page() {
   const { user, setUser } = useUserContext();
-  const { profile, isLoading } = useProfileSummary();
+  const { shop, donation, isLoading } = useProfileHistory();
   const [loading, setLoading] = useState(false);
   const isloading = loading || isLoading;
   const { popup, setPopup } = useAuthGuard();
+  const [tab, setTab] = useState("shop");
   const router = useRouter();
   useEffect(() => {
     if (!user) {
@@ -33,14 +35,16 @@ export default function Page() {
       />
       <main className="max-w-5xl mx-auto px-6 py-4 md:max-w-3xl">
         {isloading && <LoadingOverlay />}
-        <SectionBack onclick={() => router.replace("/")} title={"Profile"} />
-        <SectionProfile user={user} profile={profile} />
-        <SectionEditProfile
-          user={user}
-          setUser={setUser}
-          setLoading={setLoading}
-          setPopup={setPopup}
-        />
+        <SectionBack onclick={() => router.replace("/")} title={"History"} />
+        <section className="flex gap-4 mt-2 border border-pinkAccent rounded-lg p-1 mb-4">
+          <TabButton title={"Shop"} setTab={setTab} active={tab === "shop"} />
+          <TabButton
+            title={"Donate"}
+            setTab={setTab}
+            active={tab === "donate"}
+          />
+        </section>
+        {tab === "shop" ? <SectionHistoryShop data={shop} /> : <SectionHistoryDonation data={donation} />}
       </main>
     </>
   );

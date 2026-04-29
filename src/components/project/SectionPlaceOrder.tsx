@@ -47,7 +47,6 @@ export default function SectionPlaceOrder({
             backgroundColor: `${theme.secondary}`,
           }}
           disabled={total === 0}
-          // onClick={() => console.log(cart)}
           onClick={onCheckout}
         >
           Place Order

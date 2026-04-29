@@ -97,10 +97,45 @@ export type Bank = {
   qrcode: string;
 }
 
+export type HistoryShop = {
+  order_id: string;
+  amount: number;
+  created_at: string;
+  project: {
+    id: number;
+    name: string;
+    image_url: string;
+  }
+  items: {
+    reward_id: number;
+    title: string;
+    description: string;
+    image_url: string;
+    qty: number;
+    price: number;
+    total: number;
+  }[],
+}
+export type HistoryDonation = {
+  donation_id: number;
+  project: {
+    id: number;
+    name: string;
+    image_url: string;
+  }
+  amount: number;
+  created_at: string;
+}
+export type History = {
+  shop: HistoryShop[];
+  donation: HistoryDonation[];
+}
+
 // ------------------------
 // 🔹 RESPONSES
 // ------------------------
 export type ProfileSummaryResponse = ApiResponse<ProfileSummary>;
+export type ProfileHistoryResponse = ApiResponse<History>;
 
 export type ProjectListResponse = ApiResponse<Project[]>;
 
