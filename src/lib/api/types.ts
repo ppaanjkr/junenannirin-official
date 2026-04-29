@@ -7,6 +7,15 @@ export type ApiResponse<T> = {
 };
 
 // ------------------------
+// 🔹 USER
+// ------------------------
+export type ProfileSummary = {
+  totalProjects: number | 0;
+  totalOrders: number | 0;
+  totalAmount: number | 0;
+}
+
+// ------------------------
 // 🔹 PROJECT
 // ------------------------
 export type Project = {
@@ -91,6 +100,8 @@ export type Bank = {
 // ------------------------
 // 🔹 RESPONSES
 // ------------------------
+export type ProfileSummaryResponse = ApiResponse<ProfileSummary>;
+
 export type ProjectListResponse = ApiResponse<Project[]>;
 
 export type ActiveProjectData = {

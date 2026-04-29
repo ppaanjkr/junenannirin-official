@@ -50,7 +50,7 @@ export default function SectionProject({
   return (
     <section className="mt-4">
       <div
-        className="rounded-xl overflow-hidden shadow-sm border"
+        className="rounded-lg overflow-hidden shadow-sm border"
         style={{
           backgroundColor: `${theme.accent}30`,
           borderColor: `${theme.secondary}33`,

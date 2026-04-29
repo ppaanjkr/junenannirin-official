@@ -13,17 +13,20 @@ export default function Navbar({ user }: { user: any }) {
   const router = useRouter();
 
   function handleGoToPage(page: string) {
+    setIsMobileOpen(false);
+    setIsProfileOpen(false);
+
     router.replace(`/${page}`);
   }
 
   const handleLogout = () => {
-    setUser(null);
-    
     // localStorage.clear();
     localStorage.removeItem("user");
     localStorage.removeItem("fc_project");
     localStorage.removeItem("cart");
     localStorage.removeItem("fc_order");
+    
+    setUser(null);
 
     setIsProfileOpen(false);
     setIsMobileOpen(false);
@@ -101,7 +104,10 @@ export default function Navbar({ user }: { user: any }) {
                 {/* dropdown */}
                 {isProfileOpen && (
                   <div className="absolute right-0 top-8 bg-white shadow-lg rounded-xl w-40 overflow-hidden border border-secondary/20">
-                    <button className="block px-4 py-2 hover:bg-primary cursor-pointer hover:bg-pinkAccent/50">
+                    <button
+                      className="block px-4 py-2 hover:bg-primary cursor-pointer hover:bg-pinkAccent/50"
+                      onClick={() => handleGoToPage("profile")}
+                    >
                       Profile
                     </button>
                     <button className="block px-4 py-2 hover:bg-primary cursor-pointer hover:bg-pinkAccent/50">
@@ -131,7 +137,10 @@ export default function Navbar({ user }: { user: any }) {
 
       {isMobileOpen && (
         <div className="fixed top-[50px] left-0 w-full z-[999] md:hidden backdrop-blur bg-white/80 border-b border-secondary/20 shadow-sm px-4 py-3 space-y-2">
-          <button className="w-full text-left block px-3 py-2 hover:text-secondary border-b border-pinkAccent">
+          <button
+            className="w-full text-left block px-3 py-2 hover:text-secondary border-b border-pinkAccent"
+            onClick={() => handleGoToPage("profile")}
+          >
             Profile
           </button>
           <button className="w-full text-left block px-3 py-2 hover:text-secondary border-b border-pinkAccent">

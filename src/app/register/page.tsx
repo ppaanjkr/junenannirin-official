@@ -216,7 +216,7 @@ export default function Page() {
       />
       <main className="max-w-5xl mx-auto px-6 py-4 md:max-w-3xl">
         <SectionBack
-          onclick={() => router.replace("/project")}
+          onclick={() => router.replace("/")}
           title={"Register"}
         />
         <section className="rounded-md bg-white shadow-sm p-4">
