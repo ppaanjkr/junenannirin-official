@@ -91,7 +91,7 @@ export default function SectionPaymentUpload({
         return;
     }
   
-    if(slip.data.amount != total){
+    if(slip.data.amount < total){
       setLoading(false);
       setPopup({
         open: true,
@@ -191,6 +191,7 @@ export default function SectionPaymentUpload({
     const bank = [
       { name: "ธนาคารกสิกรไทย", code: "01004" },
       { name: "ธนาคารกรุงไทย", code: "01006" },
+      { name: "พร้อมเพย์", code: "02001" },
     ];
 
     const bank_code = bank.find((b) => b.name === data.bank_name)?.code;

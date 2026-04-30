@@ -1,3 +1,6 @@
+import { useEffect, useState } from "react";
+import QRCode from "qrcode";
+import { json } from "stream/consumers";
 import { driveThumb } from "@/lib/workUtils";
 
 type Theme = {
@@ -16,6 +19,66 @@ export default function SectionPaymentMethod({
   data: any;
   setPopup: (v: any) => void;
 }) {
+  const [qrImage, setQrImage] = useState<string>(driveThumb(data?.qrcode));
+  const [account_no, setAccountNo] = useState<string>("");
+
+  let bank_logo = driveThumb(data?.qrcode);
+  if (data?.bank_short_name.toLowerCase() == "ktb") {
+    bank_logo = "/bank/KTB.png";
+  } else if (data?.bank_short_name.toLowerCase() == "kbank") {
+    bank_logo = "/bank/KBANK.png";
+  } else if (data?.bank_short_name.toLowerCase() == "promptpay") {
+    bank_logo = "/bank/promptpay.png";
+  }
+
+  // useEffect(() => {
+  //   setAccountNo(data?.account_no);
+  //   if (qrImage) return;
+  //   const genQR = async () => {
+  //     try {
+  //       const res = await generateQRPromptpay();
+
+  //       if (res?.data?.qrCode) {
+  //         const url = await QRCode.toDataURL(res.data.qrCode);
+  //         setQrImage(url);
+  //       }
+  //     } catch (err) {
+  //       console.error("QR error", err);
+  //     }
+  //   };
+
+  //   if (total > 0) {
+  //     genQR();
+  //   }
+  // }, [total, account_no]);
+
+  async function generateQRPromptpay() {
+    if (!data?.account_no) return;
+
+    const promptpay_code = data.account_no.replace(/-/g, "");
+    const promptpay_type = "phone_number";
+    const account_name = data.account_name;
+
+    const payload = {
+      promptPayCode: promptpay_code,
+      promptPayType: promptpay_type,
+      accountName: account_name,
+      amount: total.toFixed(2),
+    };
+
+    const res = await fetch(`${process.env.NEXT_PUBLIC_SLIP2GO_API_GENQR}`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${process.env.NEXT_PUBLIC_SLIP2GO_KEY}`,
+      },
+      body: JSON.stringify(payload),
+    });
+
+    const result = await res.json();
+
+    return result;
+  }
   return (
     <section
       className="bg-white rounded-lg border p-4 shadow-sm mt-4"
@@ -45,7 +108,12 @@ export default function SectionPaymentMethod({
             color: `${theme.secondary}`,
           }}
         >
-          {data?.bank_short_name?.toUpperCase() || ""}
+          <img
+            src={bank_logo}
+            alt="bank_logo"
+            className="w-8 h-8 object-cover"
+          />
+          {/* {data?.bank_short_name?.toUpperCase() || ""} */}
         </div>
         <div className="flex-1">
           <p
@@ -69,7 +137,7 @@ export default function SectionPaymentMethod({
           onClick={() => {
             if (!data?.account_no) return;
 
-            const cleaned = data.account_no.replace(/-/g, ""); 
+            const cleaned = data.account_no.replace(/-/g, "");
             navigator.clipboard.writeText(cleaned);
 
             setPopup({
@@ -89,7 +157,13 @@ export default function SectionPaymentMethod({
           borderColor: `${theme.accent}30`,
         }}
       >
-        <img src={driveThumb(data?.qrcode)} className="w-40 h-40 " />
+        {qrImage ? (
+          <img src={qrImage} className="w-40 h-40" />
+        ) : (
+          <div className="w-40 h-40 flex items-center justify-center text-xs text-gray-400">
+            Loading QR...
+          </div>
+        )}
         <p className="text-xs mt-2">scan to pay</p>
         <p
           id="paymentAmount"
