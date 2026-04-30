@@ -15,7 +15,7 @@ export default function useUser() {
         parsed &&
         typeof parsed === "object" &&
         Object.keys(parsed).length > 0;
-
+      
       if (isValidUser && parsed.expireAt && parsed.expireAt < Date.now()) {
         // localStorage.clear();
         localStorage.removeItem("user");

@@ -1,5 +1,7 @@
 "use client";
 
+import { randomNumeric } from "@/lib/workUtils";
+import { Upload } from "lucide-react";
 import { useRef, useState } from "react";
 
 type Theme = {
@@ -77,34 +79,40 @@ export default function SectionPaymentUpload({
 
     if (!file) return;
 
-    const slip = await verifySlip(file);
+    // const slip = await verifySlip(file);
 
-    const slipSuccessCode = ["200200", "200000"];
-    if (!slip || !slipSuccessCode.includes(slip.code)) {
-      setLoading(false);
-      const message = slip.message || "Invalid slip";
-        setPopup({
-          open: true,
-          type: "error",
-          message: message,
-        });
-        return;
-    }
+    // const slipSuccessCode = ["200200", "200000"];
+    // if (!slip || !slipSuccessCode.includes(slip.code)) {
+    //   setLoading(false);
+    //   const message = slip.message || "Invalid slip";
+    //     setPopup({
+    //       open: true,
+    //       type: "error",
+    //       message: message,
+    //     });
+    //     return;
+    // }
   
-    if(slip.data.amount < total){
-      setLoading(false);
-      setPopup({
-        open: true,
-        type: "error",
-        message: "Invalid amount",
-      });
-      return;
-    }
+    // if(slip.data.amount === total){
+    //   setLoading(false);
+    //   setPopup({
+    //     open: true,
+    //     type: "error",
+    //     message: "Invalid amount",
+    //   });
+    //   return;
+    // }
 
-    let referenceId = slip.data.referenceId;
-    let transRef = slip.data.transRef;
-    let dateTime = slip.data.dateTime;
-    let amount = slip.data.amount;
+    // let referenceId = slip.data.referenceId;
+    // let transRef = slip.data.transRef;
+    // let dateTime = slip.data.dateTime;
+    // let amount = slip.data.amount;
+
+    // for dev
+    const referenceId = randomNumeric(12);
+    const transRef = randomNumeric(14);
+    const dateTime = new Date().toISOString();
+    const amount = total;
 
     const payload = getOrderPayload(referenceId, transRef, dateTime, amount);
 
@@ -271,21 +279,7 @@ export default function SectionPaymentUpload({
                 className="w-12 h-12 rounded-lg flex items-center justify-center mx-auto"
                 style={{ backgroundColor: `${theme.secondary}10` }}
               >
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  width="20"
-                  height="20"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                >
-                  <path d="M12 3v12" />
-                  <path d="m17 8-5-5-5 5" />
-                  <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
-                </svg>
+                <Upload className="w-6 h-6" />
               </div>
 
               <p className="font-semibold mt-3">Upload slip</p>

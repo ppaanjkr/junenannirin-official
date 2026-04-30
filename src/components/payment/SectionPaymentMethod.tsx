@@ -22,7 +22,7 @@ export default function SectionPaymentMethod({
   const [qrImage, setQrImage] = useState<string>(driveThumb(data?.qrcode));
   const [account_no, setAccountNo] = useState<string>("");
 
-  let bank_logo = driveThumb(data?.qrcode);
+  let bank_logo = "";
   if (data?.bank_short_name.toLowerCase() == "ktb") {
     bank_logo = "/bank/KTB.png";
   } else if (data?.bank_short_name.toLowerCase() == "kbank") {
@@ -30,6 +30,9 @@ export default function SectionPaymentMethod({
   } else if (data?.bank_short_name.toLowerCase() == "promptpay") {
     bank_logo = "/bank/promptpay.png";
   }
+  useEffect(() => {
+    setQrImage(driveThumb(data?.qrcode));
+  }, [data?.qrcode]);
 
   // useEffect(() => {
   //   setAccountNo(data?.account_no);

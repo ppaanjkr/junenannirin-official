@@ -23,6 +23,7 @@ export default function UserProvider({
     if (isAdminPage && (!user || user.team !== "admin")) {
       router.replace("/");
     }
+
   }, [pathname, user, loading]);
 
   if (loading) return null; 

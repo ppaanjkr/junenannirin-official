@@ -58,7 +58,7 @@ export async function GET(req: NextRequest) {
     address: gasData.user?.address,
     status: gasData.status,
     active: gasData.user?.active,
-    expireAt: Date.now() + 6 * 60 * 60 * 1000,
+    expireAt: Date.now() + 30 * 24 * 60 * 60 * 1000
   };
 
   const userData = encodeURIComponent(JSON.stringify(userObj));

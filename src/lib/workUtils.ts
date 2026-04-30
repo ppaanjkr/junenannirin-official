@@ -24,3 +24,9 @@ export function driveThumb(urlOrId?: string) {
 
   return v; // 🔥 fallback
 }
+
+export function randomNumeric(length = 12) {
+  return Array.from({ length }, () =>
+    Math.floor(Math.random() * 10)
+  ).join("");
+}

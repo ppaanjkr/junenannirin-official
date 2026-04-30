@@ -1,6 +1,7 @@
 "use client";
 
 import { useUserContext } from "@/context/UserContext";
+import { Menu, X } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 
@@ -13,10 +14,14 @@ export default function Navbar({ user }: { user: any }) {
   const router = useRouter();
 
   function handleGoToPage(page: string) {
+    const path = page.startsWith("/") ? page : `/${page}`;
+
     setIsMobileOpen(false);
     setIsProfileOpen(false);
 
-    router.replace(`/${page}`);
+    setTimeout(() => {
+      router.push(path);
+    }, 50);
   }
 
   const handleLogout = () => {
@@ -37,7 +42,7 @@ export default function Navbar({ user }: { user: any }) {
   return (
     <>
       <header className="sticky top-0 z-50 backdrop-blur bg-white/80 border-b border-pinkAccent/80 shadow-sm">
-        <div className="w-full flex justify-between items-center max-w-5xl mx-auto px-6 md:max-w-3xl">
+        <div className="w-full flex justify-between items-center max-w-5xl mx-auto px-6 md:max-w-3xl cursor-pointer">
           {/* LOGO */}
           <div className="flex items-center py-3">
             <a
@@ -56,26 +61,9 @@ export default function Navbar({ user }: { user: any }) {
                 className="md:hidden flex justify-center items-center border border-pinkSecondary/50 rounded-sm w-8 h-8"
               >
                 {isMobileOpen ? (
-                  <svg
-                    width="16"
-                    height="16"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor"
-                  >
-                    <path d="M18 6 6 18" />
-                    <path d="m6 6 12 12" />
-                  </svg>
+                  <X className="w-4 h-4 text-textSub" />
                 ) : (
-                  <svg
-                    width="16"
-                    height="16"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor"
-                  >
-                    <path d="M4 5h16" />
-                    <path d="M4 12h16" />
-                    <path d="M4 19h16" />
-                  </svg>
+                  <Menu className="w-4 h-4 text-textSub" />
                 )}
               </button>
 
@@ -89,7 +77,7 @@ export default function Navbar({ user }: { user: any }) {
                     className="w-8 h-8 rounded-full object-cover"
                   /> */}
                   <span className="font-medium">
-                    {user.username || "June Nannirin"}
+                    {user.username || "June Nannirin Fanclub"}
                   </span>
                   <svg
                     width="12"
@@ -105,27 +93,35 @@ export default function Navbar({ user }: { user: any }) {
                 {isProfileOpen && (
                   <div className="absolute right-0 top-8 bg-white shadow-lg rounded-xl w-40 overflow-hidden border border-secondary/20">
                     <button
-                      className="block px-4 py-2 hover:bg-primary cursor-pointer hover:bg-pinkAccent/50"
+                      className="w-full text-left block px-4 py-2 hover:bg-primary cursor-pointer hover:bg-pinkAccent/50"
                       onClick={() => handleGoToPage("profile")}
                     >
                       Profile
                     </button>
                     <button
-                      className="block px-4 py-2 hover:bg-primary cursor-pointer hover:bg-pinkAccent/50"
+                      className="w-full text-left block px-4 py-2 hover:bg-primary cursor-pointer hover:bg-pinkAccent/50"
                       onClick={() => handleGoToPage("history")}
                     >
                       History
                     </button>
                     {user?.team === "admin" && (
-                      <button
-                        className="block px-4 py-2 hover:bg-primary cursor-pointer hover:bg-pinkAccent/50"
-                        onClick={() => handleGoToPage("admin")}
-                      >
-                        Admin
-                      </button>
+                      <>
+                        <button
+                          className="w-full text-left block px-4 py-2 hover:bg-primary cursor-pointer hover:bg-pinkAccent/50"
+                          onClick={() => handleGoToPage("admin")}
+                        >
+                          Admin
+                        </button>
+                        <button
+                          className="w-full text-left block px-4 py-2 hover:bg-primary cursor-pointer hover:bg-pinkAccent/50"
+                          onClick={() => handleGoToPage("admin/setting")}
+                        >
+                          Setting
+                        </button>
+                      </>
                     )}
                     <button
-                      className="block px-4 py-2 hover:bg-primary cursor-pointer hover:bg-pinkAccent/50"
+                      className="w-full text-left block px-4 py-2 hover:bg-primary cursor-pointer hover:bg-pinkAccent/50"
                       onClick={handleLogout}
                     >
                       Logout
@@ -153,12 +149,20 @@ export default function Navbar({ user }: { user: any }) {
             History
           </button>
           {user?.team === "admin" && (
-            <button
-              className="w-full text-left block px-3 py-2 hover:text-secondary border-b border-pinkAccent"
-              onClick={() => handleGoToPage("admin")}
-            >
-              Admin
-            </button>
+            <>
+              <button
+                className="w-full text-left block px-3 py-2 hover:text-secondary border-b border-pinkAccent"
+                onClick={() => handleGoToPage("admin")}
+              >
+                Admin
+              </button>
+              <button
+                className="w-full text-left block px-3 py-2 hover:text-secondary border-b border-pinkAccent"
+                onClick={() => handleGoToPage("admin/setting")}
+              >
+                Setting
+              </button>
+            </>
           )}
           <button
             className="w-full text-left block px-3 py-2 hover:text-secondary border-b border-pinkAccent"

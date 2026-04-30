@@ -182,7 +182,7 @@ export default function Page() {
           name: data.user?.name,
           address: data.user?.address,
           status: data.user?.active,
-          expireAt: Date.now() + 6 * 60 * 60 * 1000,
+          expireAt: Date.now() + 30 * 24 * 60 * 60 * 1000
         };
 
         localStorage.setItem("user", JSON.stringify(user));
