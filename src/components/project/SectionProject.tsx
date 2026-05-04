@@ -75,7 +75,7 @@ export default function SectionProject({
                 style={{ backgroundColor: theme.secondary }}
               ></span>
             </span>
-            {daysLeft === 0 ? "Expired" : daysLeft + "days left"} 
+            {daysLeft <= 0 ? "Expired" : `${daysLeft} day left`}
           </span>
         </div>
 

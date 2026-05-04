@@ -89,6 +89,7 @@ export default function SectionPaymentMethod({
           borderColor: `${theme.accent}30`,
         }}
       >
+         <p className="text-sm italic mt-1 text-red-500">กรุณาชำระเงินเต็มจำนวนให้ตรงกับคำสั่งซื้อ</p>
         <img src={driveThumb(data?.qrcode)} className="w-40 h-40 " />
         <p className="text-xs mt-2">scan to pay</p>
         <p
