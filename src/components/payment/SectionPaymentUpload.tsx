@@ -1,5 +1,6 @@
 "use client";
 
+import { randomNumeric } from "@/lib/workUtils";
 import { useRef, useState } from "react";
 
 type Theme = {
@@ -77,34 +78,40 @@ export default function SectionPaymentUpload({
 
     if (!file) return;
 
-    const slip = await verifySlip(file);
+    // use while prod
+    // const slip = await verifySlip(file);
 
-    const slipSuccessCode = ["200200", "200000"];
-    if (!slip || !slipSuccessCode.includes(slip.code)) {
-      setLoading(false);
-      const message = slip.message || "Invalid slip";
-        setPopup({
-          open: true,
-          type: "error",
-          message: message,
-        });
-        return;
-    }
+    // const slipSuccessCode = ["200200", "200000"];
+    // if (!slip || !slipSuccessCode.includes(slip.code)) {
+    //   setLoading(false);
+    //   const message = slip.message || "Invalid slip";
+    //     setPopup({
+    //       open: true,
+    //       type: "error",
+    //       message: message,
+    //     });
+    //     return;
+    // }
   
-    if(slip.data.amount != total){
-      setLoading(false);
-      setPopup({
-        open: true,
-        type: "error",
-        message: "Invalid amount",
-      });
-      return;
-    }
+    // if(slip.data.amount != total){
+    //   setLoading(false);
+    //   setPopup({
+    //     open: true,
+    //     type: "error",
+    //     message: "Invalid amount",
+    //   });
+    //   return;
+    // }
 
-    let referenceId = slip.data.referenceId;
-    let transRef = slip.data.transRef;
-    let dateTime = slip.data.dateTime;
-    let amount = slip.data.amount;
+    // let referenceId = slip.data.referenceId;
+    // let transRef = slip.data.transRef;
+    // let dateTime = slip.data.dateTime;
+    // let amount = slip.data.amount;
+
+    const referenceId = randomNumeric(12);
+    const transRef = randomNumeric(14);
+    const dateTime = new Date().toISOString();
+    const amount = total;
 
     const payload = getOrderPayload(referenceId, transRef, dateTime, amount);
 
