@@ -18,6 +18,7 @@ export default function SectionItems({
   cart,
   inc,
   dec,
+  canPlaceOrder
 }: {
   data: Reward[];
   theme: Theme;
@@ -25,15 +26,17 @@ export default function SectionItems({
   cart: Record<number, number>;
   inc: (id: number) => void;
   dec: (id: number) => void;
+  canPlaceOrder: boolean;
 }) {
   const itemCount = Object.values(cart).reduce((sum, qty) => sum + qty, 0);
   return (
     <section>
       <div className="flex justify-between items-center mt-6">
         <span className="text-xl font-semibold">Items</span>
-        <span className="text-sm text-text-sub" id="itemCount">
+        {canPlaceOrder && <span className="text-sm text-text-sub">You can place order now</span>}
+        {/* <span className="text-sm text-text-sub" id="itemCount">
           {itemCount} items
-        </span>
+        </span> */}
       </div>
       {data && data.length > 0 && (
         <div className="grid grid-cols-12 gap-3 md:gap-4 items-stretch">
@@ -80,14 +83,14 @@ export default function SectionItems({
                       </div>
 
                       {/* qty */}
-                      {user && (
+                      {user && canPlaceOrder && (
                         <div
                           className="flex items-center rounded-full px-1 text-sm"
                           style={{ backgroundColor: `${theme.accent}80` }}
                         >
                           <button
                             onClick={() => dec(item.id)}
-                            disabled={qty === 0}
+                            disabled={qty === 0 || !canPlaceOrder}
                             className="w-6 h-6 rounded-full text-white flex justify-center items-center disabled:opacity-30"
                             style={{ backgroundColor: `${theme.secondary}80` }}
                           >
@@ -100,6 +103,7 @@ export default function SectionItems({
 
                           <button
                             onClick={() => inc(item.id)}
+                            disabled={!canPlaceOrder}
                             className="w-6 h-6 rounded-full text-white flex justify-center items-center"
                             style={{ backgroundColor: theme.secondary }}
                           >
