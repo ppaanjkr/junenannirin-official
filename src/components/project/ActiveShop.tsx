@@ -5,6 +5,9 @@ import { useRouter } from "next/navigation";
 import SectionProject from "./SectionProject";
 import SectionItems from "./SectionItems";
 import SectionPlaceOrder from "./SectionPlaceOrder";
+import { useUserPurchaseSummary } from "@/hooks/useProfile";
+import SectionPurchaseSummary from "./SectionPurchaseSummary";
+import LoadingOverlay from "../LoadingOverlay";
 
 export default function ActiveShop({
   data,
@@ -19,10 +22,11 @@ export default function ActiveShop({
   const { project, rewards, bank } = data;
   const [canPlaceOrder, setCanPlaceOrder] = useState(false);
 
+  const { shopSummary, isLoading } = useUserPurchaseSummary(project.id.toString());
+
   useEffect(() => {
     if (!project) return;
 
-    // 🔥 set localStorage แยก
     if (!localStorage.getItem("project")) {
       localStorage.setItem(
         "project",
@@ -150,7 +154,15 @@ export default function ActiveShop({
 
   return (
     <>
+    {isLoading && <LoadingOverlay />}
       <SectionProject data={data} theme={theme} />
+      {user && (
+        <SectionPurchaseSummary
+          data={shopSummary}
+          theme={theme}
+          user={user}
+        />
+      )}
       <SectionItems
         data={rewards}
         theme={theme}
