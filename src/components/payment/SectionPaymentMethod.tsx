@@ -16,6 +16,14 @@ export default function SectionPaymentMethod({
   data: any;
   setPopup: (v: any) => void;
 }) {
+   let bank_logo = "";
+  if (data?.bank_short_name.toLowerCase() == "ktb") {
+    bank_logo = "/bank/KTB.png";
+  } else if (data?.bank_short_name.toLowerCase() == "kbank") {
+    bank_logo = "/bank/KBANK.png";
+  } else if (data?.bank_short_name.toLowerCase() == "promptpay") {
+    bank_logo = "/bank/promptpay.png";
+  }
   return (
     <section
       className="bg-white rounded-lg border p-4 shadow-sm mt-4"
@@ -45,7 +53,12 @@ export default function SectionPaymentMethod({
             color: `${theme.secondary}`,
           }}
         >
-          {data?.bank_short_name?.toUpperCase() || ""}
+          <img
+            src={bank_logo}
+            alt="bank_logo"
+            className="w-8 h-8 object-cover"
+          />
+          {/* {data?.bank_short_name?.toUpperCase() || ""} */}
         </div>
         <div className="flex-1">
           <p
