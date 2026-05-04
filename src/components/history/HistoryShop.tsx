@@ -59,7 +59,7 @@ export default function SectionHistoryShop({ className = "", data }: Props) {
               </div>
             </div>
           )) : (
-            <div className="col-span-12 bg-white border border-pinkAccent rounded-xl shadow-sm p-3 flex justify-center items-center h-[200px] text-sm font-semibold">No Data</div>
+            <div className="col-span-12 bg-white border border-pinkAccent rounded-xl shadow-sm p-3 flex justify-center items-center h-[200px] text-sm">No Data</div>
           )}
       </div>
     </section>
