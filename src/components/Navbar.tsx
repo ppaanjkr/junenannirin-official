@@ -105,27 +105,27 @@ export default function Navbar({ user }: { user: any }) {
                 {isProfileOpen && (
                   <div className="absolute right-0 top-8 bg-white shadow-lg rounded-xl w-40 overflow-hidden border border-secondary/20">
                     <button
-                      className="block px-4 py-2 hover:bg-primary cursor-pointer hover:bg-pinkAccent/50"
+                      className="block px-4 py-2 hover:bg-primary cursor-pointer hover:bg-pinkAccent/50 w-full text-left"
                       onClick={() => handleGoToPage("profile")}
                     >
                       Profile
                     </button>
                     <button
-                      className="block px-4 py-2 hover:bg-primary cursor-pointer hover:bg-pinkAccent/50"
+                      className="block px-4 py-2 hover:bg-primary cursor-pointer hover:bg-pinkAccent/50 w-full text-left"
                       onClick={() => handleGoToPage("history")}
                     >
                       History
                     </button>
                     {user?.team === "admin" && (
                       <button
-                        className="block px-4 py-2 hover:bg-primary cursor-pointer hover:bg-pinkAccent/50"
+                        className="block px-4 py-2 hover:bg-primary cursor-pointer hover:bg-pinkAccent/50 w-full text-left"
                         onClick={() => handleGoToPage("admin")}
                       >
                         Admin
                       </button>
                     )}
                     <button
-                      className="block px-4 py-2 hover:bg-primary cursor-pointer hover:bg-pinkAccent/50"
+                      className="block px-4 py-2 hover:bg-primary cursor-pointer hover:bg-pinkAccent/50 w-full text-left"
                       onClick={handleLogout}
                     >
                       Logout
