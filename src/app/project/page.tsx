@@ -51,7 +51,7 @@ export default function Home() {
           <>
             {activeData &&
               (activeData.project.type === "donation" ? (
-                <ActiveProject data={activeData} />
+                <ActiveProject data={activeData} user={user} />
               ) : (
                 <ActiveShop data={activeData} user={user} />
               ))}

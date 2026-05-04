@@ -66,25 +66,31 @@ export type Reward = {
 // 🔹 DONATION
 // ------------------------
 export type Donation = {
-  id: number;
-  project_id: number;
-  user_id: string;
-  input_amount: number;
-  verified_amount: number;
-  status: boolean;
-  ref_id: string;
-  is_counted: string;
-  message: string;
-  created_at: string;
-  verified_at: string;
+  // id: number;
+  // project_id: number;
+  // user_id: string;
+  // input_amount: number;
+  // verified_amount: number;
+  // status: boolean;
+  // ref_id: string;
+  // is_counted: string;
+  // message: string;
+  // created_at: string;
+  // verified_at: string;
+  id: number,
+  name: string,
+  amount: number,
+  created_at: string
 };
 
 // ------------------------
 // 🔹 TOP SPENDER
 // ------------------------
 export type TopSpender = {
+  user_id: string;
   name: string;
   total: number;
+  count: number;
 };
 
 export type Bank = {
@@ -131,11 +137,21 @@ export type History = {
   donation: HistoryDonation[];
 }
 
+export type UserDonationSummery = {
+  total_amount: number;
+  rewards: {
+    reward_id: string;
+    title: string;
+    qty: number
+  }[];
+}
+
 // ------------------------
 // 🔹 RESPONSES
 // ------------------------
 export type ProfileSummaryResponse = ApiResponse<ProfileSummary>;
 export type ProfileHistoryResponse = ApiResponse<History>;
+export type UserDonationSummeryResponse = ApiResponse<UserDonationSummery>;
 
 export type ProjectListResponse = ApiResponse<Project[]>;
 

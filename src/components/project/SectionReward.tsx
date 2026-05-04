@@ -3,15 +3,24 @@ import type { ActiveProjectData } from "@/lib/api/types";
 import { driveThumb } from "@/lib/workUtils";
 import { formatTHB } from "@/lib/formatTHB";
 
-interface Props {
-  project: ActiveProjectData;
-}
-export default function SectionReward({ data }: { data: ActiveProjectData }) {
+type Theme = {
+  secondary: string;
+  accent: string;
+};
+export default function SectionReward({
+  data,
+  theme,
+}: {
+  data: ActiveProjectData;
+  theme: Theme;
+}) {
   const { rewards } = data;
 
   return (
     <section className="mt-4">
-      <span className="text-lg">Souvenirs for fans</span>
+      <div className="flex justify-between items-center mt-6">
+        <span className="text-xl font-semibold">Souvenirs for fans</span>
+      </div>
       {rewards && rewards.length > 0 && (
         <div className="grid grid-cols-12 gap-2 mt-2">
           {rewards.map((reward, index) => {
@@ -21,23 +30,36 @@ export default function SectionReward({ data }: { data: ActiveProjectData }) {
                 className="col-span-6 lg:col-span-3 bg-white rounded-md shadow-sm "
               >
                 <div className="">
-                  <div className="h-[150px] overflow-hidden bg-pinkAccent border-none">
+                  <div
+                    className="h-[150px] overflow-hidde border-none"
+                    style={{
+                      backgroundColor: `${theme.accent}`,
+                    }}
+                  >
                     {reward.image_url && reward.image_url != "" && (
-                        <img
-                            src={driveThumb(reward.image_url)}
-                            alt=""
-                            className="w-full h-full object-cover object-center block"
-                        />
+                      <img
+                        src={driveThumb(reward.image_url)}
+                        alt=""
+                        className="w-full h-full object-cover object-center block"
+                      />
                     )}
-                    
                   </div>
                   <div className="p-3">
                     {/* price */}
-                    <div className="inline-block text-[11px] font-bold text-pinkSecondary bg-pinkAccent px-2 py-[3px] rounded-full mb-1.5">
-                      min ฿ {formatTHB(reward.min_amount)}
+                    <div
+                      className="inline-block text-[11px] font-bold px-2 py-1 rounded-full mb-1.5"
+                      style={{
+                        backgroundColor: `${theme.accent}`,
+                        color: `${theme.secondary}`,
+                      }}
+                    >
+                      min {formatTHB(reward.min_amount)} THB
                     </div>
-                    <div className="text-sm font-medium text-gray-800">
-                      {reward.title}
+                    <div className="flex flex-col">
+                      <span className="font-medium">{reward.title}</span>
+                      <span className="text-xs text-textSub">
+                        {reward.description}
+                      </span>
                     </div>
                   </div>
                 </div>

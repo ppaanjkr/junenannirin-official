@@ -2,16 +2,26 @@ import { formatThaiDateWithTime } from "@/lib/formatThaiDate";
 import type { ActiveProjectData } from "@/lib/api/types";
 import { driveThumb } from "@/lib/workUtils";
 import { formatTHB } from "@/lib/formatTHB";
+import { Check } from "lucide-react";
 
-interface Props {
-  project: ActiveProjectData;
-}
-export default function SectionGoal({ data }: { data: ActiveProjectData }) {
+type Theme = {
+  secondary: string;
+  accent: string;
+};
+export default function SectionGoal({
+  data,
+  theme,
+}: {
+  data: ActiveProjectData;
+  theme: Theme;
+}) {
   const { project, targets } = data;
 
   return (
     <section className="mt-4">
-      <span className="text-lg">Donate Goal</span>
+      <div className="flex justify-between items-center mt-6">
+        <span className="text-xl font-semibold">Donate Goal</span>
+      </div>
       {targets && targets.length > 0 && (
         <div className="grid grid-cols-12 gap-2 mt-2">
           {targets.map((target, index) => {
@@ -21,27 +31,50 @@ export default function SectionGoal({ data }: { data: ActiveProjectData }) {
             return (
               <div
                 key={target.step}
-                className="col-span-12 md:col-span-6 lg:col-span-3 bg-white rounded-md p-5 shadow-sm border border-gray-100"
+                className="col-span-12 md:col-span-6 bg-white rounded-md p-5 shadow-sm border"
+                style={{
+                  borderColor: `${theme.accent}`,
+                }}
               >
                 <div className="flex items-start gap-3">
                   {isDone ? (
-                    <div className="w-10 h-10 rounded-full bg-pinkSecondary flex items-center justify-center shadow-sm">
-                      <img src="/project/check.png" className="w-5" />
+                    <div
+                      className="w-10 h-10 rounded-full flex items-center justify-center shadow-sm"
+                      style={{
+                        backgroundColor: `${theme.secondary}`,
+                      }}
+                    >
+                      <Check
+                        className="w-6 h-6 stroke-12"
+                        style={{
+                          color: `${theme.accent}`,
+                        }}
+                      />
                     </div>
                   ) : (
-                    <div className="w-10 h-10 rounded-xl bg-pinkAccent text-gray-700 font-semibold flex items-center justify-center">
+                    <div
+                      className="w-10 h-10 rounded-xl text-textSub font-semibold flex items-center justify-center"
+                      style={{
+                        backgroundColor: `${theme.accent}`,
+                      }}
+                    >
                       {index + 1}
                     </div>
                   )}
 
                   <div className="flex-1">
-                    <div className="text-pinkSecondary font-semibold text-[16px]">
-                      ฿ {formatTHB(amount)}
+                    <div
+                      className="font-semibold text-xl"
+                      style={{
+                        color: `${theme.secondary}`,
+                      }}
+                    >
+                      {formatTHB(amount)} THB
                     </div>
-                    <div className="font-semibold text-[16px] text-gray-800">
+                    <div className="font-semibold">
                       {target.title}
                     </div>
-                    <p className="text-sm text-gray-500 mt-1 line-clamp-3">
+                    <p className="text-sm text-textSub mt-1 line-clamp-3">
                       {target.description}
                     </p>
                     {target.image_url && (

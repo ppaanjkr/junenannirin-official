@@ -75,7 +75,7 @@ export default function SectionProject({
                 style={{ backgroundColor: theme.secondary }}
               ></span>
             </span>
-            {daysLeft} days left
+            {daysLeft === 0 ? "Expired" : daysLeft + "days left"} 
           </span>
         </div>
 
@@ -124,9 +124,9 @@ export default function SectionProject({
                   className="text-lg font-semibold"
                   style={{ color: theme.secondary }}
                 >
-                  ฿ {formatTHB(current)}
+                  {formatTHB(current)} THB
                 </span>
-                <span>฿ {formatTHB(target)}</span>
+                <span>{formatTHB(target)} THB</span>
               </div>
 
               {/* bar */}
