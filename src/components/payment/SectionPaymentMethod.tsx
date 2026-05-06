@@ -117,12 +117,6 @@ export default function SectionPaymentMethod({
             className="w-8 h-8 object-cover"
           />
           {/* {data?.bank_short_name?.toUpperCase() || ""} */}
-          <img
-            src={bank_logo}
-            alt="bank_logo"
-            className="w-8 h-8 object-cover"
-          />
-          {/* {data?.bank_short_name?.toUpperCase() || ""} */}
         </div>
         <div className="flex-1">
           <p
