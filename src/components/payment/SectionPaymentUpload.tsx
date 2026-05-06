@@ -15,7 +15,7 @@ export default function SectionPaymentUpload({
   setPopup,
   loading,
   data,
-  total
+  total,
 }: {
   theme: Theme;
   setLoading: (v: boolean) => void;
@@ -103,7 +103,7 @@ export default function SectionPaymentUpload({
     //     });
     //     return;
     // }
-  
+
     // if(slip.data.amount === total){
     //   setLoading(false);
     //   setPopup({
@@ -160,7 +160,6 @@ export default function SectionPaymentUpload({
       setTimeout(() => {
         window.location.href = "/project";
       }, 1200);
-
     } catch (err: any) {
       console.error(err);
       setPopup({
@@ -169,10 +168,15 @@ export default function SectionPaymentUpload({
         message: err.message || "Something error",
       });
     } finally {
-      setLoading(false); 
+      setLoading(false);
     }
   }
-  function getOrderPayload(referenceId:string, transRef:string, dateTime:string, amount:number) {
+  function getOrderPayload(
+    referenceId: string,
+    transRef: string,
+    dateTime: string,
+    amount: number,
+  ) {
     try {
       const userRaw = localStorage.getItem("user");
       const projectRaw = localStorage.getItem("project");
@@ -197,7 +201,7 @@ export default function SectionPaymentUpload({
         referenceId: referenceId,
         transRef: transRef,
         dateTime: dateTime,
-        amount: amount
+        amount: amount,
       };
     } catch (err) {
       console.error("payload error", err);
@@ -219,10 +223,9 @@ export default function SectionPaymentUpload({
       throw new Error("Invalid bank");
     }
 
-    const account_no = data.account_no.replace(/-/g, "");;
+    const account_no = data.account_no.replace(/-/g, "");
     const account_name = data.account_name;
     const account_name_en = data.account_name_en;
-
 
     const formData = new FormData();
 
@@ -243,16 +246,13 @@ export default function SectionPaymentUpload({
       }),
     );
 
-    const res = await fetch(
-      `${process.env.NEXT_PUBLIC_SLIP2GO_API}`,
-      {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${process.env.NEXT_PUBLIC_SLIP2GO_KEY}`,
-        },
-        body: formData,
+    const res = await fetch(`${process.env.NEXT_PUBLIC_SLIP2GO_API}`, {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${process.env.NEXT_PUBLIC_SLIP2GO_KEY}`,
       },
-    );
+      body: formData,
+    });
 
     const result = await res.json();
 
@@ -302,15 +302,19 @@ export default function SectionPaymentUpload({
 
           {/* FILLED */}
           {file && (
-            <div className="flex items-center gap-3 text-left">
+            <div className="flex items-center gap-3 text-left w-full">
               <img
                 src={preview}
-                className="w-16 h-16 rounded-lg object-cover"
+                className="w-16 h-16 rounded-lg object-cover flex-shrink-0"
               />
 
-              <div className="flex-1">
+              <div className="flex-1 min-w-0">
                 <p className="font-semibold text-sm truncate">{file.name}</p>
-                <p className="text-xs" style={{ color: theme.secondary }}>
+
+                <p
+                  className="text-xs truncate"
+                  style={{ color: theme.secondary }}
+                >
                   {(file.size / 1024).toFixed(1)} KB • uploaded
                 </p>
               </div>
@@ -318,7 +322,7 @@ export default function SectionPaymentUpload({
               <button
                 type="button"
                 onClick={removeFile}
-                className="w-8 h-8 flex items-center justify-center rounded-lg"
+                className="w-8 h-8 flex items-center justify-center rounded-lg flex-shrink-0"
                 style={{ backgroundColor: `${theme.secondary}10` }}
               >
                 ✕
