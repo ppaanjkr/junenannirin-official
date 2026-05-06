@@ -1,9 +1,9 @@
 "use client";
 
 import { useUserContext } from "@/context/UserContext";
-import { getProfileHistory, getProfileSummary } from "@/lib/api/user";
+import { getProfileHistory, getProfileSummary, getUserShopSummary } from "@/lib/api/user";
 import { useEffect, useState } from "react";
-import type { HistoryDonation, HistoryShop, ProfileSummary } from "@/lib/api/types";
+import type { HistoryDonation, HistoryShop, ProfileSummary, UserPurchaseSummery } from "@/lib/api/types";
 
 export default function useProfileSummary() {
   const { user } = useUserContext();
@@ -72,6 +72,40 @@ export function useProfileHistory() {
   return {
     shop,
     donation,
+    isLoading,
+  };
+}
+
+export function useUserPurchaseSummary(project_id: string) {
+  const { user } = useUserContext();
+
+  const [shopSummary, setShopSummary] = useState<UserPurchaseSummery | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
+
+  useEffect(() => {
+    if (!user?.uuid) return; 
+
+    const fetchData = async () => {
+      setIsLoading(true);
+
+      try {
+        const res = await getUserShopSummary(project_id, user.uuid);
+
+        if (res.success) {
+          setShopSummary(res.data);
+        }
+      } catch (err) {
+        console.error("fetch profile summary error:", err);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchData();
+  }, [user?.uuid]); 
+
+  return {
+    shopSummary,
     isLoading,
   };
 }

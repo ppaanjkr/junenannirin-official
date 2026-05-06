@@ -131,11 +131,29 @@ export type History = {
   donation: HistoryDonation[];
 }
 
+export type UserPurchaseSummery = {
+  total_amount: number;
+  items: {
+    reward_id: string,
+    title: string,
+    min_amount: number,
+    qty: number
+  }[];
+  shipment: {
+    tracking_no: string,
+    carrier: string,
+    status: string
+  }
+  sub_status: string
+}
+
 // ------------------------
 // 🔹 RESPONSES
 // ------------------------
 export type ProfileSummaryResponse = ApiResponse<ProfileSummary>;
 export type ProfileHistoryResponse = ApiResponse<History>;
+
+export type UserPurchaseSummeryResponse = ApiResponse<UserPurchaseSummery>;
 
 export type ProjectListResponse = ApiResponse<Project[]>;
 

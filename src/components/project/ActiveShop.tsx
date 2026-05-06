@@ -1,10 +1,13 @@
 import { getThemeColors } from "@/lib/theme";
 import type { ActiveProjectData } from "@/lib/api/types";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import SectionProject from "./SectionProject";
 import SectionItems from "./SectionItems";
 import SectionPlaceOrder from "./SectionPlaceOrder";
+import { useUserPurchaseSummary } from "@/hooks/useProfile";
+import SectionPurchaseSummary from "./SectionPurchaseSummary";
+import LoadingOverlay from "../LoadingOverlay";
 
 export default function ActiveShop({
   data,
@@ -14,28 +17,44 @@ export default function ActiveShop({
   user: any;
 }) {
   const router = useRouter();
+  const clearedRef = useRef(false);
 
   const { project, rewards, bank } = data;
+  const [canPlaceOrder, setCanPlaceOrder] = useState(false);
+
+  const { shopSummary, isLoading } = useUserPurchaseSummary(project.id.toString());
 
   useEffect(() => {
     if (!project) return;
 
-    if (localStorage.getItem("project")) return;
+    if (!localStorage.getItem("project")) {
+      localStorage.setItem(
+        "project",
+        JSON.stringify({
+          id: project.id,
+          name: project.name,
+          theme_color: project.theme_color,
+          bank_name: bank.bank_name || "",
+          bank_short_name: bank.bank_short_name || "",
+          account_name: bank.account_name || "",
+          account_name_en: bank.account_name_en || "",
+          account_no: bank.account_no || "",
+          qrcode: bank.qrcode || "",
+        }),
+      );
+    }
 
-    localStorage.setItem(
-      "project",
-      JSON.stringify({
-        id: project.id,
-        name: project.name,
-        theme_color: project.theme_color,
-        bank_name: bank.bank_name || "",
-        bank_short_name: bank.bank_short_name || "",
-        account_name: bank.account_name || "",
-        account_name_en: bank.account_name_en || "",
-        account_no: bank.account_no || "",
-        qrcode: bank.qrcode || "",
-      }),
-    );
+    const end = project.end_date ? new Date(project.end_date).getTime() : null;
+    const isExpired = end && end < Date.now();
+    setCanPlaceOrder(!isExpired);
+
+    if (isExpired && !clearedRef.current) {
+      clearedRef.current = true;
+
+      localStorage.removeItem("cart");
+      localStorage.removeItem("fc_cart");
+      localStorage.removeItem("fc_order");
+    }
   }, [project]);
 
   const [projectData, setProjectData] = useState<any>(null);
@@ -69,12 +88,14 @@ export default function ActiveShop({
 
   // action
   function inc(id: number) {
+    if (!canPlaceOrder) return;
     setCart((prev) => ({
       ...prev,
       [id]: (prev[id] || 0) + 1,
     }));
   }
   function dec(id: number) {
+    if (!canPlaceOrder) return;
     setCart((prev) => {
       const newCart = { ...prev };
 
@@ -133,7 +154,15 @@ export default function ActiveShop({
 
   return (
     <>
+    {isLoading && <LoadingOverlay />}
       <SectionProject data={data} theme={theme} />
+      {user && (
+        <SectionPurchaseSummary
+          data={shopSummary}
+          theme={theme}
+          user={user}
+        />
+      )}
       <SectionItems
         data={rewards}
         theme={theme}
@@ -141,8 +170,9 @@ export default function ActiveShop({
         cart={cart}
         inc={inc}
         dec={dec}
+        canPlaceOrder={canPlaceOrder}
       />
-      {user && (
+      {user && canPlaceOrder && (
         <SectionPlaceOrder
           theme={theme}
           total={total}

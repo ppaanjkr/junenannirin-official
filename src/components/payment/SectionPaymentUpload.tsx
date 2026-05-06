@@ -92,6 +92,17 @@ export default function SectionPaymentUpload({
     //     });
     //     return;
     // }
+    // const slipSuccessCode = ["200200", "200000"];
+    // if (!slip || !slipSuccessCode.includes(slip.code)) {
+    //   setLoading(false);
+    //   const message = slip.message || "Invalid slip";
+    //     setPopup({
+    //       open: true,
+    //       type: "error",
+    //       message: message,
+    //     });
+    //     return;
+    // }
   
     // if(slip.data.amount === total){
     //   setLoading(false);
