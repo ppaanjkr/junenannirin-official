@@ -302,16 +302,21 @@ export default function SectionPaymentUpload({
           )}
 
           {/* FILLED */}
+          {/* FILLED */}
           {file && (
-            <div className="flex items-center gap-3 text-left">
+            <div className="flex items-center gap-3 text-left w-full">
               <img
                 src={preview}
-                className="w-16 h-16 rounded-lg object-cover"
+                className="w-16 h-16 rounded-lg object-cover flex-shrink-0"
               />
 
-              <div className="flex-1">
+              <div className="flex-1 min-w-0">
                 <p className="font-semibold text-sm truncate">{file.name}</p>
-                <p className="text-xs" style={{ color: theme.secondary }}>
+
+                <p
+                  className="text-xs truncate"
+                  style={{ color: theme.secondary }}
+                >
                   {(file.size / 1024).toFixed(1)} KB • uploaded
                 </p>
               </div>
@@ -319,7 +324,7 @@ export default function SectionPaymentUpload({
               <button
                 type="button"
                 onClick={removeFile}
-                className="w-8 h-8 flex items-center justify-center rounded-lg"
+                className="w-8 h-8 flex items-center justify-center rounded-lg flex-shrink-0"
                 style={{ backgroundColor: `${theme.secondary}10` }}
               >
                 ✕
