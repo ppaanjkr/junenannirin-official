@@ -33,6 +33,7 @@ export type Project = {
   type: "shop" | "donation";
   theme_color?: string;
   status_sub?: string;
+  img_more?: string;
 };
 
 // ------------------------

@@ -301,6 +301,7 @@ export default function SectionPaymentUpload({
           )}
 
           {/* FILLED */}
+          {/* FILLED */}
           {file && (
             <div className="flex items-center gap-3 text-left w-full">
               <img

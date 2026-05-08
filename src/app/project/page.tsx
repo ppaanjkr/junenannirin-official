@@ -44,7 +44,7 @@ export default function Home() {
       />
       <main className="max-w-5xl mx-auto px-6 py-4 md:max-w-3xl">
         {!user && <LineLogin />}
-        {isLoading && <LoadingOverlay />}
+        {(loading || isLoading) && <LoadingOverlay />}
 
         {/* {!activeData && <ProjectList projects={projects} />} */}
         {!isLoading && projects.length > 0 && (
