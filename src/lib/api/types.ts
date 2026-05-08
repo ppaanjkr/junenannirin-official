@@ -13,7 +13,7 @@ export type ProfileSummary = {
   totalProjects: number | 0;
   totalOrders: number | 0;
   totalAmount: number | 0;
-}
+};
 
 // ------------------------
 // 🔹 PROJECT
@@ -95,7 +95,9 @@ export type Bank = {
   account_name_en: string;
   account_no: string;
   qrcode: string;
-}
+  active: boolean;
+  created_at: string;
+};
 
 export type HistoryShop = {
   order_id: string;
@@ -105,7 +107,7 @@ export type HistoryShop = {
     id: number;
     name: string;
     image_url: string;
-  }
+  };
   items: {
     reward_id: number;
     title: string;
@@ -114,38 +116,49 @@ export type HistoryShop = {
     qty: number;
     price: number;
     total: number;
-  }[],
-}
+  }[];
+};
 export type HistoryDonation = {
   donation_id: number;
   project: {
     id: number;
     name: string;
     image_url: string;
-  }
+  };
   amount: number;
   created_at: string;
-}
+};
 export type History = {
   shop: HistoryShop[];
   donation: HistoryDonation[];
-}
+};
 
 export type UserPurchaseSummery = {
   total_amount: number;
   items: {
-    reward_id: string,
-    title: string,
-    min_amount: number,
-    qty: number
+    reward_id: string;
+    title: string;
+    min_amount: number;
+    qty: number;
   }[];
   shipment: {
-    tracking_no: string,
-    carrier: string,
-    status: string
-  }
-  sub_status: string
-}
+    tracking_no: string;
+    carrier: string;
+    status: string;
+  };
+  sub_status: string;
+};
+
+export type User = {
+  uuid: string;
+  name: string;
+  username: string;
+  phone: string;
+  address: string;
+  team: string;
+  active: boolean;
+  created_at: string;
+};
 
 // ------------------------
 // 🔹 RESPONSES
@@ -167,4 +180,48 @@ export type ActiveProjectData = {
   bank: Bank;
 };
 
+export type AdminProjectDetail = {
+  project: Project;
+  summary: {
+    totalRevenue: number;
+    totalOrders: number;
+    totalUsers: number;
+  };
+  shop?: {
+    rewardSummary?: {
+      reward_id: number;
+      title: string;
+      total_qty: number;
+    }[];
+    itemSummary?: {
+      name: string;
+      qty: number;
+    }[];
+  };
+  donation?: {
+    targets?: {
+      id: number;
+      step: number;
+      amout: number;
+      title: string;
+      description: string;
+      image_url: string;
+      created_at: string;
+    }[];
+    reward_summary?: {
+      reward_id: number;
+      title: string;
+      total_qty: number;
+    }[];
+    item_usage_summary?: {
+      item_name: string;
+      total_qty: number;
+    }[];
+  }
+}
+
 export type ActiveProjectResponse = ApiResponse<ActiveProjectData | null>;
+
+export type AdminBanksResponse = ApiResponse<Bank[] | null>;
+export type AdminUsersResponse = ApiResponse<User[] | null>;
+export type AdminProjectDetailResponse = ApiResponse<AdminProjectDetail | null>;

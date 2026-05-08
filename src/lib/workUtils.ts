@@ -30,3 +30,15 @@ export function randomNumeric(length = 12) {
     Math.floor(Math.random() * 10)
   ).join("");
 }
+
+export function getBankLogo(shortName?: string) {
+  if (!shortName) return "";
+
+  const key = shortName.toLowerCase();
+
+  if (key === "ktb") return "/bank/KTB.png";
+  if (key === "kbank") return "/bank/KBANK.png";
+  if (key === "promptpay") return "/bank/promptpay.png";
+
+  return "";
+}
