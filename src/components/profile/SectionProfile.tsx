@@ -12,18 +12,19 @@ export default function SectionProfile({
   className = "",
   profile
 }: Props) {
-  let image = "/teams/june.jpg";
+  let image = "/icon/june_logo_circle.png";
   if(user){
-    if(user.team === "admin"){
-        image = "/teams/admin.jpg";
-    }else if(user.team === "dollar"){
-        image = "/teams/dollar.png";
-    }else if(user.team === "darling"){
-        image = "/teams/darling.png";
+    if(user.team === "JuneMeaw"){
+        image = "/teams/JuneMeaw.jpg";
+    }else if(user.team === "PNan"){
+        image = "/teams/PNan.png";
+    }else if(user.team === "JuneLookchinMoodeng"){
+        image = "/teams/JuneLookchinMoodeng.png";
+    }else if(user.team === "admin"){
+        image = "/icon/june_logo_circle.png";
     }
   }
 
-  
   return (
     <section className={className}>
       <div className="bg-white rounded-2xl border border-pink-100 shadow-sm p-5 md:p-6 h-full">
@@ -32,7 +33,7 @@ export default function SectionProfile({
             <img
               src={image}
               alt="avatar"
-              className="w-24 h-24 md:w-28 md:h-28 rounded-full object-cover ring-4 ring-pink-100"
+              className="w-24 h-24 md:w-28 md:h-28 rounded-full object-cover ring-4 ring-pinkAccent"
             />
           </div>
 

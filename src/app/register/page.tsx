@@ -11,9 +11,9 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
 
 const options = [
-  { value: "june", label: "🐈‍⬛ June" },
-  { value: "dollar", label: "🍗 Dollar" },
-  { value: "darling", label: "🎀 Darling" },
+  { value: "JuneMeaw", label: "JuneMeaw" },
+  { value: "PNan", label: "P'Nan" },
+  { value: "JuneLookchinMoodeng", label: "JuneLookchinMoodeng" },
 ];
 
 export default function Page() {
@@ -53,18 +53,18 @@ export default function Page() {
     } catch {}
   }, []);
 
- useEffect(() => {
-  if (!tempUser) return;
+  useEffect(() => {
+    if (!tempUser) return;
 
-  if (tempUser.status === "EXIST") {
-    localStorage.setItem("user", JSON.stringify(tempUser)); // login จริง
-    setUser(tempUser);
+    if (tempUser.status === "EXIST") {
+      localStorage.setItem("user", JSON.stringify(tempUser)); // login จริง
+      setUser(tempUser);
 
-    sessionStorage.removeItem("tempUser");
+      sessionStorage.removeItem("tempUser");
 
-    router.replace("/project");
-  }
-}, [tempUser]);
+      router.replace("/project");
+    }
+  }, [tempUser]);
 
   const [loading, setLoading] = useState(false);
 
@@ -215,10 +215,7 @@ export default function Page() {
         onClose={() => setPopup({ ...popup, open: false })}
       />
       <main className="max-w-5xl mx-auto px-6 py-4 md:max-w-3xl">
-        <SectionBack
-          onclick={() => router.replace("/")}
-          title={"Register"}
-        />
+        <SectionBack onclick={() => router.replace("/")} title={"Register"} />
         <section className="rounded-md bg-white shadow-sm p-4">
           <div className="flex justify-center">
             <span className="px-3 py-2 rounded-full bg-pinkAccent text-sm font-semibold">
