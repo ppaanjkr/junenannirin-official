@@ -9,7 +9,7 @@ import ActiveShop from "@/components/project/ActiveShop";
 import { useUserContext } from "@/context/UserContext";
 import useAuthGuard from "@/hooks/useAuthGuard";
 import useProjectData from "@/hooks/useProjectData";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 
 export default function Home() {
   const { user, loading, setUser } = useUserContext();
@@ -44,7 +44,7 @@ export default function Home() {
       />
       <main className="max-w-5xl mx-auto px-6 py-4 md:max-w-3xl">
         {!user && <LineLogin />}
-        {(loading || isLoading) && <LoadingOverlay />}
+        {isLoading && <LoadingOverlay />}
 
         {/* {!activeData && <ProjectList projects={projects} />} */}
         {!isLoading && projects.length > 0 && (

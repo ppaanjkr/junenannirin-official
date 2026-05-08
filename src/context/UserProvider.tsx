@@ -5,6 +5,7 @@ import { useRouter, usePathname } from "next/navigation";
 import useUser from "../hooks/useUser";
 import Navbar from "../components/Navbar";
 import { UserContext } from "./UserContext";
+import LoadingOverlay from "@/components/LoadingOverlay";
 
 export default function UserProvider({
   children,
@@ -23,13 +24,14 @@ export default function UserProvider({
     if (isAdminPage && (!user || user.team !== "admin")) {
       router.replace("/");
     }
-
   }, [pathname, user, loading]);
 
-  if (loading) return null; 
+  if (loading) {
+    return <LoadingOverlay />;
+  }
 
   return (
-    <UserContext.Provider value={{ user, loading, setUser  }}>
+    <UserContext.Provider value={{ user, loading, setUser }}>
       <div className="text-textMain">
         <Navbar user={user} />
         {children}
