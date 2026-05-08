@@ -33,7 +33,7 @@ export default function SectionItems({
     <section>
       <div className="flex justify-between items-center mt-6">
         <span className="text-xl font-semibold">Items</span>
-        {canPlaceOrder && <span className="text-sm text-text-sub">You can place order now</span>}
+        {canPlaceOrder && <span className="text-sm text-text-sub">{itemCount} items</span>}
         {/* <span className="text-sm text-text-sub" id="itemCount">
           {itemCount} items
         </span> */}
@@ -46,7 +46,7 @@ export default function SectionItems({
             return (
               <div key={item.id} className="col-span-6 lg:col-span-4">
                 <div
-                  className="bg-white border rounded-xl overflow-hidden shadow-sm flex flex-col h-full"
+                  className="bg-white border rounded-lg overflow-hidden shadow-sm flex flex-col h-full"
                   style={{ borderColor: `${theme.secondary}33` }}
                 >
                   {/* IMAGE */}
@@ -55,7 +55,8 @@ export default function SectionItems({
                     className="w-full h-40 md:h-56 object-cover"
                     loading="lazy"
                   /> */}
-                  <ImagePreviewModal src={driveThumb(item.image_url)} className="w-full h-40 md:h-56 object-cover"/>
+                  <ImagePreviewModal src={driveThumb(item.image_url)} className="w-full h-56 md:h-72 object-cover"/>
+                  {/* <ImagePreviewModal src={`test.jpg`} className="w-full h-56 md:h-72 object-cover"/> */}
 
                   {/* CONTENT */}
                   <div className="py-3 px-2 flex flex-col gap-1 flex-1">

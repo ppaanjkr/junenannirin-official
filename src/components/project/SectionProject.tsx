@@ -115,6 +115,12 @@ export default function SectionProject({
             </span>
           </div>
 
+          {/* more img */}
+          <div>
+            <ImagePreviewModal src={driveThumb(project.img_more)} alt={project.name} className="w-full object-center"/>
+            {/* <ImagePreviewModal src={`test.jpg`} alt={project.name} className="w-full object-center"/> */}
+          </div>
+
           {/* progress */}
           {project.type === "donation" && (
             <div className="pt-2">
