@@ -66,7 +66,6 @@ export function useProjectDetail(project_id: string) {
       try {
         const id = Number(project_id);
         const { data } = await getAdminProjectDetail(id);
-        console.log(data);
 
         setProject(data ?? undefined);
       } catch (err) {

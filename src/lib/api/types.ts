@@ -193,6 +193,8 @@ export type AdminProjectDetail = {
       reward_id: number;
       title: string;
       total_qty: number;
+      image_url?: string;
+      price?: number;
     }[];
     itemSummary?: {
       name: string;

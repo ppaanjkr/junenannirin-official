@@ -19,14 +19,8 @@ export default function Page({ params }: { params: { id: string } }) {
   const { user, loading } = useUserContext();
 
   const { project, isDetailLoading } = useProjectDetail(id);
-  const [title, setTitle] = useState("-");
-  const [type, setType] = useState("");
-  useEffect(() => {
-    if (project) {
-      setTitle(project.project.name);
-      setType(project.project.type);
-    }
-  }, [project]);
+  const title = project?.project?.name || "-";
+  const type = project?.project?.type || "";
 
   const [tab, setTab] = useState("summary");
 
@@ -43,9 +37,17 @@ export default function Page({ params }: { params: { id: string } }) {
       <main className="max-w-5xl mx-auto px-6 py-4 md:max-w-3xl">
         <SectionBack onclick={() => router.replace("/admin")} title={title} />
         <TabAdmin type="shop" tab={tab} setTab={setTab} />
-        {tab === "summary" && <SectionProjectSummary />}
+        {tab === "summary" && (
+          <SectionProjectSummary
+            summary={project?.summary}
+            shop={project?.shop}
+            donation={project?.donation}
+          />
+        )}
 
-        {tab === "project" && <SectionProjectDetail project={project?.project} />}
+        {tab === "project" && (
+          <SectionProjectDetail project={project?.project} />
+        )}
       </main>
     </>
   );

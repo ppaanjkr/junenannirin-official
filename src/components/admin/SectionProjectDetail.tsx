@@ -1,11 +1,15 @@
 import { Project } from "@/lib/api/types";
+import ProjectDetailFooter from "./project/ProjectDetailFooter";
+import ProjectBasicDetail from "./project/ProjectBasicDetail";
 
 type Props = {
     project?: Project | null;
 };
 export default function SectionProjectDetail({ project }: Props) {
-    console.log(project);
     return (
-        <section className="mt-2">Detail</section>
+        <section className="mt-2">
+            <ProjectBasicDetail project={project} />
+            <ProjectDetailFooter />
+        </section>
     );
 }
