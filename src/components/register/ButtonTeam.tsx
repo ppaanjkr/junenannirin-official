@@ -19,7 +19,7 @@ export default function ButtonTeam({
   onChange,
 }: Props) {
   return (
-    <div className="flex flex-wrap gap-2 mt-1">
+    <div className="flex flex-wrap gap-1 mt-1">
       {options.map((opt) => {
         const isActive = value === opt.value;
 
@@ -37,11 +37,11 @@ export default function ButtonTeam({
 
             {/* chip UI */}
             <span
-              className={`px-4 py-2 rounded-full text-sm font-semibold transition text-center
+              className={`px-3 py-2 rounded-full text-xs font-semibold transition text-center
               ${
                 isActive
                   ? "bg-pinkSecondary/80 text-white shadow-sm"
-                  : "bg-pinkAccent text-textSub"
+                  : "bg-pinkAccent text-gray-500"
               }`}
             >
               {opt.label}
