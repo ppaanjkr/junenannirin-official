@@ -195,6 +195,7 @@ export type AdminProjectDetail = {
       total_qty: number;
       image_url?: string;
       price?: number;
+      description?: string;
     }[];
     itemSummary?: {
       name: string;
@@ -222,9 +223,30 @@ export type AdminProjectDetail = {
     }[];
   }
 }
+export type AdminOrderList = {
+  user: {
+    uuid: string;
+    username: string;
+    name?: string;
+    address?: string;
+    phone?: string;
+  };
+  shipment: {
+    id: number;
+    tracking_no: string;
+    carrier: string;
+  };
+  total_amount: number;
+  total_qty: number;
+  orders?: {
+    reward_id: string;
+    title: string;
+    qty: number;
+  }[];
+}
 
 export type ActiveProjectResponse = ApiResponse<ActiveProjectData | null>;
-
 export type AdminBanksResponse = ApiResponse<Bank[] | null>;
 export type AdminUsersResponse = ApiResponse<User[] | null>;
 export type AdminProjectDetailResponse = ApiResponse<AdminProjectDetail | null>;
+export type AdminProjectOrderResponse = ApiResponse<AdminOrderList[] | null>;

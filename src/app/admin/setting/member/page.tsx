@@ -58,10 +58,7 @@ export default function Page() {
     });
   }, [users, search, teamFilter, statusFilter]);
 
-  // =========================
-  // PAGING
-  // =========================
-
+  // paging
   const totalPages = Math.ceil(filteredUsers.length / pageSize);
 
   const pagedUsers = filteredUsers.slice(
@@ -69,7 +66,7 @@ export default function Page() {
     page * pageSize,
   );
 
-  const teams = [...new Set(users.map((u) => u.team).filter(Boolean))];
+  const teams = Array.from(new Set(users.map((u) => u.team).filter(Boolean)));
 
   return (
     <main className="max-w-5xl mx-auto px-6 py-4 md:max-w-3xl">

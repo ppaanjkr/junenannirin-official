@@ -1,16 +1,17 @@
 import ImagePreviewModal from "@/components/ImagePreviewModal";
+import { formatThaiDate } from "@/lib/formatThaiDate";
 import { driveThumb } from "@/lib/workUtils";
 
 type Props = { project: any };
 export default function ProjectBasicDetail({ project }: Props) {
-  console.log(project);
   return (
     <section>
       <div className="bg-white rounded-lg p-4 shadow-soft border border-pinkAccent">
         <div className="flex justify-between items-center">
-          <span className="border-l-4 border-pinkSecondary w-full pl-4 font-semibold">
-            Project Information
-          </span>
+          <h2 className="font-semibold mb-4 flex items-center gap-2">
+            <span className="w-1.5 h-4 bg-pinkSecondary rounded-full"></span>
+            Information
+          </h2>
           <span className="px-4 py-1 rounded-full bg-pinkAccent text-center text-pinkSecondary text-xs">
             {project.type}
           </span>
@@ -53,10 +54,10 @@ export default function ProjectBasicDetail({ project }: Props) {
             <div className="col-span-6">
               <span>Start Date</span>
               <input
-                type="date"
+                type="text"
                 className="w-full px-4 py-2 border border-pinkAccent rounded-lg outline-none"
                 value={
-                  project.start_date ? project.start_date.split("T")[0] : ""
+                  project.start_date ? formatThaiDate(project.start_date) : ""
                 }
                 disabled
               />
@@ -64,13 +65,24 @@ export default function ProjectBasicDetail({ project }: Props) {
             <div className="col-span-6">
               <span>End Date</span>
               <input
-                type="date"
+                type="text"
                 className="w-full px-4 py-2 border border-pinkAccent rounded-lg outline-none"
-                value={project.end_date ? project.end_date.split("T")[0] : ""}
+                value={project.end_date ? formatThaiDate(project.end_date) : ""}
                 disabled
               />
             </div>
           </div>
+          {project.type === "donation" && (
+            <div className="col-span-12 flex flex-col">
+              <span>Taget Amount</span>
+              <input
+                type="text"
+                className="w-full px-4 py-2 border border-pinkAccent rounded-lg outline-none resize-none"
+                value={project.target_amount}
+                disabled
+              />
+            </div>
+          )}
         </div>
       </div>
     </section>

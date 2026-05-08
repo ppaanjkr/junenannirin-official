@@ -75,7 +75,7 @@ export default function Page() {
     lineUserId: "",
     username: "",
     phone: "",
-    team: "june",
+    team: "",
     name: "",
     address: "",
   });

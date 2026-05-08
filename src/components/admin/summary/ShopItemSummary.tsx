@@ -11,9 +11,10 @@ export default function ShopItemSummary({ shop }: Props) {
     <section className="mt-4">
       {/* item set */}
       <div className="bg-white rounded-lg p-4 shadow-soft border border-pinkAccent">
-        <span className="border-l-4 border-pinkSecondary w-full pl-4 font-semibold">
+        <h2 className="font-semibold mb-4 flex items-center gap-2">
+          <span className="w-1.5 h-4 bg-pinkSecondary rounded-full"></span>
           Product Summary
-        </span>
+        </h2>
         <div className="mt-4 grid grid-cols-12 gap-4">
           {shop &&
             shop.rewardSummary &&
@@ -24,7 +25,11 @@ export default function ShopItemSummary({ shop }: Props) {
               >
                 {/* left */}
                 <div className="flex gap-3 min-w-0">
-                    <ImagePreviewModal src={driveThumb(item.image_url)} alt={item.title} className="w-24 h-24 object-cover rounded-md border border-pinkAccent flex-shrink-0"/>
+                  <ImagePreviewModal
+                    src={driveThumb(item.image_url)}
+                    alt={item.title}
+                    className="w-24 h-24 object-cover rounded-md border border-pinkAccent flex-shrink-0"
+                  />
                   {/* <img
                     src="/test.jpg"
                     alt=""
@@ -51,9 +56,10 @@ export default function ShopItemSummary({ shop }: Props) {
 
       {/* items */}
       <div className="bg-white rounded-lg p-4 shadow-soft border border-pinkAccent mt-4">
-        <span className="border-l-4 border-pinkSecondary w-full pl-4 font-semibold">
+        <h2 className="font-semibold mb-4 flex items-center gap-2">
+          <span className="w-1.5 h-4 bg-pinkSecondary rounded-full"></span>
           Items Usage
-        </span>
+        </h2>
         <div className="mt-4 grid grid-cols-12 gap-2">
           {shop &&
             shop.itemSummary &&
@@ -62,7 +68,9 @@ export default function ShopItemSummary({ shop }: Props) {
                 key={item.name}
                 className="col-span-6 flex flex-col justify-center items-center rounded-md border border-pinkAccent p-2"
               >
-                <span className="font-semibold text-pinkSecondary text-lg">{item.qty}</span>
+                <span className="font-semibold text-pinkSecondary text-lg">
+                  {item.qty}
+                </span>
                 <span className="text-sm">{item.name}</span>
               </div>
             ))}

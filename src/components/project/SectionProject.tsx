@@ -108,12 +108,12 @@ export default function SectionProject({
           />
 
           {/* date */}
-          <div className="flex items-center gap-2 text-sm text-textSub">
+          {/* <div className="flex items-center gap-2 text-sm text-textSub">
             <span>📅</span>
             <span>
               {startStr} - {endStr}
             </span>
-          </div>
+          </div> */}
 
           {/* more img */}
           <div>

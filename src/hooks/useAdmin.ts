@@ -3,10 +3,11 @@
 import {
   getAdminBanks,
   getAdminProjectDetail,
+  getAdminProjectOrders,
   getAdminProjects,
   getAdminUsers,
 } from "@/lib/api/admin";
-import { AdminProjectDetail, Bank, User } from "@/lib/api/types";
+import { AdminOrderList, AdminProjectDetail, Bank, User } from "@/lib/api/types";
 import { useEffect, useRef, useState } from "react";
 
 export default function useProjectList() {
@@ -81,6 +82,44 @@ export function useProjectDetail(project_id: string) {
   return {
     project,
     isDetailLoading,
+  };
+}
+
+export function useOrderList(project_id: string) {
+  const [orders, setOrders] = useState<AdminOrderList[]>();
+
+  const [isOrderLoading, setIsLoading] = useState(true);
+
+  const hasFetched = useRef(false);
+
+  useEffect(() => {
+    if (!project_id) return;
+
+    if (hasFetched.current) return;
+
+    hasFetched.current = true;
+
+    const fetchData = async () => {
+      setIsLoading(true);
+
+      try {
+        const id = Number(project_id);
+        const { data } = await getAdminProjectOrders(id);
+
+        setOrders(data ?? undefined);
+      } catch (err) {
+        console.error("fetch project error:", err);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchData();
+  }, [project_id]);
+
+  return {
+    orders,
+    isOrderLoading,
   };
 }
 

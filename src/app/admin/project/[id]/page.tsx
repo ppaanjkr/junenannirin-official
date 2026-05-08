@@ -42,11 +42,12 @@ export default function Page({ params }: { params: { id: string } }) {
             summary={project?.summary}
             shop={project?.shop}
             donation={project?.donation}
+            projectId={project?.project?.id}
           />
         )}
 
         {tab === "project" && (
-          <SectionProjectDetail project={project?.project} />
+          <SectionProjectDetail project={project?.project} shop={project?.shop?.rewardSummary}/>
         )}
       </main>
     </>
