@@ -128,6 +128,7 @@ export default function Page() {
     if (form.phone[0] !== "0" || form.phone.length !== 10) {
       setPopup({ open: true, message: "Invalid phone number", type: "error" });
       setLoading(false);
+      return;
     }
 
     try {
