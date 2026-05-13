@@ -19,20 +19,32 @@ export default function SectionPaymentMethod({
   data: any;
   setPopup: (v: any) => void;
 }) {
-  const [qrImage, setQrImage] = useState<string>(driveThumb(data?.qrcode));
-  const [account_no, setAccountNo] = useState<string>("");
 
-  let bank_logo = "";
-  if (data?.bank_short_name.toLowerCase() == "ktb") {
-    bank_logo = "/bank/KTB.png";
-  } else if (data?.bank_short_name.toLowerCase() == "kbank") {
-    bank_logo = "/bank/KBANK.png";
-  } else if (data?.bank_short_name.toLowerCase() == "promptpay") {
-    bank_logo = "/bank/promptpay.png";
-  }
+  const [qrImage, setQrImage] = useState<string>(
+    driveThumb(data?.bank?.qrcode),
+  );
+  const [account_no, setAccountNo] = useState<string>("");
+  const [bankLogo, setBankLogo] = useState<string>(
+    "/icon/june_logo_circle.png",
+  );
   useEffect(() => {
-    setQrImage(driveThumb(data?.qrcode));
-  }, [data?.qrcode]);
+    if (!data) return;
+
+    setQrImage(driveThumb(data?.bank?.qrcode));
+    if (data?.bank?.bank_short_name.trim().toLowerCase() == "ktb") {
+      setBankLogo("/bank/KTB.png");
+    } else if (data?.bank?.bank_short_name.trim().toLowerCase() == "kbank") {
+      setBankLogo("/bank/KBANK.png");
+    } else if (data?.bank?.bank_short_name.trim().toLowerCase() == "promptpay") {
+      setBankLogo("/bank/promptpay.png");
+    } else if (
+      data?.bank?.bank_short_name?.trim().toLowerCase() == "bangkokbank" ||
+      data?.bank?.bank_short_name?.trim().toLowerCase() == "bangkok bank" ||
+      data?.bank?.bank_short_name?.trim().toLowerCase() == "bbl"
+    ) {
+      setBankLogo("/bank/bbl.png");
+    }
+  }, [data]);
 
   // useEffect(() => {
   //   setAccountNo(data?.account_no);
@@ -56,11 +68,11 @@ export default function SectionPaymentMethod({
   // }, [total, account_no]);
 
   async function generateQRPromptpay() {
-    if (!data?.account_no) return;
+    if (!data?.bank?.account_no) return;
 
-    const promptpay_code = data.account_no.replace(/-/g, "");
+    const promptpay_code = data.bank.account_no.replace(/-/g, "");
     const promptpay_type = "phone_number";
-    const account_name = data.account_name;
+    const account_name = data.bank.account_name;
 
     const payload = {
       promptPayCode: promptpay_code,
@@ -112,11 +124,10 @@ export default function SectionPaymentMethod({
           }}
         >
           <img
-            src={bank_logo}
+            src={bankLogo}
             alt="bank_logo"
             className="w-8 h-8 object-cover"
           />
-          {/* {data?.bank_short_name?.toUpperCase() || ""} */}
         </div>
         <div className="flex-1">
           <p
@@ -125,11 +136,11 @@ export default function SectionPaymentMethod({
               color: `${theme.secondary}`,
             }}
           >
-            {data?.account_name || ""}
+            {data?.bank?.account_name || ""}
             <br />
-            {data?.account_name_en || ""}
+            {data?.bank.account_name_en || ""}
           </p>
-          <p className="font-bold">{data?.account_no || ""}</p>
+          <p className="font-bold">{data?.bank.account_no || ""}</p>
         </div>
         <button
           className="border px-3 py-1 rounded text-xs"
@@ -138,9 +149,9 @@ export default function SectionPaymentMethod({
             color: `${theme.secondary}`,
           }}
           onClick={() => {
-            if (!data?.account_no) return;
+            if (!data?.bank.account_no) return;
 
-            const cleaned = data.account_no.replace(/-/g, "");
+            const cleaned = data.bank.account_no.replace(/-/g, "");
             navigator.clipboard.writeText(cleaned);
 
             setPopup({
@@ -161,7 +172,7 @@ export default function SectionPaymentMethod({
         }}
       >
         {qrImage ? (
-          <img src={qrImage} className="w-40 h-40" />
+          <img src={qrImage} className="w-full min-h-40" />
         ) : (
           <div className="w-40 h-40 flex items-center justify-center text-xs text-gray-400">
             Loading QR...

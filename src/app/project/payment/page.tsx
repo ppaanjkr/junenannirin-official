@@ -7,9 +7,10 @@ import SectionPaymentUpload from "@/components/payment/SectionPaymentUpload";
 import SectionBack from "@/components/SectionBack";
 import SectionContact from "@/components/SectionContact";
 import useAuthGuard from "@/hooks/useAuthGuard";
+import useProjectData from "@/hooks/useProjectData";
 import { getThemeColors } from "@/lib/theme";
 import { useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+import { use, useEffect, useState } from "react";
 
 export default function Page() {
   const router = useRouter();
@@ -18,22 +19,20 @@ export default function Page() {
 
   const { popup, setPopup } = useAuthGuard();
 
-  const [projectData, setProjectData] = useState<any>(null);
+  const { activeData: projectData, isLoading } = useProjectData();
 
-  useEffect(() => {
-    try {
-      const raw = localStorage.getItem("project");
-
-      if (raw) {
-        setProjectData(JSON.parse(raw));
-      }
-    } catch {
-      setProjectData(null);
-    }
-  }, []);
-  const theme = projectData
-    ? getThemeColors(projectData.theme_color)
-    : { secondary: "#ff6fa3", accent: "#ffe4ec" };
+  const [getTheme, setGetTheme] = useState<any>(null); 
+  useEffect(() => { 
+    try { 
+      const raw = localStorage.getItem("project"); 
+      if (raw) { 
+        setGetTheme(JSON.parse(raw)); 
+      } 
+    } catch { 
+      setGetTheme(null); 
+    } 
+  }, []); 
+  const theme = getTheme ? getThemeColors(getTheme.theme_color) : { secondary: "#ff6fa3", accent: "#ffe4ec" };
 
   const [cart, setCart] = useState<any[]>(() => {
     if (typeof window === "undefined") return [];
@@ -49,7 +48,7 @@ export default function Page() {
 
   return (
     <>
-    {loading && <LoadingOverlay />}
+    {(loading||isLoading) && <LoadingOverlay />}
       <Popup
         open={popup.open}
         type={popup.type}
