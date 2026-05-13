@@ -22,27 +22,27 @@ export default function ActiveShop({
   const { project, rewards, bank } = data;
   const [canPlaceOrder, setCanPlaceOrder] = useState(false);
 
-  const { shopSummary, isLoading } = useUserPurchaseSummary(project.id.toString());
+  const { shopSummary, isLoading } = useUserPurchaseSummary(
+    project.id.toString(),
+  );
 
   useEffect(() => {
     if (!project) return;
 
-    if (!localStorage.getItem("project")) {
-      localStorage.setItem(
-        "project",
-        JSON.stringify({
-          id: project.id,
-          name: project.name,
-          theme_color: project.theme_color,
-          bank_name: bank.bank_name || "",
-          bank_short_name: bank.bank_short_name || "",
-          account_name: bank.account_name || "",
-          account_name_en: bank.account_name_en || "",
-          account_no: bank.account_no || "",
-          qrcode: bank.qrcode || "",
-        }),
-      );
-    }
+    localStorage.setItem(
+      "project",
+      JSON.stringify({
+        id: project.id,
+        name: project.name,
+        theme_color: project.theme_color,
+        bank_name: bank.bank_name || "",
+        bank_short_name: bank.bank_short_name || "",
+        account_name: bank.account_name || "",
+        account_name_en: bank.account_name_en || "",
+        account_no: bank.account_no || "",
+        qrcode: bank.qrcode || "",
+      }),
+    );
 
     const end = project.end_date ? new Date(project.end_date).getTime() : null;
     const isExpired = end && end < Date.now();
@@ -154,14 +154,10 @@ export default function ActiveShop({
 
   return (
     <>
-    {isLoading && <LoadingOverlay />}
+      {isLoading && <LoadingOverlay />}
       <SectionProject data={data} theme={theme} />
       {user && (
-        <SectionPurchaseSummary
-          data={shopSummary}
-          theme={theme}
-          user={user}
-        />
+        <SectionPurchaseSummary data={shopSummary} theme={theme} user={user} />
       )}
       <SectionItems
         data={rewards}
