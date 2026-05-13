@@ -131,6 +131,12 @@ export default function Page() {
       return;
     }
 
+    if (form.team === "") {
+      setPopup({ open: true, message: "Select team", type: "error" });
+      setLoading(false);
+      return;
+    }
+
     try {
       const res = await fetch(process.env.NEXT_PUBLIC_API_URL!, {
         method: "POST",
@@ -278,10 +284,12 @@ export default function Page() {
               <div className="col-span-12 md:col-span-6 flex flex-col gap-1">
                 <div>
                   <span className="font-semibold">Shipping Name</span>
+                  <span className="text-red-500">*</span>
                 </div>
                 <input
                   type="text"
                   id="name"
+                  required
                   className="px-4 py-2 bg-pinkAccent/60 rounded-lg outline-none border-none"
                   autoComplete="off"
                   value={form.name}
@@ -291,10 +299,12 @@ export default function Page() {
               <div className="col-span-12 flex flex-col gap-1">
                 <div>
                   <span className="font-semibold">Address</span>
+                  <span className="text-red-500">*</span>
                 </div>
                 <textarea
                   id="address"
                   rows={3}
+                  required
                   className="px-4 py-2 bg-pinkAccent/60 rounded-lg outline-none border-none"
                   autoComplete="off"
                   value={form.address}

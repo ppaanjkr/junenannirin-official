@@ -61,6 +61,12 @@ export default function SectionEditProfile({
 
     setLoading(true);
 
+    if (form.phone[0] !== "0" || form.phone.length !== 10) {
+      setPopup({ open: true, message: "Invalid phone number", type: "error" });
+      setLoading(false);
+      return;
+    }
+
     try {
       const res = await fetch(process.env.NEXT_PUBLIC_API_URL!, {
         method: "POST",
@@ -111,6 +117,7 @@ export default function SectionEditProfile({
           <div className="col-span-12 md:col-span-6">
             <div>
               <span className="font-semibold">Shipping Name</span>
+              <span className="text-red-500">*</span>
             </div>
             <input
               type="text"
@@ -150,10 +157,12 @@ export default function SectionEditProfile({
           <div className="col-span-12">
             <div>
               <span className="font-semibold">Address</span>
+              <span className="text-red-500">*</span>
             </div>
             <textarea
               id="address"
               rows={3}
+              required
               className="w-full px-4 py-2 rounded-lg outline-none border border-pinkSecondary/40 mt-1"
               autoComplete="off"
               value={form.address || ""}
