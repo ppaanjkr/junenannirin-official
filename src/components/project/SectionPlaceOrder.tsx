@@ -18,11 +18,11 @@ export default function SectionPlaceOrder({
 }) {
   return (
     <div
-      id="footer"
+      // id="place-order-footer"
       style={{
         borderColor: `${theme.secondary}20`,
       }}
-      className="fixed bottom-0 left-0 w-full bg-white border-t shadow-lg px-4 py-3"
+      className="fixed bottom-0 left-0 w-full bg-white border-t shadow-lg px-4 py-3 z-[60]"
     >
       <div className="max-w-5xl mx-auto flex items-center gap-3 md:max-w-3xl">
         <div className="flex-1">
@@ -35,9 +35,8 @@ export default function SectionPlaceOrder({
                 color: `${theme.secondary}`,
               }}
             >
-              ฿ {total.toLocaleString()}
+              ฿ {(total || 0).toLocaleString()}
             </span>
-            {/* <span className="text-sm text-text-sub ml-2">THB</span> */}
           </div>
         </div>
         <button
