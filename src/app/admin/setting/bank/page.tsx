@@ -35,7 +35,7 @@ export default function Page() {
                   <div className="w-16 h-16 md:w-14 md:h-14 rounded-lg border-2 border-pinkAccent flex items-center justify-center overflow-hidden">
                     {getBankLogo(item.bank_short_name) ? (
                       <img
-                        src={getBankLogo(item.bank_short_name)}
+                        src={getBankLogo(item.bank_short_name ? item?.bank_short_name?.trim().toLowerCase() : "")}
                         alt={item.bank_short_name}
                         className="w-8 h-8 object-cover"
                       />

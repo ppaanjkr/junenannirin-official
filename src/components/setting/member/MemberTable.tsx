@@ -11,7 +11,7 @@ export default function MemberTable({
   onEdit: (user: any) => void;
 }) {
   return (
-    <section className="hidden md:block bg-white rounded-2xl border border-pinkAccent shadow-sm overflow-hidden">
+    <section className="hidden md:block bg-white rounded-lg border border-pinkAccent shadow-sm overflow-hidden">
       <table className="w-full text-sm">
         <thead className="bg-pinkAccent/20 text-textMain">
           <tr className="text-left">
