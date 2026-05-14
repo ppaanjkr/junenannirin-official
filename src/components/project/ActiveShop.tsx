@@ -44,9 +44,12 @@ export default function ActiveShop({
       }),
     );
 
-    const end = project.end_date ? new Date(project.end_date).getTime() : null;
-    const isExpired = end && end < Date.now();
+    const end = project.end_date ? new Date(`${project.end_date}T23:59:59`).getTime() : null;
+
+    const isExpired = end !== null && end < Date.now();
+
     setCanPlaceOrder(!isExpired);
+
 
     if (isExpired && !clearedRef.current) {
       clearedRef.current = true;

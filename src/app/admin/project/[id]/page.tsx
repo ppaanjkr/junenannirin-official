@@ -7,7 +7,7 @@ import LoadingOverlay from "@/components/LoadingOverlay";
 import Popup from "@/components/ModalPopup";
 import SectionBack from "@/components/SectionBack";
 import { useUserContext } from "@/context/UserContext";
-import { useProjectDetail } from "@/hooks/useAdmin";
+import { useOrderList, useProjectDetail } from "@/hooks/useAdmin";
 import useAuthGuard from "@/hooks/useAuthGuard";
 import { Span } from "next/dist/trace";
 import { useRouter } from "next/navigation";
@@ -25,9 +25,11 @@ export default function Page({ params }: { params: { id: string } }) {
   const [tab, setTab] = useState("summary");
 
   const { popup, setPopup } = useAuthGuard();
+
+  const { orders, isOrderLoading } = useOrderList(id.toString());
   return (
     <>
-      {(isDetailLoading || loading) && <LoadingOverlay />}
+      {(isDetailLoading || loading || isOrderLoading) && <LoadingOverlay />}
       <Popup
         open={popup.open}
         type={popup.type}
@@ -39,11 +41,12 @@ export default function Page({ params }: { params: { id: string } }) {
         <TabAdmin type="shop" tab={tab} setTab={setTab} />
         {tab === "summary" && (
           <SectionProjectSummary
-            summary={project?.summary}
-            shop={project?.shop}
-            donation={project?.donation}
-            projectId={project?.project?.id}
-          />
+              summary={project?.summary}
+              shop={project?.shop}
+              donation={project?.donation}
+              projectId={project?.project?.id}
+              orders={orders}
+            />
         )}
 
         {tab === "project" && (

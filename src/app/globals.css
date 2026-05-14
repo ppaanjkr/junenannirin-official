@@ -31,3 +31,28 @@ body {
     text-wrap: balance;
   }
 }
+
+@media print {
+
+  @page {
+    size: A4;
+    margin: 10mm;
+  }
+
+  body {
+    background: white;
+  }
+
+  nav,
+  header,
+  footer,
+  .navbar,
+  .sidebar {
+    display: none !important;
+  }
+
+  main {
+    padding: 0 !important;
+    margin: 0 !important;
+  }
+}

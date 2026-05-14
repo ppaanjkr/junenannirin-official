@@ -33,7 +33,10 @@ export default function ShopOrderTable({
             const edited = editedRows[item.shipment.id] || {};
 
             return (
-              <tr key={item.user.uuid} className="border-t">
+              <tr
+                key={item.user.uuid}
+                className={`border-t ${editedRows[item.shipment.id] ? "bg-yellow-50" : ""}`}
+              >
                 {/* USER */}
                 <td className="p-2 align-top w-[220px]">
                   <div className="flex flex-col text-xs text-textSub min-w-0">
@@ -85,7 +88,6 @@ export default function ShopOrderTable({
                 <td className="p-2 align-top w-[260px]">
                   <div className=" flex flex-col gap-2 ">
                     <input
-                      disabled
                       type="text"
                       placeholder="Tracking No"
                       className=" border border-pinkAccent rounded-lg px-3 py-2 outline-none w-full "
@@ -102,11 +104,10 @@ export default function ShopOrderTable({
                     />
 
                     <div className=" flex gap-2 ">
-                      <input
-                        disabled
-                        type="text"
-                        placeholder="Carrier"
-                        className=" border border-pinkAccent rounded-lg px-3 py-2 outline-none flex-1 min-w-0 "
+                      <select
+                        name="carrier"
+                        id="carrier"
+                        className="w-full border border-pinkAccent rounded-lg px-3 py-2 outline-none"
                         value={edited.carrier ?? item.shipment.carrier ?? ""}
                         onChange={(e) =>
                           handleChange(
@@ -115,9 +116,14 @@ export default function ShopOrderTable({
                             e.target.value,
                           )
                         }
-                      />
+                      >
+                        <option value="">Select Carrier</option>
+                        <option value="Thailand Post">Thailand Post</option>
+                        <option value="Kerry">Kerry</option>
+                        <option value="Flash">Flash</option>
+                        <option value="J&T">J&T</option>
+                      </select>
                       <button
-                        disabled
                         className=" w-10 h-10 shrink-0 rounded-lg bg-pinkSecondary text-white flex justify-center items-center hover:opacity-90 transition "
                         onClick={() => handleSave(item)}
                       >

@@ -4,9 +4,9 @@ import { Check, X } from "lucide-react";
 
 type Props = {
   open: boolean;
-  type?: "success" | "error";
+  type?: string;
   message?: string;
-  onClose: () => void;
+  onClose?: () => void;
 };
 
 export default function Popup({

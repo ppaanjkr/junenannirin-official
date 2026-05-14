@@ -7,13 +7,26 @@ import { useOrderList } from "@/hooks/useAdmin";
 import { useMemo, useState } from "react";
 import ShopOrderCard from "./ShopOrderCard";
 import ShopOrderTable from "./ShopOrderTable";
+import Pagination from "@/components/Pagination";
+import Popup from "@/components/ModalPopup";
+import useAuthGuard from "@/hooks/useAuthGuard";
 
 type Props = {
   projectId: number;
+  orders: any;
 };
 
-export default function ShopOrderList({ projectId }: Props) {
-  const { orders, isOrderLoading } = useOrderList(projectId.toString());
+export default function ShopOrderList({ projectId, orders }: Props) {
+  const [isLoading, setLoading] = useState(false);
+  const [popup, setPopup] = useState({
+      open: false,
+      type: "",
+      message: "",
+      onClose:
+        undefined as
+          | (() => void)
+          | undefined,
+    });
 
   const [search, setSearch] = useState("");
 
@@ -21,27 +34,32 @@ export default function ShopOrderList({ projectId }: Props) {
 
   const [editedRows, setEditedRows] = useState<any>({});
 
-  const limit = 2;
+  const [limit, setLimit] = useState(10);
 
-    //   search
+  //   search
   const filtered = useMemo(() => {
     if (!orders) return [];
 
     return orders.filter((item: any) => {
       const keyword = search.toLowerCase();
 
+      const username = String(item.user.username || "").toLowerCase();
+      const name = String(item.user.name || "").toLowerCase();
+      const phone = String(item.user.phone || "").toLowerCase();
+      const tracking = String(item.shipment?.tracking_no || "").toLowerCase();
       return (
-        item.user.username?.toLowerCase().includes(keyword) ||
-        item.user.name?.toLowerCase().includes(keyword) ||
-        item.user.phone?.toLowerCase().includes(keyword) ||
-        item.shipment.tracking_no?.toLowerCase().includes(keyword)
+        username.includes(keyword) ||
+        name.includes(keyword) ||
+        phone.includes(keyword) ||
+        tracking.includes(keyword)
       );
     });
   }, [orders, search]);
 
-//   paging
-  const totalPages = Math.ceil(filtered.length / limit);
-  const paginated = filtered.slice((page - 1) * limit, page * limit);
+  //   paging
+  const totalPages = limit === -1 ? 1 : Math.ceil(filtered.length / limit);
+  const paginated =
+    limit === -1 ? filtered : filtered.slice((page - 1) * limit, page * limit);
 
   function handleChange(shipmentId: string, field: string, value: string) {
     setEditedRows((prev: any) => ({
@@ -60,21 +78,158 @@ export default function ShopOrderList({ projectId }: Props) {
 
     if (!edited) return;
 
-    console.log({
-      shipment_id: item.shipment.id,
+    setLoading(true);
 
-      tracking_no: edited.tracking_no,
+    try {
 
-      carrier: edited.carrier,
-    });
+      const shipments = [{
+          shipment_id: item.shipment.id,
+          tracking_no: edited.tracking_no ?? item.shipment.tracking_no ?? "",
+          carrier: edited.carrier ?? item.shipment.carrier ?? "",
+      }];
 
-    // TODO:
-    // UPDATE API
+      const res = await fetch("/api/gas",{
+          method: "POST",
+          headers: {
+            "Content-Type":"application/json",
+          },
+          body: JSON.stringify({
+            action:
+              "updateShipments",
+            shipments,
+          }),
+        }
+      );
+
+      const json = await res.json();
+
+      if (json.success) {
+        setLoading(false);
+
+        setPopup({
+          open: true,
+          type: "success",
+          message: "Save completed",
+          onClose: () => {
+            window.location.reload();
+          },
+        });
+
+        // clear edited row
+        setEditedRows(
+          (prev: any) => {
+
+            const copy = {
+              ...prev,
+            };
+
+            delete copy[
+              item.shipment.id
+            ];
+
+            return copy;
+          }
+        );
+        
+      }
+
+    } catch (err) {
+      setLoading(false);
+
+      console.error(err);
+
+      setPopup({
+        open: true,
+        type: "error",
+        message: "Save failed",
+        onClose: undefined,
+      });
+    }
+  }
+  async function handleSaveAll() {
+    const shipments = Object.entries(editedRows).map(
+      ([shipment_id, value]: any) => {
+
+        const current = orders?.find((o: any) => String(o.shipment.id) === String(shipment_id));
+
+        return {
+          shipment_id,
+          tracking_no: value.tracking_no ?? current?.shipment ?.tracking_no ?? "",
+          carrier: value.carrier ?? current?.shipment ?.carrier ?? "",
+        };
+      }
+    );
+
+    if (shipments.length === 0) return;
+
+    setLoading(true);
+
+    try {
+      const res = await fetch("/api/gas", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          action: "updateShipments",
+          shipments,
+        }),
+      });
+
+      const json = await res.json();
+
+      if (json.success) {
+        setLoading(false);
+
+        setPopup({
+          open: true,
+          type: "success",
+          message: "Save completed",
+          onClose: () => {
+            window.location.reload();
+          },
+        });
+
+        setEditedRows({});
+
+      }
+    } catch (err) {
+      setLoading(false);
+
+      console.error(err);
+
+      setPopup({
+        open: true,
+        type: "error",
+        message: "Save failed",
+        onClose: undefined,
+      });
+    }
+  }
+
+  function handleExport() {
+    localStorage.setItem("print_labels", JSON.stringify(filtered));
+
+    window.open(`/admin/project/${projectId}/print`, "_blank");
   }
 
   return (
     <section className="mt-4">
-      {isOrderLoading && <LoadingOverlay />}
+      {(isLoading) && <LoadingOverlay />}
+      <Popup
+        open={popup.open}
+        type={popup.type}
+        message={popup.message}
+        onClose={() => {
+
+          setPopup({
+            ...popup,
+            open: false,
+          });
+
+          popup.onClose?.();
+        }}
+      />
 
       <div className="bg-white rounded-lg p-4 shadow-soft border border-pinkAccent">
         {/* HEADER */}
@@ -84,18 +239,55 @@ export default function ShopOrderList({ projectId }: Props) {
             Orders
           </h2>
 
-          {/* SEARCH */}
-          <input
-            type="text"
-            placeholder="Search..."
-            className="text-sm w-full md:w-[280px] border border-pinkAccent rounded-lg px-4 py-2 outline-none "
-            value={search}
-            onChange={(e) => {
-              setPage(1);
-              setSearch(e.target.value);
-            }}
-          />
+          <div className=" flex items-center gap-2 w-full md:w-auto ">
+            {/* search */}
+            <input
+              type="text"
+              placeholder="Search..."
+              className=" text-sm flex-1 md:w-[280px] border border-pinkAccent rounded-lg px-4 py-2 outline-none "
+              value={search}
+              onChange={(e) => {
+                setPage(1);
+                setSearch(e.target.value);
+              }}
+            />
+
+            {/* limit */}
+            <select
+              value={limit}
+              onChange={(e) => {
+                setPage(1);
+                setLimit(Number(e.target.value));
+              }}
+              className="text-sm border border-pinkAccent rounded-lg px-3 py-2 outline-none bg-white min-w-[80px] "
+            >
+              <option value={10}>10</option>
+              <option value={20}>20</option>
+              <option value={50}>50</option>
+              <option value={100}>100</option>
+              <option value={-1}>All</option>
+            </select>
+          </div>
         </div>
+
+        {/* export */}
+        {filtered.length > 0 && (
+          <div className="mt-2 flex justify-end gap-2">
+            <button
+              onClick={handleExport}
+              className="px-4 py-2 border border-pinkSecondary text-pinkSecondary rounded-lg text-sm"
+            >
+              Print Labels
+            </button>
+            <button
+              onClick={handleSaveAll}
+              disabled={Object.keys(editedRows).length === 0}
+              className="px-4 py-2 bg-pinkSecondary text-white rounded-lg text-sm"
+            >
+              Save All
+            </button>
+          </div>
+        )}
 
         {/* MOBILE */}
         <div className="grid grid-cols-1 gap-3 mt-4 md:hidden">
@@ -121,35 +313,13 @@ export default function ShopOrderList({ projectId }: Props) {
         </div>
 
         {/* EMPTY */}
-        {!isOrderLoading && filtered.length === 0 && (
-          <div className=" h-[200px] flex justify-center items-center text-sm text-textSub " >
+        {filtered.length === 0 && (
+          <div className=" h-[200px] flex justify-center items-center text-sm text-textSub ">
             No Orders
           </div>
         )}
 
-        {/* PAGINATION */}
-        {totalPages > 1 && (
-          <div className="flex justify-center gap-2 mt-5 flex-wrap">
-            {Array.from({
-              length: totalPages,
-            }).map((_, index) => (
-              <button
-                key={index}
-                className={`
-                  w-9 h-9 rounded-lg text-sm
-                  ${
-                    page === index + 1
-                      ? "bg-pinkSecondary text-white"
-                      : "bg-white border border-pinkAccent"
-                  }
-                `}
-                onClick={() => setPage(index + 1)}
-              >
-                {index + 1}
-              </button>
-            ))}
-          </div>
-        )}
+        <Pagination page={page} totalPages={totalPages} setPage={setPage} />
       </div>
     </section>
   );

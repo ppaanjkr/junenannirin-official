@@ -70,7 +70,6 @@ export default function ShopOrderCard({
       <div className="mt-4 grid grid-cols-12 gap-2">
         <div className="col-span-12">
           <input
-            disabled
             type="text"
             placeholder="Tracking No."
             className=" w-full border border-pinkAccent rounded-lg px-3 py-2 outline-none "
@@ -82,21 +81,25 @@ export default function ShopOrderCard({
         </div>
 
         <div className="col-span-12">
-          <input
-            disabled
-            type="text"
-            placeholder="Carrier"
-            className=" w-full border border-pinkAccent rounded-lg px-3 py-2 outline-none "
+          <select
+            name="carrier"
+            id="carrier"
+            className="w-full border border-pinkAccent rounded-lg px-3 py-2 outline-none"
             value={edited.carrier ?? item.shipment.carrier ?? ""}
             onChange={(e) =>
               handleChange(item.shipment.id, "carrier", e.target.value)
             }
-          />
+          >
+            <option value="">Select Carrier</option>
+            <option value="Thailand Post">Thailand Post</option>
+            <option value="Kerry">Kerry</option>
+            <option value="Flash">Flash</option>
+            <option value="J&T">J&T</option>
+          </select>
         </div>
 
         <div className="col-span-12">
           <button
-            disabled
             className=" w-full rounded-lg bg-pinkSecondary text-white py-2 font-medium "
             onClick={() => handleSave(item)}
           >
