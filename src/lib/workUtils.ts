@@ -38,7 +38,8 @@ export function getBankLogo(shortName?: string) {
 
   if (key === "ktb") return "/bank/KTB.png";
   if (key === "kbank") return "/bank/KBANK.png";
-  if (key === "promptpay") return "/bank/promptpay.png";
+  if (key === "promptpay") return "/bank/promptpay.png"; 
+  if (key === "bangkok bank" || key === "bbl" || key === "bangkokbank") return "/bank/bbl.png"; 
 
   return "";
 }

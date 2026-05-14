@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import QRCode from "qrcode";
 import { json } from "stream/consumers";
-import { driveThumb } from "@/lib/workUtils";
+import { driveThumb, getBankLogo } from "@/lib/workUtils";
 
 type Theme = {
   secondary: string;
@@ -31,19 +31,9 @@ export default function SectionPaymentMethod({
     if (!data) return;
 
     setQrImage(driveThumb(data?.bank?.qrcode));
-    if (data?.bank?.bank_short_name.trim().toLowerCase() == "ktb") {
-      setBankLogo("/bank/KTB.png");
-    } else if (data?.bank?.bank_short_name.trim().toLowerCase() == "kbank") {
-      setBankLogo("/bank/KBANK.png");
-    } else if (data?.bank?.bank_short_name.trim().toLowerCase() == "promptpay") {
-      setBankLogo("/bank/promptpay.png");
-    } else if (
-      data?.bank?.bank_short_name?.trim().toLowerCase() == "bangkokbank" ||
-      data?.bank?.bank_short_name?.trim().toLowerCase() == "bangkok bank" ||
-      data?.bank?.bank_short_name?.trim().toLowerCase() == "bbl"
-    ) {
-      setBankLogo("/bank/bbl.png");
-    }
+
+    setBankLogo(getBankLogo(data?.bank?.bank_short_name ? data?.bank?.bank_short_name?.trim().toLowerCase() : ""));
+    
   }, [data]);
 
   // useEffect(() => {
