@@ -12,7 +12,7 @@ import Popup from "@/components/ModalPopup";
 import useAuthGuard from "@/hooks/useAuthGuard";
 
 type Props = {
-  projectId: number;
+  projectId: string;
   orders: any;
 };
 

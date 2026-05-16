@@ -65,8 +65,7 @@ export function useProjectDetail(project_id: string) {
       setIsLoading(true);
 
       try {
-        const id = Number(project_id);
-        const { data } = await getAdminProjectDetail(id);
+        const { data } = await getAdminProjectDetail(project_id);
 
         setProject(data ?? undefined);
       } catch (err) {
@@ -103,8 +102,7 @@ export function useOrderList(project_id: string) {
       setIsLoading(true);
 
       try {
-        const id = Number(project_id);
-        const { data } = await getAdminProjectOrders(id);
+        const { data } = await getAdminProjectOrders(project_id);
 
         setOrders(data ?? undefined);
       } catch (err) {

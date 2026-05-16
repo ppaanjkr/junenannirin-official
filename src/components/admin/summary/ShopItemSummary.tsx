@@ -28,7 +28,7 @@ export default function ShopItemSummary({ shop }: Props) {
                   <ImagePreviewModal
                     src={driveThumb(item.image_url)}
                     alt={item.title}
-                    className="w-24 h-24 object-cover rounded-md border border-pinkAccent flex-shrink-0"
+                    className="w-24 h-full md:w-32 object-cover rounded-md border border-pinkAccent flex-shrink-0"
                   />
                   {/* <img
                     src="/test.jpg"
@@ -66,7 +66,7 @@ export default function ShopItemSummary({ shop }: Props) {
             shop.itemSummary.map((item: any) => (
               <div
                 key={item.name}
-                className="col-span-6 flex flex-col justify-center items-center rounded-md border border-pinkAccent p-2"
+                className="col-span-6 md:col-span-4 flex flex-col justify-center items-center rounded-md border border-pinkAccent p-2"
               >
                 <span className="font-semibold text-pinkSecondary text-lg">
                   {item.qty}
@@ -74,6 +74,39 @@ export default function ShopItemSummary({ shop }: Props) {
                 <span className="text-sm">{item.name}</span>
               </div>
             ))}
+        </div>
+      </div>
+
+      {/* items by size */}
+      <div className="bg-white rounded-lg p-4 shadow-soft border border-pinkAccent mt-4">
+        <h2 className="font-semibold mb-4 flex items-center gap-2">
+          <span className="w-1.5 h-4 bg-pinkSecondary rounded-full"></span>
+          Items Usage by Size
+        </h2>
+
+        <div className="mt-4 grid grid-cols-12 gap-2">
+          {shop?.sizeSummary && shop.sizeSummary.length > 0 ? (
+            shop.sizeSummary.flatMap((item: any) =>
+              (item.sizes || []).map((size: any) => (
+                <div
+                  key={`${item.item_name}_${size.size}`}
+                  className="col-span-6 md:col-span-4 flex flex-col justify-center items-center rounded-md border border-pinkAccent p-2"
+                >
+                  <span className="font-semibold text-pinkSecondary text-lg">
+                    {size.qty}
+                  </span>
+
+                  <span className="text-sm text-center">
+                    {item.item_name} - {String(size.size).toUpperCase()}
+                  </span>
+                </div>
+              )),
+            )
+          ) : (
+            <div className="col-span-12 text-sm text-textSub text-center py-4 border border-dashed border-pinkAccent rounded-md">
+              No size usage
+            </div>
+          )}
         </div>
       </div>
     </section>

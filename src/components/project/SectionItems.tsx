@@ -142,7 +142,7 @@ export default function SectionItems({
                 >
                   <ImagePreviewModal
                     src={driveThumb(item.image_url)}
-                    className="w-full h-56 md:h-72 object-cover"
+                    className="w-full h-56 md:h-80 object-cover"
                   />
 
                   <div className="py-3 px-2 flex flex-col gap-2 flex-1">

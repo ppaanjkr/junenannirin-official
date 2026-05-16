@@ -236,6 +236,13 @@ export type AdminProjectDetail = {
       name: string;
       qty: number;
     }[];
+    sizeSummary?: {
+      item_name: string;
+      sizes?: {
+        size: string;
+        qty: number;
+      }[];
+    }[];
   };
   donation?: {
     targets?: {
@@ -277,6 +284,12 @@ export type AdminOrderList = {
     reward_id: string;
     title: string;
     qty: number;
+    details?:{
+      reward_item_id: string;
+      item_name: string;
+      selected_size: string;
+      qty: number;
+    }[];
   }[];
 }
 

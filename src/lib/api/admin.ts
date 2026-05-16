@@ -3,9 +3,9 @@ import { AdminBanksResponse, AdminProjectDetailResponse, AdminProjectOrderRespon
 
 export const getAdminProjects = () =>
   apiFetch<ProjectListResponse>("?action=getAdminProjects");
-export const getAdminProjectDetail = (project_id: number) =>
+export const getAdminProjectDetail = (project_id: string) =>
   apiFetch<AdminProjectDetailResponse>(`?action=getAdminProjectSummary&project_id=${project_id}`);
-export const getAdminProjectOrders = (project_id: number) =>
+export const getAdminProjectOrders = (project_id: string) =>
   apiFetch<AdminProjectOrderResponse>(`?action=getAdminProjectOrders&project_id=${project_id}`);
 
 // setting

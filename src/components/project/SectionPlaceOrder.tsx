@@ -38,7 +38,7 @@ export default function SectionPlaceOrder({
       }}
       className="fixed bottom-0 left-0 w-full bg-white border-t shadow-lg px-4 py-3 z-[60]"
     >
-      <div className="max-w-5xl mx-auto flex items-center gap-3 md:max-w-3xl">
+      <div className="max-w-5xl mx-auto flex items-center gap-3 md:max-w-3xl ">
         <div className="flex-1">
           <div className="text-md text-text-sub">Total</div>
 

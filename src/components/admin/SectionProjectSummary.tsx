@@ -6,7 +6,7 @@ type Props = {
     summary: any
     shop: any
     donation: any
-    projectId: number | undefined,
+    projectId: string,
     orders: any
 };
 export default function SectionProjectSummary({ summary, shop, donation, projectId, orders }: Props) {
@@ -14,7 +14,7 @@ export default function SectionProjectSummary({ summary, shop, donation, project
         <section className="mt-2 mb-12">
             <SummaryDetail summary={summary} />
             {shop && <ShopItemSummary shop={shop} />}
-            {shop && <ShopOrderList projectId={projectId || 0} orders={orders} />}
+            {shop && <ShopOrderList projectId={projectId} orders={orders} />}
             {/* {donation && <SummaryDetail summary={donation} />} */}
         </section>
     );
