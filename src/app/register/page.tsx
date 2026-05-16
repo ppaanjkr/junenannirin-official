@@ -9,12 +9,7 @@ import { useUserContext } from "@/context/UserContext";
 import useAuthGuard from "@/hooks/useAuthGuard";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
-
-const options = [
-  { value: "JuneMeaw", label: "JuneMeaw" },
-  { value: "PNan", label: "P'Nan" },
-  { value: "JuneLookchinMoodeng", label: "JuneLookchinMoodeng" },
-];
+import { teamOptions } from "@/data/teams";
 
 export default function Page() {
   const router = useRouter();
@@ -81,6 +76,10 @@ export default function Page() {
   });
 
   const [phone, setPhone] = useState("");
+
+  const registerTeamOptions = teamOptions.filter(
+    (team) => team.value !== "admin",
+  );
 
   function handleChange(e: React.ChangeEvent<HTMLInputElement>) {
     const value = e.target.value.replace(/\D/g, "").slice(0, 10);
@@ -276,7 +275,7 @@ export default function Page() {
                 </div>
                 <ButtonTeam
                   name="team"
-                  options={options}
+                  options={registerTeamOptions}
                   value={form.team}
                   onChange={(val) => setForm({ ...form, team: val })}
                 />
