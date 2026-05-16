@@ -13,7 +13,7 @@ export default function Page() {
     }, 50);
   }
   return (
-    <main className="max-w-5xl mx-auto px-6 py-4 md:max-w-3xl">
+    <main className="max-w-5xl mx-auto px-6 py-4 md:max-w-3xl lg:max-w-6xl">
       <div className="grid grid-cols-12 gap-4">
         <button
           onClick={() => handleGoToPage("admin/setting/member")}

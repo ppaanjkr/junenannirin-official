@@ -36,7 +36,7 @@ export default function Page({ params }: { params: { id: string } }) {
         message={popup.message}
         onClose={() => setPopup({ ...popup, open: false })}
       />
-      <main className="max-w-5xl mx-auto px-6 py-4 md:max-w-3xl">
+      <main className="max-w-5xl mx-auto px-6 py-4 md:max-w-3xl lg:max-w-6xl">
         <SectionBack onclick={() => router.replace("/admin")} title={title} />
         <TabAdmin type="shop" tab={tab} setTab={setTab} />
         {tab === "summary" && (
@@ -44,7 +44,7 @@ export default function Page({ params }: { params: { id: string } }) {
               summary={project?.summary}
               shop={project?.shop}
               donation={project?.donation}
-              projectId={project?.project?.id}
+              projectId={project?.project?.id ?? ""}
               orders={orders}
             />
         )}

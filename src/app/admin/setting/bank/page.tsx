@@ -12,7 +12,7 @@ export default function Page() {
   const { banks, isBankLoading } = useBankList();
 
   return (
-    <main className="max-w-5xl mx-auto px-6 py-4 md:max-w-3xl">
+    <main className="max-w-5xl mx-auto px-6 py-4 md:max-w-3xl lg:max-w-6xl">
       {isBankLoading && <LoadingOverlay />}
       <SectionBack
         onclick={() => router.replace("/admin/setting")}
