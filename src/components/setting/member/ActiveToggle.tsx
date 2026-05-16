@@ -5,6 +5,7 @@ export default function ActiveToggle({
 }) {
   return (
     <button
+      disabled
       className={`w-12 h-6 rounded-full transition relative ${
         active
           ? "bg-pinkSecondary"

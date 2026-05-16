@@ -12,7 +12,7 @@ export default function MemberCardList({
   onEdit: (user: any) => void;
 }) {
   return (
-    <section className="md:hidden grid grid-cols-12 gap-3">
+    <section className="mt-4 md:hidden grid grid-cols-12 gap-3">
       {users.map((item) => (
         <div
           key={item.uuid}

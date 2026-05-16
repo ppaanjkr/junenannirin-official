@@ -8,13 +8,20 @@ import MemberFilter from "@/components/setting/member/MemberFilter";
 import MemberPagination from "@/components/setting/member/MemberPagination";
 import MemberTable from "@/components/setting/member/MemberTable";
 import { useUserList } from "@/hooks/useAdmin";
+import { teamOptions } from "@/data/teams";
 import { useRouter } from "next/navigation";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 
 export default function Page() {
   const router = useRouter();
 
   const { users, isUserLoading } = useUserList();
+
+  const [userRows, setUserRows] = useState<any[]>([]);
+
+  useEffect(() => {
+    setUserRows(users || []);
+  }, [users]);
 
   const [search, setSearch] = useState("");
   const [teamFilter, setTeamFilter] = useState("");
@@ -38,25 +45,52 @@ export default function Page() {
     setOpenModal(false);
   };
 
+  function handleMemberUpdated(updatedUser: any) {
+    setUserRows((prev) =>
+      prev.map((u) =>
+        String(u.uuid) === String(updatedUser.uuid)
+          ? {
+              ...u,
+              name: updatedUser.name,
+              phone: updatedUser.phone,
+              address: updatedUser.address,
+              team: updatedUser.team,
+              active: updatedUser.active ? 1 : 0,
+            }
+          : u,
+      ),
+    );
+
+    setSelectedUser(null);
+    setOpenModal(false);
+  }
+
   // =========================
   // FILTER
   // =========================
 
   const filteredUsers = useMemo(() => {
-    return users.filter((u) => {
+    return userRows.filter((u) => {
+      const keyword = search.toLowerCase();
+
       const matchSearch =
         !search ||
-        u.name?.toLowerCase().includes(search.toLowerCase()) ||
-        u.phone?.includes(search) ||
-        u.username?.toLowerCase().includes(search.toLowerCase());
+        String(u.name || "")
+          .toLowerCase()
+          .includes(keyword) ||
+        String(u.phone || "").includes(search) ||
+        String(u.username || "")
+          .toLowerCase()
+          .includes(keyword);
 
       const matchTeam = !teamFilter || u.team === teamFilter;
 
-      const matchStatus = !statusFilter || String(u.active) === statusFilter;
+      const matchStatus =
+        !statusFilter || String(Number(u.active)) === String(statusFilter);
 
       return matchSearch && matchTeam && matchStatus;
     });
-  }, [users, search, teamFilter, statusFilter]);
+  }, [userRows, search, teamFilter, statusFilter]);
 
   // paging
   const totalPages = Math.ceil(filteredUsers.length / pageSize);
@@ -65,8 +99,6 @@ export default function Page() {
     (page - 1) * pageSize,
     page * pageSize,
   );
-
-  const teams = Array.from(new Set(users.map((u) => u.team).filter(Boolean)));
 
   return (
     <main className="max-w-5xl mx-auto px-6 py-4 md:max-w-3xl lg:max-w-6xl">
@@ -84,7 +116,7 @@ export default function Page() {
         setTeamFilter={setTeamFilter}
         statusFilter={statusFilter}
         setStatusFilter={setStatusFilter}
-        teams={teams}
+        teams={teamOptions}
         resetPage={() => setPage(1)}
       />
 
@@ -114,6 +146,7 @@ export default function Page() {
         open={openModal}
         user={selectedUser}
         onClose={handleCloseEdit}
+        onSaved={handleMemberUpdated}
       />
     </main>
   );
