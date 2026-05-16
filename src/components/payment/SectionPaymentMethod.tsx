@@ -2,6 +2,8 @@ import { useEffect, useState } from "react";
 import QRCode from "qrcode";
 import { json } from "stream/consumers";
 import { driveThumb, getBankLogo } from "@/lib/workUtils";
+import { format } from "path";
+import { formatTHB } from "@/lib/formatTHB";
 
 type Theme = {
   secondary: string;
@@ -176,7 +178,7 @@ export default function SectionPaymentMethod({
             color: `${theme.secondary}`,
           }}
         >
-          ฿ {total}
+          ฿ {formatTHB(total || 0)}
         </p>
       </div>
     </section>
