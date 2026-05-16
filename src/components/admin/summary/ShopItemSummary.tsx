@@ -78,15 +78,15 @@ export default function ShopItemSummary({ shop }: Props) {
       </div>
 
       {/* items by size */}
-      <div className="bg-white rounded-lg p-4 shadow-soft border border-pinkAccent mt-4">
-        <h2 className="font-semibold mb-4 flex items-center gap-2">
-          <span className="w-1.5 h-4 bg-pinkSecondary rounded-full"></span>
-          Items Usage by Size
-        </h2>
+      {shop?.sizeSummary && shop.sizeSummary.length > 0 && (
+        <div className="bg-white rounded-lg p-4 shadow-soft border border-pinkAccent mt-4">
+          <h2 className="font-semibold mb-4 flex items-center gap-2">
+            <span className="w-1.5 h-4 bg-pinkSecondary rounded-full"></span>
+            Items Usage by Size
+          </h2>
 
-        <div className="mt-4 grid grid-cols-12 gap-2">
-          {shop?.sizeSummary && shop.sizeSummary.length > 0 ? (
-            shop.sizeSummary.flatMap((item: any) =>
+          <div className="mt-4 grid grid-cols-12 gap-2">
+            {shop.sizeSummary.flatMap((item: any) =>
               (item.sizes || []).map((size: any) => (
                 <div
                   key={`${item.item_name}_${size.size}`}
@@ -101,14 +101,10 @@ export default function ShopItemSummary({ shop }: Props) {
                   </span>
                 </div>
               )),
-            )
-          ) : (
-            <div className="col-span-12 text-sm text-textSub text-center py-4 border border-dashed border-pinkAccent rounded-md">
-              No size usage
-            </div>
-          )}
+            )}
+          </div>
         </div>
-      </div>
+      )}
     </section>
   );
 }
