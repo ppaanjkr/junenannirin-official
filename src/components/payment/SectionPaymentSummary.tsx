@@ -6,19 +6,42 @@ type Theme = {
   accent: string;
 };
 
+type CartSelection = {
+  reward_item_id: string;
+  item_name: string;
+  selected_size: string;
+};
+
+type OrderItem = {
+  id: string;
+  name: string;
+  price: number;
+  img: string;
+  qty: number;
+  selections?: CartSelection[];
+};
+
 export default function SectionPaymentSummary({
   theme,
   data,
 }: {
   theme: Theme;
-  data: any[];
+  data: OrderItem[];
 }) {
   const total = data.reduce(
-    (sum, item) => sum + item.price * item.qty,
-    0
+    (sum, item) => sum + Number(item.price || 0) * Number(item.qty || 0),
+    0,
   );
 
-  const count = data.reduce((sum, item) => sum + item.qty, 0);
+  const count = data.reduce((sum, item) => sum + Number(item.qty || 0), 0);
+
+  function getItemKey(item: OrderItem, index: number) {
+    const sizeKey = (item.selections || [])
+      .map((s) => `${s.reward_item_id}:${s.selected_size}`)
+      .join("|");
+
+    return `${item.id}_${sizeKey}_${index}`;
+  }
 
   return (
     <section
@@ -37,24 +60,48 @@ export default function SectionPaymentSummary({
         Order Summary
       </h2>
 
-      {data.map((item: any) => (
+      {data.map((item, index) => (
         <div
-          key={item.id}
-          className="flex items-center gap-3 py-2 border-b"
+          key={getItemKey(item, index)}
+          className="flex items-start gap-3 py-3 border-b"
           style={{ borderColor: `${theme.secondary}10` }}
         >
-          <ImagePreviewModal src={driveThumb(item.img)} alt={item.name} className="w-16 h-16 rounded-lg "/>
+          <ImagePreviewModal
+            src={driveThumb(item.img)}
+            alt={item.name}
+            className="w-20 h-auto rounded-lg object-cover"
+          />
 
-          <div className="flex-1">
+          <div className="flex-1 min-w-0">
             <p className="font-semibold">{item.name}</p>
 
-            <p style={{ color: theme.secondary }}>
-              ฿ {item.price.toLocaleString()} × {item.qty}
+            {item.selections && item.selections.length > 0 && (
+              <div className="mt-1 flex flex-col gap-0.5">
+                {item.selections.map((s) => (
+                  <div
+                    key={`${s.reward_item_id}_${s.selected_size}`}
+                    className="text-xs text-textSub"
+                  >
+                    {s.item_name}:{" "}
+                    <span className="font-semibold">
+                      Size {String(s.selected_size || "-").toUpperCase()}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            <p className="mt-1" style={{ color: theme.secondary }}>
+              ฿ {Number(item.price || 0).toLocaleString()} ×{" "}
+              {Number(item.qty || 0)}
             </p>
           </div>
 
-          <div className="font-bold text-md">
-            ฿ {(item.price * item.qty).toLocaleString()}
+          <div className="font-bold text-md whitespace-nowrap">
+            ฿{" "}
+            {(
+              Number(item.price || 0) * Number(item.qty || 0)
+            ).toLocaleString()}
           </div>
         </div>
       ))}

@@ -193,10 +193,19 @@ export default function SectionPaymentUpload({
         user_id: user.uuid,
         project_id: project.id,
         items: items.map((i: any) => ({
-          id: i.id,
+          id: String(i.id),
           name: i.name,
-          price: i.price,
-          qty: i.qty,
+          price: Number(i.price || 0),
+          qty: Number(i.qty || 0),
+
+          // เพิ่มตรงนี้ เพื่อรองรับ size
+          selections: Array.isArray(i.selections)
+            ? i.selections.map((s: any) => ({
+                reward_item_id: String(s.reward_item_id || ""),
+                item_name: s.item_name || "",
+                selected_size: s.selected_size || "",
+              }))
+            : [],
         })),
         referenceId: referenceId,
         transRef: transRef,

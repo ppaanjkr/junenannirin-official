@@ -21,6 +21,7 @@ export default function SectionPurchaseSummary({
       <div className="flex justify-between items-center mt-6">
         <span className="text-xl font-semibold">Your Purchase</span>
       </div>
+
       <div
         className="grid grid-cols-12 gap-4 bg-white rounded-md p-4 shadow-sm border mt-1 md:items-stretch"
         style={{
@@ -30,10 +31,15 @@ export default function SectionPurchaseSummary({
         <div className="col-span-12 md:col-span-6">
           <div className="mb-2 font-semibold">
             <span>Hello, </span>
-            <span style={{
-              color: `${theme.secondary}`,
-            }}>{user.username}</span>
+            <span
+              style={{
+                color: `${theme.secondary}`,
+              }}
+            >
+              {user.username}
+            </span>
           </div>
+
           <div
             className="rounded-lg p-3 border"
             style={{
@@ -43,15 +49,18 @@ export default function SectionPurchaseSummary({
             }}
           >
             <span className="text-sm">Your Total Spending</span>
+
             <div className="text-2xl flex gap-3 font-semibold">
               <span>฿</span>
               <span>{formatTHB(data?.total_amount || 0)}</span>
             </div>
           </div>
+
           <div className="mt-2">
             <div className="flex gap-2 items-center">
               <Truck size={16} /> <span>Shipment </span>
             </div>
+
             <div
               className="rounded-lg border p-3 flex flex-col gap-1"
               style={{
@@ -63,24 +72,74 @@ export default function SectionPurchaseSummary({
             </div>
           </div>
         </div>
+
         <div className="col-span-12 md:col-span-6 flex flex-col">
           <div className="flex gap-2 items-center">
             <ShoppingCart size={16} /> <span>Purchased Items </span>
           </div>
+
           {data?.items && data.items.length > 0 ? (
             <div className="flex flex-col gap-2 mt-1">
-              {data.items.map((item) => (
-                <div
-                  key={item.reward_id}
-                  className="flex justify-between border rounded-lg py-1 px-3"
-                  style={{
-                    borderColor: theme.accent,
-                  }}
-                >
-                  <span>{item.title}</span>
-                  <span>x {item.qty}</span>
-                </div>
-              ))}
+              {data.items.map((item: any) => {
+                const details = Array.isArray(item.details)
+                  ? item.details
+                  : [];
+
+                const shouldShowDetails =
+                  details.length > 0 &&
+                  (details.length > 1 ||
+                    details.some(
+                      (d: any) => Number(d.has_size) === 1,
+                    ));
+
+                return (
+                  <div
+                    key={item.reward_id}
+                    className="border rounded-lg py-2 px-3"
+                    style={{
+                      borderColor: theme.accent,
+                    }}
+                  >
+                    <div className="flex justify-between gap-3">
+                      <span className="font-medium">{item.title}</span>
+                      <span className="font-semibold whitespace-nowrap">
+                        x {item.qty}
+                      </span>
+                    </div>
+
+                    {shouldShowDetails && (
+                      <div className="mt-1 flex flex-col gap-1">
+                        {details.map((detail: any, index: number) => (
+                          <div
+                            key={`${detail.reward_item_id}_${detail.selected_size || "nosize"}_${index}`}
+                            className="flex justify-between gap-2 text-xs rounded-md px-2 py-1"
+                            style={{
+                              backgroundColor: `${theme.accent}40`,
+                              color: theme.secondary,
+                            }}
+                          >
+                            <span className="truncate">
+                              {detail.item_name}
+                              {Number(detail.has_size) === 1 && (
+                                <>
+                                  : Size{" "}
+                                  {String(
+                                    detail.selected_size || "-",
+                                  ).toUpperCase()}
+                                </>
+                              )}
+                            </span>
+
+                            <span className="font-semibold whitespace-nowrap">
+                              x {Number(detail.qty || 0)}
+                            </span>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
             </div>
           ) : (
             <div

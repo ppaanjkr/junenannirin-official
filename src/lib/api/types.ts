@@ -19,7 +19,7 @@ export type ProfileSummary = {
 // 🔹 PROJECT
 // ------------------------
 export type Project = {
-  id: number;
+  id: string;
   name: string;
   description: string;
   image_url: string;
@@ -40,8 +40,8 @@ export type Project = {
 // 🔹 TARGET
 // ------------------------
 export type Target = {
-  id: number;
-  project_id: number;
+  id: string;
+  project_id: string;
   step: number;
   amout: number; // ⚠️ สะกดตาม API (ถ้าแก้ได้ควรเป็น amount)
   title: string;
@@ -54,21 +54,35 @@ export type Target = {
 // 🔹 REWARD
 // ------------------------
 export type Reward = {
-  id: number;
-  project_id: number;
+  id: string;
+  project_id: string;
   min_amount: number;
   title: string;
   description: string;
   image_url: string;
   created_at: string;
+  items?: {
+    id: string;
+    reward_id: string;
+    item_name: string;
+    qty: number;
+    has_size: boolean;
+    active: number;
+    sizes?:{
+      id: string;
+      size: string;
+      sort_order: number;
+      active: number;
+    }[];
+  }[];
 };
 
 // ------------------------
 // 🔹 DONATION
 // ------------------------
 export type Donation = {
-  id: number;
-  project_id: number;
+  id: string;
+  project_id: string;
   user_id: string;
   input_amount: number;
   verified_amount: number;
@@ -102,27 +116,36 @@ export type Bank = {
 
 export type HistoryShop = {
   order_id: string;
+  order_no: string;
   amount: number;
   created_at: string;
   project: {
-    id: number;
+    id: string;
     name: string;
     image_url: string;
   };
-  items: {
-    reward_id: number;
+  items?: {
+    user_reward_id: string;
+    reward_id: string;
     title: string;
     description: string;
     image_url: string;
     qty: number;
     price: number;
     total: number;
+    details?: {
+      reward_item_id: string;
+      item_name: string;
+      has_size: number;
+      selected_size: string;
+      qty: number;
+    }[];
   }[];
 };
 export type HistoryDonation = {
-  donation_id: number;
+  donation_id: string;
   project: {
-    id: number;
+    id: string;
     name: string;
     image_url: string;
   };
@@ -141,6 +164,18 @@ export type UserPurchaseSummery = {
     title: string;
     min_amount: number;
     qty: number;
+    sizes?: {
+      reward_item_id: string;
+      item_name: string;
+      selected_size: string;
+      qty: number;
+    }[];
+    details?:{
+      reward_item_id: string;
+      item_name: string;
+      selected_size: string;
+      qty: number;
+    }[];
   }[];
   shipment: {
     tracking_no: string;
@@ -190,7 +225,7 @@ export type AdminProjectDetail = {
   };
   shop?: {
     rewardSummary?: {
-      reward_id: number;
+      reward_id: string;
       title: string;
       total_qty: number;
       image_url?: string;
@@ -204,7 +239,7 @@ export type AdminProjectDetail = {
   };
   donation?: {
     targets?: {
-      id: number;
+      id: string;
       step: number;
       amout: number;
       title: string;
@@ -213,7 +248,7 @@ export type AdminProjectDetail = {
       created_at: string;
     }[];
     reward_summary?: {
-      reward_id: number;
+      reward_id: string;
       title: string;
       total_qty: number;
     }[];
@@ -232,7 +267,7 @@ export type AdminOrderList = {
     phone?: string;
   };
   shipment: {
-    id: number;
+    id: string;
     tracking_no: string;
     carrier: string;
   };

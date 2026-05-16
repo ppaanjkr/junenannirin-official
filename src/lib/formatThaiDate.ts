@@ -32,12 +32,42 @@ export function convertToThaiYear(dateString: string) {
   return year.toString();
 }
 
-export function formatThaiDateWithTime(dateInput: string) {
+export function formatThaiDateWithTime(dateInput: string | Date) {
   if (!dateInput) return "-";
 
-  const date = new Date(dateInput);
+  let date: Date | null = null;
 
-  if (isNaN(date.getTime())) return "-";
+  if (dateInput instanceof Date) {
+    date = dateInput;
+  } else if (
+    typeof dateInput === "string" &&
+    /^\d{4}-\d{2}-\d{2}/.test(dateInput)
+  ) {
+    date = new Date(dateInput);
+  } else if (typeof dateInput === "string") {
+    const text = dateInput.trim();
+
+    const match = text.match(
+      /^(\d{1,2})\/(\d{1,2})\/(\d{4})(?:,\s*(\d{1,2}):(\d{2})(?::(\d{2}))?)?$/
+    );
+
+    if (match) {
+      const [, d, m, y, hh = "0", mm = "0", ss = "0"] = match;
+
+      date = new Date(
+        Number(y),
+        Number(m) - 1,
+        Number(d),
+        Number(hh),
+        Number(mm),
+        Number(ss)
+      );
+    } else {
+      date = new Date(text);
+    }
+  }
+
+  if (!date || isNaN(date.getTime())) return "-";
 
   const day = date.getDate();
   const month = date.toLocaleString("th-TH", { month: "short" });
@@ -46,11 +76,12 @@ export function formatThaiDateWithTime(dateInput: string) {
   const hours = date.getHours();
   const minutes = date.getMinutes();
 
-  // เช็คว่ามีเวลาไหม (ไม่ใช่ 00:00)
   const hasTime = hours !== 0 || minutes !== 0;
 
-  if (hasTime){
-    return `${day} ${month} ${year} ${String(hours).padStart(2,"0")}:${String(minutes).padStart(2,"0")} น.`;
+  if (hasTime) {
+    return `${day} ${month} ${year} ${String(hours).padStart(2, "0")}:${String(
+      minutes
+    ).padStart(2, "0")} น.`;
   }
 
   return `${day} ${month} ${year}`;

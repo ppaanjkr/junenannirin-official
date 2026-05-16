@@ -1,3 +1,5 @@
+"use client";
+
 import { getThemeColors } from "@/lib/theme";
 import type { ActiveProjectData } from "@/lib/api/types";
 import { useEffect, useRef, useState } from "react";
@@ -8,6 +10,22 @@ import SectionPlaceOrder from "./SectionPlaceOrder";
 import { useUserPurchaseSummary } from "@/hooks/useProfile";
 import SectionPurchaseSummary from "./SectionPurchaseSummary";
 import LoadingOverlay from "../LoadingOverlay";
+import { getEndTime } from "@/lib/workUtils";
+
+type CartSelection = {
+  reward_item_id: string;
+  item_name: string;
+  selected_size: string;
+};
+
+type CartLine = {
+  reward_id: string;
+  title: string;
+  price: number;
+  img: string;
+  qty: number;
+  selections: CartSelection[];
+};
 
 export default function ActiveShop({
   data,
@@ -20,6 +38,7 @@ export default function ActiveShop({
   const clearedRef = useRef(false);
 
   const { project, rewards, bank } = data;
+
   const [canPlaceOrder, setCanPlaceOrder] = useState(false);
 
   const { shopSummary, isLoading } = useUserPurchaseSummary(
@@ -44,37 +63,30 @@ export default function ActiveShop({
       }),
     );
 
-    const end = project.end_date ? new Date(`${project.end_date}T23:59:59`).getTime() : null;
+    const status = String(project.status || "").toLowerCase();
+
+    // ถ้า status ไม่ใช่ open = ถือว่าปิดโครงการ
+    const isClosed = status !== "open";
+
+    const end = getEndTime(project.end_date);
 
     const isExpired = end !== null && end < Date.now();
+    const canOrder = !isExpired;
+    setCanPlaceOrder(canOrder);
 
-    setCanPlaceOrder(!isExpired);
-
-
-    if (isExpired && !clearedRef.current) {
+    // ล้าง cart
+    if (!canOrder && !clearedRef.current) {
       clearedRef.current = true;
 
       localStorage.removeItem("cart");
       localStorage.removeItem("fc_cart");
       localStorage.removeItem("fc_order");
     }
-  }, [project]);
+  }, [project, bank]);
 
-  const [projectData, setProjectData] = useState<any>(null);
-  useEffect(() => {
-    try {
-      const raw = localStorage.getItem("project");
-
-      if (raw) {
-        setProjectData(JSON.parse(raw));
-      }
-    } catch {
-      setProjectData(null);
-    }
-  }, []);
   const theme = getThemeColors(project.theme_color);
 
-  const [cart, setCart] = useState<Record<number, number>>(() => {
+  const [cart, setCart] = useState<Record<string, CartLine>>(() => {
     if (typeof window === "undefined") return {};
 
     const saved = localStorage.getItem("cart");
@@ -90,24 +102,57 @@ export default function ActiveShop({
   }, [cart]);
 
   // action
-  function inc(id: number) {
-    if (!canPlaceOrder) return;
-    setCart((prev) => ({
-      ...prev,
-      [id]: (prev[id] || 0) + 1,
-    }));
+  function buildCartKey(rewardId: string, selections: CartSelection[]) {
+    const sizePart = selections
+      .map((s) => `${s.reward_item_id}:${s.selected_size}`)
+      .sort()
+      .join("|");
+
+    return sizePart ? `${rewardId}|${sizePart}` : rewardId;
   }
-  function dec(id: number) {
+  function inc(reward: any, selections: CartSelection[]) {
     if (!canPlaceOrder) return;
+
+    const rewardId = String(reward.id);
+    const key = buildCartKey(rewardId, selections);
+
     setCart((prev) => {
+      const oldLine = prev[key];
+
+      return {
+        ...prev,
+        [key]: {
+          reward_id: rewardId,
+          title: reward.title,
+          price: Number(reward.min_amount || 0),
+          img: reward.image_url || "",
+          qty: (oldLine?.qty || 0) + 1,
+          selections,
+        },
+      };
+    });
+  }
+
+  function dec(reward: any, selections: CartSelection[]) {
+    if (!canPlaceOrder) return;
+
+    const rewardId = String(reward.id);
+    const key = buildCartKey(rewardId, selections);
+
+    setCart((prev) => {
+      const oldLine = prev[key];
+
+      if (!oldLine) return prev;
+
       const newCart = { ...prev };
 
-      if (!newCart[id]) return newCart;
-
-      newCart[id] -= 1;
-
-      if (newCart[id] <= 0) {
-        delete newCart[id];
+      if (oldLine.qty <= 1) {
+        delete newCart[key];
+      } else {
+        newCart[key] = {
+          ...oldLine,
+          qty: oldLine.qty - 1,
+        };
       }
 
       return newCart;
@@ -115,30 +160,24 @@ export default function ActiveShop({
   }
 
   // total
-  const total = Object.entries(cart).reduce((sum, [id, qty]) => {
-    const item = rewards.find((r) => r.id === Number(id));
-    if (!item) return sum;
-
-    return sum + (item.min_amount || 0) * qty;
+  const total = Object.values(cart).reduce((sum, line) => {
+    return sum + line.price * line.qty;
   }, 0);
-  const count = Object.values(cart).reduce((a, b) => a + b, 0);
+
+  const count = Object.values(cart).reduce((sum, line) => {
+    return sum + line.qty;
+  }, 0);
 
   // order
   function buildOrder() {
-    return Object.entries(cart)
-      .map(([id, qty]) => {
-        const item = rewards.find((r) => r.id === Number(id));
-        if (!item) return null;
-
-        return {
-          id: item.id,
-          name: item.title,
-          price: item.min_amount || 0,
-          img: item.image_url || "",
-          qty,
-        };
-      })
-      .filter(Boolean);
+    return Object.values(cart).map((line) => ({
+      id: line.reward_id,
+      name: line.title,
+      price: line.price,
+      img: line.img,
+      qty: line.qty,
+      selections: line.selections,
+    }));
   }
   function handleCheckout() {
     const order = buildOrder();

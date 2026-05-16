@@ -43,3 +43,15 @@ export function getBankLogo(shortName?: string) {
 
   return "";
 }
+
+export function getEndTime(endDate?: string | null) {
+  if (!endDate) return null;
+
+  // ถ้ามี T อยู่แล้ว แปลว่าเป็น datetime / ISO
+  if (endDate.includes("T")) {
+    return new Date(endDate).getTime();
+  }
+
+  // ถ้าเป็น yyyy-mm-dd ให้หมดวันนั้นเวลา 23:59:59
+  return new Date(`${endDate}T23:59:59`).getTime();
+}
