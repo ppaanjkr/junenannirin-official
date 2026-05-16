@@ -28,7 +28,9 @@ function buildItemSummary(orders: any[] = []) {
       const itemName = String(detail.item_name || "").trim();
       const hasSize = Number(detail.has_size) === 1 ? 1 : 0;
       const selectedSize = hasSize
-        ? String(detail.selected_size || "").trim().toUpperCase()
+        ? String(detail.selected_size || "")
+            .trim()
+            .toUpperCase()
         : "";
 
       if (!itemName) return;
@@ -124,13 +126,14 @@ export default function ShopOrderTable({
 
         <tbody>
           {data.map((item) => {
-            const edited = editedRows[item.shipment.id] || {};
+            const shipmentId = String(item.shipment?.id || "");
+            const edited = editedRows[shipmentId] || {};
             const orders = Array.isArray(item.orders) ? item.orders : [];
 
             return (
               <tr
                 key={item.user.uuid}
-                className={`border-t ${editedRows[item.shipment.id] ? "bg-yellow-50" : ""}`}
+                className={`border-t ${editedRows[shipmentId] ? "bg-yellow-50" : ""}`}
               >
                 {/* USER */}
                 <td className="p-2 align-top w-[220px]">
@@ -168,9 +171,7 @@ export default function ShopOrderTable({
                         className="flex justify-between gap-2"
                       >
                         <span className="break-words">{o.title}</span>
-                        <span className="shrink-0 font-semibold">
-                          x{o.qty}
-                        </span>
+                        <span className="shrink-0 font-semibold">x{o.qty}</span>
                       </div>
                     ))}
                   </div>
@@ -194,11 +195,7 @@ export default function ShopOrderTable({
                         edited.tracking_no ?? item.shipment.tracking_no ?? ""
                       }
                       onChange={(e) =>
-                        handleChange(
-                          item.shipment.id,
-                          "tracking_no",
-                          e.target.value,
-                        )
+                        handleChange(shipmentId, "tracking_no", e.target.value)
                       }
                     />
 
@@ -209,11 +206,7 @@ export default function ShopOrderTable({
                         className="w-full border border-pinkAccent rounded-lg px-3 py-2 outline-none"
                         value={edited.carrier ?? item.shipment.carrier ?? ""}
                         onChange={(e) =>
-                          handleChange(
-                            item.shipment.id,
-                            "carrier",
-                            e.target.value,
-                          )
+                          handleChange(shipmentId, "carrier", e.target.value)
                         }
                       >
                         <option value="">Select Carrier</option>

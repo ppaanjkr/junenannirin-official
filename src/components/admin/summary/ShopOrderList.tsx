@@ -1,15 +1,11 @@
 "use client";
 
 import LoadingOverlay from "@/components/LoadingOverlay";
-
-import { useOrderList } from "@/hooks/useAdmin";
-
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import ShopOrderCard from "./ShopOrderCard";
 import ShopOrderTable from "./ShopOrderTable";
 import Pagination from "@/components/Pagination";
 import Popup from "@/components/ModalPopup";
-import useAuthGuard from "@/hooks/useAuthGuard";
 
 type Props = {
   projectId: string;
@@ -17,57 +13,90 @@ type Props = {
 };
 
 export default function ShopOrderList({ projectId, orders }: Props) {
+  const [orderRows, setOrderRows] = useState<any[]>(orders || []);
+
+  useEffect(() => {
+    setOrderRows(orders || []);
+  }, [orders]);
+
   const [isLoading, setLoading] = useState(false);
+
   const [popup, setPopup] = useState({
-      open: false,
-      type: "",
-      message: "",
-      onClose:
-        undefined as
-          | (() => void)
-          | undefined,
-    });
+    open: false,
+    type: "",
+    message: "",
+    onClose: undefined as (() => void) | undefined,
+  });
 
   const [search, setSearch] = useState("");
-
   const [page, setPage] = useState(1);
-
   const [editedRows, setEditedRows] = useState<any>({});
-
   const [limit, setLimit] = useState(10);
 
-  //   search
-  const filtered = useMemo(() => {
-    if (!orders) return [];
+  // =====================================================
+  // update เฉพาะ shipment ใน state ไม่ reload ทั้งหน้า
+  // =====================================================
+  function updateOrderShipmentState(shipments: any[]) {
+    setOrderRows((prev) =>
+      prev.map((row: any) => {
+        const updated = shipments.find(
+          (s: any) => String(s.shipment_id) === String(row.shipment.id),
+        );
 
-    return orders.filter((item: any) => {
+        if (!updated) return row;
+
+        return {
+          ...row,
+          shipment: {
+            ...row.shipment,
+            tracking_no: updated.tracking_no,
+            carrier: updated.carrier,
+            status: updated.status ?? row.shipment.status,
+          },
+        };
+      }),
+    );
+  }
+
+  // =====================================================
+  // search
+  // ใช้ orderRows แทน orders
+  // =====================================================
+  const filtered = useMemo(() => {
+    if (!orderRows) return [];
+
+    return orderRows.filter((item: any) => {
       const keyword = search.toLowerCase();
 
       const username = String(item.user.username || "").toLowerCase();
       const name = String(item.user.name || "").toLowerCase();
       const phone = String(item.user.phone || "").toLowerCase();
       const tracking = String(item.shipment?.tracking_no || "").toLowerCase();
+      const carrier = String(item.shipment?.carrier || "").toLowerCase();
+
       return (
         username.includes(keyword) ||
         name.includes(keyword) ||
         phone.includes(keyword) ||
-        tracking.includes(keyword)
+        tracking.includes(keyword) ||
+        carrier.includes(keyword)
       );
     });
-  }, [orders, search]);
+  }, [orderRows, search]);
 
-  //   paging
+  // =====================================================
+  // paging
+  // =====================================================
   const totalPages = limit === -1 ? 1 : Math.ceil(filtered.length / limit);
+
   const paginated =
     limit === -1 ? filtered : filtered.slice((page - 1) * limit, page * limit);
 
   function handleChange(shipmentId: string, field: string, value: string) {
     setEditedRows((prev: any) => ({
       ...prev,
-
       [shipmentId]: {
         ...prev[shipmentId],
-
         [field]: value,
       },
     }));
@@ -81,58 +110,49 @@ export default function ShopOrderList({ projectId, orders }: Props) {
     setLoading(true);
 
     try {
-
-      const shipments = [{
+      const shipments = [
+        {
           shipment_id: item.shipment.id,
           tracking_no: edited.tracking_no ?? item.shipment.tracking_no ?? "",
           carrier: edited.carrier ?? item.shipment.carrier ?? "",
-      }];
+        },
+      ];
 
-      const res = await fetch("/api/gas",{
-          method: "POST",
-          headers: {
-            "Content-Type":"application/json",
-          },
-          body: JSON.stringify({
-            action:
-              "updateShipments",
-            shipments,
-          }),
-        }
-      );
+      const res = await fetch("/api/gas", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          action: "updateShipments",
+          shipments,
+        }),
+      });
 
       const json = await res.json();
 
-      if (json.success) {
-        setLoading(false);
-
-        setPopup({
-          open: true,
-          type: "success",
-          message: "Save completed",
-          onClose: () => {
-            window.location.reload();
-          },
-        });
-
-        // clear edited row
-        setEditedRows(
-          (prev: any) => {
-
-            const copy = {
-              ...prev,
-            };
-
-            delete copy[
-              item.shipment.id
-            ];
-
-            return copy;
-          }
-        );
-        
+      if (!json.success) {
+        throw new Error(json.error || "Save failed");
       }
 
+      // update เฉพาะแถวนี้ใน state
+      updateOrderShipmentState(shipments);
+
+      // clear edited row
+      setEditedRows((prev: any) => {
+        const copy = { ...prev };
+        delete copy[item.shipment.id];
+        return copy;
+      });
+
+      setLoading(false);
+
+      setPopup({
+        open: true,
+        type: "success",
+        message: "Save completed",
+        onClose: undefined,
+      });
     } catch (err) {
       setLoading(false);
 
@@ -146,18 +166,20 @@ export default function ShopOrderList({ projectId, orders }: Props) {
       });
     }
   }
+
   async function handleSaveAll() {
     const shipments = Object.entries(editedRows).map(
       ([shipment_id, value]: any) => {
-
-        const current = orders?.find((o: any) => String(o.shipment.id) === String(shipment_id));
+        const current = orderRows?.find(
+          (o: any) => String(o.shipment.id) === String(shipment_id),
+        );
 
         return {
           shipment_id,
-          tracking_no: value.tracking_no ?? current?.shipment ?.tracking_no ?? "",
-          carrier: value.carrier ?? current?.shipment ?.carrier ?? "",
+          tracking_no: value.tracking_no ?? current?.shipment?.tracking_no ?? "",
+          carrier: value.carrier ?? current?.shipment?.carrier ?? "",
         };
-      }
+      },
     );
 
     if (shipments.length === 0) return;
@@ -178,21 +200,24 @@ export default function ShopOrderList({ projectId, orders }: Props) {
 
       const json = await res.json();
 
-      if (json.success) {
-        setLoading(false);
-
-        setPopup({
-          open: true,
-          type: "success",
-          message: "Save completed",
-          onClose: () => {
-            window.location.reload();
-          },
-        });
-
-        setEditedRows({});
-
+      if (!json.success) {
+        throw new Error(json.error || "Save failed");
       }
+
+      // update หลายแถวใน state
+      updateOrderShipmentState(shipments);
+
+      // clear edited rows
+      setEditedRows({});
+
+      setLoading(false);
+
+      setPopup({
+        open: true,
+        type: "success",
+        message: "Save completed",
+        onClose: undefined,
+      });
     } catch (err) {
       setLoading(false);
 
@@ -215,13 +240,13 @@ export default function ShopOrderList({ projectId, orders }: Props) {
 
   return (
     <section className="mt-4">
-      {(isLoading) && <LoadingOverlay />}
+      {isLoading && <LoadingOverlay />}
+
       <Popup
         open={popup.open}
         type={popup.type}
         message={popup.message}
         onClose={() => {
-
           setPopup({
             ...popup,
             open: false,
@@ -239,12 +264,12 @@ export default function ShopOrderList({ projectId, orders }: Props) {
             Orders
           </h2>
 
-          <div className=" flex items-center gap-2 w-full md:w-auto ">
+          <div className="flex items-center gap-2 w-full md:w-auto">
             {/* search */}
             <input
               type="text"
               placeholder="Search..."
-              className=" text-sm flex-1 md:w-[280px] border border-pinkAccent rounded-lg px-4 py-2 outline-none "
+              className="text-sm flex-1 md:w-[280px] border border-pinkAccent rounded-lg px-4 py-2 outline-none"
               value={search}
               onChange={(e) => {
                 setPage(1);
@@ -259,7 +284,7 @@ export default function ShopOrderList({ projectId, orders }: Props) {
                 setPage(1);
                 setLimit(Number(e.target.value));
               }}
-              className="text-sm border border-pinkAccent rounded-lg px-3 py-2 outline-none bg-white min-w-[80px] "
+              className="text-sm border border-pinkAccent rounded-lg px-3 py-2 outline-none bg-white min-w-[80px]"
             >
               <option value={10}>10</option>
               <option value={20}>20</option>
@@ -279,10 +304,11 @@ export default function ShopOrderList({ projectId, orders }: Props) {
             >
               Print Labels
             </button>
+
             <button
               onClick={handleSaveAll}
               disabled={Object.keys(editedRows).length === 0}
-              className="px-4 py-2 bg-pinkSecondary text-white rounded-lg text-sm"
+              className="px-4 py-2 bg-pinkSecondary text-white rounded-lg text-sm disabled:opacity-40"
             >
               Save All
             </button>
@@ -314,7 +340,7 @@ export default function ShopOrderList({ projectId, orders }: Props) {
 
         {/* EMPTY */}
         {filtered.length === 0 && (
-          <div className=" h-[200px] flex justify-center items-center text-sm text-textSub ">
+          <div className="h-[200px] flex justify-center items-center text-sm text-textSub">
             No Orders
           </div>
         )}
