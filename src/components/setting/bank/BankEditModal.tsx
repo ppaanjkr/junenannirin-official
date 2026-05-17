@@ -1,0 +1,390 @@
+"use client";
+
+import LoadingOverlay from "@/components/LoadingOverlay";
+import Popup from "@/components/ModalPopup";
+import { bankOptions } from "@/data/bank";
+import { X } from "lucide-react";
+import { useEffect, useState } from "react";
+
+type Props = {
+  open: boolean;
+  bank: any;
+  onClose: () => void;
+  onSaved: (bank: any, mode: "create" | "update") => void;
+};
+
+export default function BankEditModal({
+  open,
+  bank,
+  onClose,
+  onSaved,
+}: Props) {
+  const isEdit = !!bank?.id;
+
+  const [loading, setLoading] = useState(false);
+  const [savedPayload, setSavedPayload] = useState<any>(null);
+  const [savedMode, setSavedMode] = useState<"create" | "update">("create");
+
+  const [popup, setPopup] = useState({
+    open: false,
+    type: "",
+    message: "",
+  });
+
+  const [form, setForm] = useState({
+    id: "",
+    bank_code: "",
+    bank_name: "",
+    bank_short_name: "",
+    account_name: "",
+    account_name_en: "",
+    account_no: "",
+    qrcode: "",
+    active: true,
+  });
+
+  useEffect(() => {
+    if (!open) return;
+
+    const selectedBank = bankOptions.find(
+      (b) =>
+        String(b.bank_name).trim() === String(bank?.bank_name || "").trim() ||
+        String(b.bank_short_name).trim() ===
+          String(bank?.bank_short_name || "").trim() ||
+        String(b.code).trim() === String(bank?.bank_code || "").trim(),
+    );
+
+    setForm({
+      id: bank?.id || "",
+      bank_code: selectedBank?.code || bank?.bank_code || "",
+      bank_name: selectedBank?.bank_name || bank?.bank_name || "",
+      bank_short_name: selectedBank?.bank_short_name || bank?.bank_short_name || "",
+      account_name: bank?.account_name || "",
+      account_name_en: bank?.account_name_en || "",
+      account_no: bank?.account_no || "",
+      qrcode: bank?.qrcode || "",
+      active: bank ? Number(bank.active) === 1 || bank.active === true : true,
+    });
+
+    setLoading(false);
+    setSavedPayload(null);
+    setSavedMode(bank?.id ? "update" : "create");
+
+    setPopup({
+      open: false,
+      type: "",
+      message: "",
+    });
+  }, [open, bank]);
+
+  if (!open) return null;
+
+  function handleChange(
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
+  ) {
+    const { name, value } = e.target;
+
+    setForm((prev) => ({
+      ...prev,
+      [name]: value,
+    }));
+  }
+
+  function handleBankChange(e: React.ChangeEvent<HTMLSelectElement>) {
+    const code = e.target.value;
+
+    const selectedBank = bankOptions.find((item) => item.code === code);
+
+    setForm((prev) => ({
+      ...prev,
+      bank_code: selectedBank?.code || "",
+      bank_name: selectedBank?.bank_name || "",
+      bank_short_name: selectedBank?.bank_short_name || "",
+    }));
+  }
+
+  function showError(message: string) {
+    setPopup({
+      open: true,
+      type: "error",
+      message,
+    });
+  }
+
+  function validate() {
+    if (!form.bank_code) {
+      showError("Please select bank");
+      return false;
+    }
+
+    if (!form.bank_name.trim()) {
+      showError("Bank name is required");
+      return false;
+    }
+
+    if (!form.bank_short_name.trim()) {
+      showError("Bank short name is required");
+      return false;
+    }
+
+    if (!form.account_name.trim()) {
+      showError("Account name is required");
+      return false;
+    }
+
+    if (!form.account_no.trim()) {
+      showError("Account number is required");
+      return false;
+    }
+
+    return true;
+  }
+
+  async function handleSubmit(e: React.FormEvent) {
+    e.preventDefault();
+
+    setLoading(true);
+
+    if (!validate()) {
+      setLoading(false);
+      return;
+    }
+
+    try {
+      const mode: "create" | "update" = isEdit ? "update" : "create";
+
+      const payload = {
+        id: form.id,
+        bank_code: form.bank_code,
+        bank_name: form.bank_name.trim(),
+        bank_short_name: form.bank_short_name.trim(),
+        account_name: form.account_name.trim(),
+        account_name_en: form.account_name_en.trim(),
+        account_no: form.account_no.trim(),
+        qrcode: form.qrcode.trim(),
+        active: form.active,
+      };
+
+      const res = await fetch("/api/gas", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          action: mode === "create" ? "createBank" : "updateBank",
+          bank: payload,
+        }),
+      });
+
+      const data = await res.json();
+
+      if (!data.success) {
+        showError(data.message || "Save bank failed");
+        return;
+      }
+
+      const savedBank = {
+        ...payload,
+        ...(data.data || {}),
+        active: payload.active ? 1 : 0,
+      };
+
+      setSavedPayload(savedBank);
+      setSavedMode(mode);
+
+      setPopup({
+        open: true,
+        type: "success",
+        message:
+          mode === "create"
+            ? "Bank created successfully"
+            : "Bank updated successfully",
+      });
+    } catch (err) {
+      console.error(err);
+
+      showError("Save bank failed");
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  function handlePopupClose() {
+    const isSuccess = popup.type === "success" && savedPayload;
+
+    setPopup((prev) => ({
+      ...prev,
+      open: false,
+    }));
+
+    if (isSuccess) {
+      onSaved(savedPayload, savedMode);
+      setSavedPayload(null);
+    }
+  }
+
+  function handleCloseModal() {
+    setLoading(false);
+    setSavedPayload(null);
+
+    setPopup({
+      open: false,
+      type: "",
+      message: "",
+    });
+
+    onClose();
+  }
+
+  return (
+    <>
+      {loading && <LoadingOverlay />}
+
+      <Popup
+        open={popup.open}
+        type={popup.type}
+        message={popup.message}
+        onClose={handlePopupClose}
+      />
+
+      <div className="fixed inset-0 z-[1000] bg-black/40 flex items-center justify-center px-4">
+        <div className="bg-white rounded-lg shadow-lg w-full max-w-lg overflow-hidden">
+          <div className="px-4 py-3 border-b border-pinkAccent flex justify-between items-center">
+            <div>
+              <h2 className="font-semibold text-lg">
+                {isEdit ? "Edit Bank" : "Add Bank"}
+              </h2>
+            </div>
+
+            <button
+              type="button"
+              onClick={handleCloseModal}
+              className="flex items-center justify-center"
+            >
+              <X className="w-5 h-5" />
+            </button>
+          </div>
+
+          <form onSubmit={handleSubmit} className="p-4 flex flex-col gap-3">
+            <div>
+              <label className="font-medium">Bank Name</label>
+              <select
+                value={form.bank_code}
+                onChange={handleBankChange}
+                className="mt-1 w-full border border-pinkAccent rounded-lg px-3 py-2 outline-none bg-white"
+              >
+                <option value="">Select Bank</option>
+                {bankOptions.map((bank) => (
+                  <option key={bank.code} value={bank.code}>
+                    {bank.bank_name}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            <div>
+              <label className="font-medium">Bank Name EN</label>
+              <input
+                value={form.bank_short_name}
+                readOnly
+                className="mt-1 w-full border border-pinkAccent rounded-lg px-3 py-2 outline-none bg-gray-50 text-gray-500"
+                placeholder="Auto from selected bank"
+              />
+            </div>
+
+            <div>
+              <label className="font-medium">Account Name TH</label>
+              <input
+                name="account_name"
+                value={form.account_name}
+                onChange={handleChange}
+                className="mt-1 w-full border border-pinkAccent rounded-lg px-3 py-2 outline-none"
+              />
+            </div>
+
+            <div>
+              <label className="text-sm font-medium">Account Name EN</label>
+              <input
+                name="account_name_en"
+                value={form.account_name_en}
+                onChange={handleChange}
+                className="mt-1 w-full border border-pinkAccent rounded-lg px-3 py-2 outline-none"
+              />
+            </div>
+
+            <div>
+              <label className="text-sm font-medium">Account No.</label>
+              <input
+                name="account_no"
+                value={form.account_no}
+                onChange={(e) => {
+                  const value = e.target.value.replace(/[^0-9-]/g, "");
+                  setForm((prev) => ({
+                    ...prev,
+                    account_no: value,
+                  }));
+                }}
+                inputMode="numeric"
+                className="mt-1 w-full border border-pinkAccent rounded-lg px-3 py-2 outline-none"
+              />
+            </div>
+
+            <div>
+              <label className="text-sm font-medium">QR Code URL</label>
+              <textarea
+                name="qrcode"
+                value={form.qrcode}
+                onChange={handleChange}
+                className="mt-1 w-full border border-pinkAccent rounded-lg px-3 py-2 outline-none min-h-[80px]"
+                placeholder="Google Drive URL"
+              />
+            </div>
+
+            <div className="flex items-center justify-between border border-pinkAccent rounded-lg px-3 py-2">
+              <div>
+                <div className="text-sm font-medium">Active</div>
+              </div>
+              <button
+                type="button"
+                onClick={() =>
+                  setForm((prev) => ({
+                    ...prev,
+                    active: !prev.active,
+                  }))
+                }
+                className={`w-12 h-7 rounded-full p-1 transition ${
+                  form.active ? "bg-pinkSecondary" : "bg-gray-300"
+                }`}
+              >
+                <span
+                  className={`block w-5 h-5 bg-white rounded-full transition ${
+                    form.active ? "translate-x-5" : "translate-x-0"
+                  }`}
+                />
+              </button>
+            </div>
+
+            <div className="flex gap-2 pt-2">
+              <button
+                type="button"
+                onClick={handleCloseModal}
+                disabled={loading}
+                className="flex-1 border border-pinkSecondary text-pinkSecondary rounded-lg py-2 font-medium disabled:opacity-50"
+              >
+                Cancel
+              </button>
+
+              <button
+                type="submit"
+                disabled={loading}
+                className="flex-1 bg-pinkSecondary text-white rounded-lg py-2 font-medium disabled:opacity-50"
+              >
+                {loading ? "Saving..." : "Save"}
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </>
+  );
+}

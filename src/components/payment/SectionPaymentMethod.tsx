@@ -4,6 +4,7 @@ import { json } from "stream/consumers";
 import { driveThumb, getBankLogo } from "@/lib/workUtils";
 import { format } from "path";
 import { formatTHB } from "@/lib/formatTHB";
+import { getBankOptionByShortName } from "@/data/bank";
 
 type Theme = {
   secondary: string;
@@ -34,7 +35,8 @@ export default function SectionPaymentMethod({
 
     setQrImage(driveThumb(data?.bank?.qrcode));
 
-    setBankLogo(getBankLogo(data?.bank?.bank_short_name ? data?.bank?.bank_short_name?.trim().toLowerCase() : ""));
+    const bankOption = getBankOptionByShortName(data?.bank?.bank_short_name);
+    setBankLogo(bankOption?.bank_logo || "");
     
   }, [data]);
 
@@ -164,7 +166,7 @@ export default function SectionPaymentMethod({
         }}
       >
         {qrImage ? (
-          <img src={qrImage} className="w-full min-h-40" />
+          <img src={qrImage} className="w-36 h-full" />
         ) : (
           <div className="w-40 h-40 flex items-center justify-center text-xs text-gray-400">
             Loading QR...
