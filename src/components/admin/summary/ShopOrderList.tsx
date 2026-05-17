@@ -68,18 +68,44 @@ export default function ShopOrderList({ projectId, orders }: Props) {
     return orderRows.filter((item: any) => {
       const keyword = search.toLowerCase();
 
-      const username = String(item.user.username || "").toLowerCase();
-      const name = String(item.user.name || "").toLowerCase();
-      const phone = String(item.user.phone || "").toLowerCase();
+      const username = String(item.user?.username || "").toLowerCase();
+      const name = String(item.user?.name || "").toLowerCase();
+      const phone = String(item.user?.phone || "").toLowerCase();
       const tracking = String(item.shipment?.tracking_no || "").toLowerCase();
       const carrier = String(item.shipment?.carrier || "").toLowerCase();
+
+      const orderText = Array.isArray(item.orders)
+        ? item.orders
+            .map((order: any) => {
+              const title = String(order.title || "");
+
+              const details = Array.isArray(order.details)
+                ? order.details
+                    .map((detail: any) => {
+                      const itemName = String(detail.item_name || "");
+                      const optionName = String(detail.option_name || "");
+                      const selectedOption = String(
+                        detail.selected_option || "",
+                      );
+
+                      return `${itemName} ${optionName} ${selectedOption}`;
+                    })
+                    .join(" ")
+                : "";
+
+              return `${title} ${details}`;
+            })
+            .join(" ")
+            .toLowerCase()
+        : "";
 
       return (
         username.includes(keyword) ||
         name.includes(keyword) ||
         phone.includes(keyword) ||
         tracking.includes(keyword) ||
-        carrier.includes(keyword)
+        carrier.includes(keyword) ||
+        orderText.includes(keyword)
       );
     });
   }, [orderRows, search]);
@@ -91,6 +117,15 @@ export default function ShopOrderList({ projectId, orders }: Props) {
 
   const paginated =
     limit === -1 ? filtered : filtered.slice((page - 1) * limit, page * limit);
+
+  function getOrderRowKey(item: any, index: number) {
+    return [
+      item.shipment?.id || "shipment",
+      item.user?.uuid || "user",
+      item.user?.username || "username",
+      index,
+    ].join("_");
+  }
 
   function handleChange(shipmentId: string, field: string, value: string) {
     setEditedRows((prev: any) => ({
@@ -317,9 +352,9 @@ export default function ShopOrderList({ projectId, orders }: Props) {
 
         {/* MOBILE */}
         <div className="grid grid-cols-1 gap-3 mt-4 md:hidden">
-          {paginated.map((item: any) => (
+          {paginated.map((item: any, index: number) => (
             <ShopOrderCard
-              key={item.user.uuid}
+              key={getOrderRowKey(item, index)}
               item={item}
               editedRows={editedRows}
               handleChange={handleChange}

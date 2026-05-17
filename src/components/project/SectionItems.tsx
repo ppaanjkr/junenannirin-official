@@ -13,7 +13,9 @@ type Theme = {
 type CartSelection = {
   reward_item_id: string;
   item_name: string;
-  selected_size: string;
+  option_name: string;
+  selected_option: string;
+  qty: number;
 };
 
 type CartLine = {
@@ -36,12 +38,15 @@ type Props = {
 };
 
 function buildCartKey(rewardId: string, selections: CartSelection[]) {
-  const sizePart = selections
-    .map((s) => `${s.reward_item_id}:${s.selected_size}`)
+  const optionPart = selections
+    .map(
+      (s) =>
+        `${s.reward_item_id}:${s.option_name}:${s.selected_option}`,
+    )
     .sort()
     .join("|");
 
-  return sizePart ? `${rewardId}|${sizePart}` : rewardId;
+  return optionPart ? `${rewardId}|${optionPart}` : rewardId;
 }
 
 export default function SectionItems({
@@ -53,30 +58,36 @@ export default function SectionItems({
   dec,
   canPlaceOrder,
 }: Props) {
-  const [selectedSizes, setSelectedSizes] = useState<Record<string, string>>(
-    {},
-  );
+  const [selectedOptions, setSelectedOptions] = useState<
+    Record<string, string>
+  >({});
 
-  const [sizeErrors, setSizeErrors] = useState<Record<string, boolean>>({});
+  const [optionErrors, setOptionErrors] = useState<Record<string, boolean>>({});
 
   const itemCount = Object.values(cart).reduce(
     (sum, line) => sum + line.qty,
     0,
   );
 
-  function getSelections(item: Reward): CartSelection[] {
-    return (item.items || [])
-      .filter((ri: any) => Number(ri.has_size) === 1)
-      .map((ri: any) => {
-        const key = `${item.id}_${ri.id}`;
-        const selected = selectedSizes[key] ?? "";
+  function getOptionItems(item: Reward) {
+    return (item.items || []).filter(
+      (ri: any) => Number(ri.has_option) === 1,
+    );
+  }
 
-        return {
-          reward_item_id: String(ri.id),
-          item_name: ri.item_name,
-          selected_size: selected,
-        };
-      });
+  function getSelections(item: Reward): CartSelection[] {
+    return getOptionItems(item).map((ri: any) => {
+      const key = `${item.id}_${ri.id}`;
+      const selected = selectedOptions[key] ?? "";
+
+      return {
+        reward_item_id: String(ri.id),
+        item_name: String(ri.item_name || ""),
+        option_name: String(ri.option_name || "option"),
+        selected_option: selected,
+        qty: Number(ri.qty || 1),
+      };
+    });
   }
 
   function getQty(item: Reward) {
@@ -87,16 +98,14 @@ export default function SectionItems({
   }
 
   function handleAdd(item: Reward) {
-    const sizeItems = (item.items || []).filter(
-      (ri: any) => Number(ri.has_size) === 1,
-    );
+    const optionItems = getOptionItems(item);
 
     const errors: Record<string, boolean> = {};
     let hasError = false;
 
-    sizeItems.forEach((ri: any) => {
+    optionItems.forEach((ri: any) => {
       const key = `${item.id}_${ri.id}`;
-      const selected = selectedSizes[key] ?? "";
+      const selected = selectedOptions[key] ?? "";
 
       if (!selected) {
         errors[key] = true;
@@ -105,7 +114,7 @@ export default function SectionItems({
     });
 
     if (hasError) {
-      setSizeErrors((prev) => ({
+      setOptionErrors((prev) => ({
         ...prev,
         ...errors,
       }));
@@ -155,72 +164,83 @@ export default function SectionItems({
 
                     <p className="text-textSub text-sm">{item.description}</p>
 
-                    {/* SIZE SELECTORS */}
+                    {/* OPTION SELECTORS */}
                     {user &&
                       canPlaceOrder &&
-                      (item.items || [])
-                        .filter((ri: any) => Number(ri.has_size) === 1)
-                        .map((ri: any) => {
-                          const key = `${item.id}_${ri.id}`;
-                          const value = selectedSizes[key] ?? "";
+                      getOptionItems(item).map((ri: any) => {
+                        const key = `${item.id}_${ri.id}`;
+                        const value = selectedOptions[key] ?? "";
 
-                          return (
-                            <div key={String(ri.id)} className="mt-2">
-                              <label className="text-xs text-textSub">
-                                {ri.item_name} size
-                              </label>
+                        const optionName = String(
+                          ri.option_name || "option",
+                        );
 
-                              <div className="mt-1 flex flex-wrap gap-1">
-                                {(ri.sizes || []).map((s: any) => {
-                                  const sizeValue = String(s.size || "");
-                                  const isActive =
-                                    String(value).toLowerCase() ===
-                                    sizeValue.toLowerCase();
+                        const options = Array.isArray(ri.options)
+                          ? ri.options
+                          : [];
 
-                                  return (
-                                    <button
-                                      key={String(s.id || s.size)}
-                                      type="button"
-                                      onClick={() => {
-                                        setSelectedSizes((prev) => ({
-                                          ...prev,
-                                          [key]: sizeValue,
-                                        }));
+                        return (
+                          <div key={String(ri.id)} className="mt-2">
+                            <label className="text-xs text-textSub">
+                              {ri.item_name} {optionName}
+                            </label>
 
-                                        setSizeErrors((prev) => ({
-                                          ...prev,
-                                          [key]: false,
-                                        }));
-                                      }}
-                                      className="w-8 h-8 md:w-10 md:h-10 rounded-lg border text-sm font-semibold transition disabled:opacity-40"
-                                      style={{
-                                        borderColor: sizeErrors[key]
-                                          ? "#ef4444"
-                                          : isActive
-                                            ? theme.secondary
-                                            : `${theme.secondary}55`,
-                                        backgroundColor: isActive
+                            <div className="mt-1 flex flex-wrap gap-1">
+                              {options.map((option: any) => {
+                                const optionValue = String(
+                                  option.option_value || "",
+                                );
+
+                                const isActive =
+                                  String(value).toLowerCase() ===
+                                  optionValue.toLowerCase();
+
+                                return (
+                                  <button
+                                    key={String(
+                                      option.id || option.option_value,
+                                    )}
+                                    type="button"
+                                    onClick={() => {
+                                      setSelectedOptions((prev) => ({
+                                        ...prev,
+                                        [key]: optionValue,
+                                      }));
+
+                                      setOptionErrors((prev) => ({
+                                        ...prev,
+                                        [key]: false,
+                                      }));
+                                    }}
+                                    className="min-w-8 h-8 md:min-w-10 md:h-10 px-2 rounded-lg border text-sm font-semibold transition disabled:opacity-40"
+                                    style={{
+                                      borderColor: optionErrors[key]
+                                        ? "#ef4444"
+                                        : isActive
                                           ? theme.secondary
-                                          : "white",
-                                        color: isActive
-                                          ? "white"
-                                          : theme.secondary,
-                                      }}
-                                    >
-                                      {sizeValue.toUpperCase()}
-                                    </button>
-                                  );
-                                })}
-                              </div>
-
-                              {sizeErrors[key] && (
-                                <div className="text-xs text-red-500 mt-1">
-                                  Please select size
-                                </div>
-                              )}
+                                          : `${theme.secondary}55`,
+                                      backgroundColor: isActive
+                                        ? theme.secondary
+                                        : "white",
+                                      color: isActive
+                                        ? "white"
+                                        : theme.secondary,
+                                    }}
+                                  >
+                                    {optionValue.toUpperCase()}
+                                  </button>
+                                );
+                              })}
                             </div>
-                          );
-                        })}
+
+                            {optionErrors[key] && (
+                              <div className="text-xs text-red-500 mt-1">
+                                Please select {optionName}
+                              </div>
+                            )}
+                          </div>
+                        );
+                      })}
 
                     <div className="flex justify-between items-center mt-auto">
                       <div

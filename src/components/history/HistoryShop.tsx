@@ -36,9 +36,7 @@ export default function SectionHistoryShop({ className = "", data }: Props) {
                   </div>
 
                   <div className="flex-1 min-w-0">
-                    <p className="font-semibold">
-                      {order.project?.name}
-                    </p>
+                    <p className="font-semibold">{order.project?.name}</p>
 
                     <p className="text-[11px] text-textSub">
                       Order: {order.order_no || order.order_id}
@@ -66,10 +64,12 @@ export default function SectionHistoryShop({ className = "", data }: Props) {
 
                         const shouldShowDetails =
                           details.length > 0 &&
-                          (details.length > 1 ||
-                            details.some(
-                              (d) => Number(d.has_size) === 1,
-                            ));
+                          details.some((d: any) => {
+                            const selectedOption =
+                              d.selected_option || d.selected_size || "";
+
+                            return String(selectedOption).trim() !== "";
+                          });
 
                         return (
                           <div
@@ -90,28 +90,45 @@ export default function SectionHistoryShop({ className = "", data }: Props) {
 
                             {shouldShowDetails && (
                               <div className="mt-1 flex flex-col gap-1">
-                                {details.map((detail, index) => (
-                                  <div
-                                    key={`${detail.reward_item_id}_${detail.selected_size || "nosize"}_${index}`}
-                                    className="flex justify-between gap-2 text-[11px] rounded-md px-2 py-1 bg-pinkAccent/30"
-                                  >
-                                    <span className="truncate">
-                                      {detail.item_name}
-                                      {Number(detail.has_size) === 1 && (
-                                        <>
-                                          : Size{" "}
-                                          {String(
-                                            detail.selected_size || "-",
-                                          ).toUpperCase()}
-                                        </>
-                                      )}
-                                    </span>
+                                {details.map((detail: any, index: number) => {
+                                  const optionName =
+                                    detail.option_name ||
+                                    (detail.selected_size ? "size" : "");
 
-                                    <span className="font-semibold whitespace-nowrap">
-                                      x {Number(detail.qty || 0)}
-                                    </span>
-                                  </div>
-                                ))}
+                                  const selectedOption =
+                                    detail.selected_option ||
+                                    detail.selected_size ||
+                                    "";
+
+                                  if (!selectedOption) return null;
+
+                                  return (
+                                    <div
+                                      key={`${detail.reward_item_id}_${optionName}_${selectedOption}_${index}`}
+                                      className="flex justify-between gap-2 text-[11px] rounded-md px-2 py-1 bg-pinkAccent/30"
+                                    >
+                                      <span className="truncate">
+                                        {detail.item_name}
+                                        {optionName && (
+                                          <>
+                                            :{" "}
+                                            {String(optionName)
+                                              .charAt(0)
+                                              .toUpperCase() +
+                                              String(optionName).slice(1)}{" "}
+                                            {String(
+                                              selectedOption,
+                                            ).toUpperCase()}
+                                          </>
+                                        )}
+                                      </span>
+
+                                      <span className="font-semibold whitespace-nowrap">
+                                        x {Number(detail.qty || 0)}
+                                      </span>
+                                    </div>
+                                  );
+                                })}
                               </div>
                             )}
                           </div>

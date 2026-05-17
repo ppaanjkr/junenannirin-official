@@ -9,7 +9,15 @@ type Theme = {
 type CartSelection = {
   reward_item_id: string;
   item_name: string;
-  selected_size: string;
+
+  // schema ใหม่
+  option_name?: string;
+  selected_option?: string;
+
+  // fallback schema เก่า
+  selected_size?: string;
+
+  qty?: number;
 };
 
 type OrderItem = {
@@ -36,11 +44,16 @@ export default function SectionPaymentSummary({
   const count = data.reduce((sum, item) => sum + Number(item.qty || 0), 0);
 
   function getItemKey(item: OrderItem, index: number) {
-    const sizeKey = (item.selections || [])
-      .map((s) => `${s.reward_item_id}:${s.selected_size}`)
+    const optionKey = (item.selections || [])
+      .map((s) => {
+        const optionName = s.option_name || (s.selected_size ? "size" : "");
+        const selectedOption = s.selected_option || s.selected_size || "";
+
+        return `${s.reward_item_id}:${optionName}:${selectedOption}`;
+      })
       .join("|");
 
-    return `${item.id}_${sizeKey}_${index}`;
+    return `${item.id}_${optionKey}_${index}`;
   }
 
   return (
@@ -77,17 +90,27 @@ export default function SectionPaymentSummary({
 
             {item.selections && item.selections.length > 0 && (
               <div className="mt-1 flex flex-col gap-0.5">
-                {item.selections.map((s) => (
-                  <div
-                    key={`${s.reward_item_id}_${s.selected_size}`}
-                    className="text-xs text-textSub"
-                  >
-                    {s.item_name}:{" "}
-                    <span className="font-semibold">
-                      Size {String(s.selected_size || "-").toUpperCase()}
-                    </span>
-                  </div>
-                ))}
+                {item.selections.map((s, selectionIndex) => {
+                  const optionName =
+                    s.option_name || (s.selected_size ? "size" : "Option");
+
+                  const selectedOption =
+                    s.selected_option || s.selected_size || "-";
+
+                  return (
+                    <div
+                      key={`${s.reward_item_id}_${optionName}_${selectedOption}_${selectionIndex}`}
+                      className="text-xs text-textSub"
+                    >
+                      {s.item_name}:{" "}
+                      <span className="font-semibold">
+                        {String(optionName).charAt(0).toUpperCase() +
+                          String(optionName).slice(1)}{" "}
+                        {String(selectedOption).toUpperCase()}
+                      </span>
+                    </div>
+                  );
+                })}
               </div>
             )}
 

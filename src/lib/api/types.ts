@@ -66,11 +66,13 @@ export type Reward = {
     reward_id: string;
     item_name: string;
     qty: number;
-    has_size: boolean;
+    has_option: boolean;
     active: number;
-    sizes?:{
+    option_name: string;
+    options?:{
       id: string;
-      size: string;
+      option_name: string;
+      option_value: string;
       sort_order: number;
       active: number;
     }[];
@@ -136,8 +138,9 @@ export type HistoryShop = {
     details?: {
       reward_item_id: string;
       item_name: string;
-      has_size: number;
-      selected_size: string;
+      has_option: number;
+      option_name: string;
+      selected_option: string;
       qty: number;
     }[];
   }[];
@@ -164,16 +167,19 @@ export type UserPurchaseSummery = {
     title: string;
     min_amount: number;
     qty: number;
-    sizes?: {
+    options?: {
       reward_item_id: string;
       item_name: string;
-      selected_size: string;
+      option_name: string;
+      selected_option: string;
       qty: number;
     }[];
     details?:{
       reward_item_id: string;
       item_name: string;
-      selected_size: string;
+      has_option: string;
+      option_name: string;
+      selected_option: string;
       qty: number;
     }[];
   }[];
@@ -236,10 +242,11 @@ export type AdminProjectDetail = {
       name: string;
       qty: number;
     }[];
-    sizeSummary?: {
+    optionSummary?: {
       item_name: string;
-      sizes?: {
-        size: string;
+      option_name: string;
+      options?: {
+        option_value: string;
         qty: number;
       }[];
     }[];
@@ -287,7 +294,9 @@ export type AdminOrderList = {
     details?:{
       reward_item_id: string;
       item_name: string;
-      selected_size: string;
+      has_option: number;
+      option_name: string;
+      selected_option: string;
       qty: number;
     }[];
   }[];

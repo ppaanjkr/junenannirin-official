@@ -6,7 +6,9 @@ type Theme = {
 type CartSelection = {
   reward_item_id: string;
   item_name: string;
-  selected_size: string;
+  option_name: string;
+  selected_option: string;
+  qty: number;
 };
 
 type CartLine = {

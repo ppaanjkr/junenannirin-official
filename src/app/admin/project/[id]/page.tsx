@@ -19,6 +19,7 @@ export default function Page({ params }: { params: { id: string } }) {
   const { user, loading } = useUserContext();
 
   const { project, isDetailLoading } = useProjectDetail(id);
+
   const title = project?.project?.name || "-";
   const type = project?.project?.type || "";
 

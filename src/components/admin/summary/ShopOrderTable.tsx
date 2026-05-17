@@ -10,13 +10,21 @@ type Props = {
   handleSave: any;
 };
 
+function formatOptionName(optionName: string) {
+  const value = String(optionName || "").trim();
+
+  if (!value) return "";
+
+  return value.charAt(0).toUpperCase() + value.slice(1);
+}
+
 function buildItemSummary(orders: any[] = []) {
   const summaryMap: Record<
     string,
     {
       item_name: string;
-      has_size: number;
-      selected_size: string;
+      option_name: string;
+      selected_option: string;
       qty: number;
     }
   > = {};
@@ -26,24 +34,30 @@ function buildItemSummary(orders: any[] = []) {
 
     details.forEach((detail: any) => {
       const itemName = String(detail.item_name || "").trim();
-      const hasSize = Number(detail.has_size) === 1 ? 1 : 0;
-      const selectedSize = hasSize
-        ? String(detail.selected_size || "")
-            .trim()
-            .toUpperCase()
-        : "";
+
+      const optionName = String(
+        detail.option_name || (detail.selected_size ? "size" : ""),
+      ).trim();
+
+      const selectedOption = String(
+        detail.selected_option || detail.selected_size || "",
+      )
+        .trim()
+        .toUpperCase();
 
       if (!itemName) return;
 
-      const key = hasSize
-        ? `${itemName}_${selectedSize}`
-        : `${itemName}_nosize`;
+      const key = [
+        itemName,
+        optionName || "no_option",
+        selectedOption || "no_value",
+      ].join("_");
 
       if (!summaryMap[key]) {
         summaryMap[key] = {
           item_name: itemName,
-          has_size: hasSize,
-          selected_size: selectedSize,
+          option_name: optionName,
+          selected_option: selectedOption,
           qty: 0,
         };
       }
@@ -52,17 +66,20 @@ function buildItemSummary(orders: any[] = []) {
     });
   });
 
-  const sizeOrder = ["XS", "S", "M", "L", "XL", "2XL", "3XL"];
+  const optionOrder = ["XS", "S", "M", "L", "XL", "2XL", "3XL"];
 
   return Object.values(summaryMap).sort((a, b) => {
     const nameCompare = a.item_name.localeCompare(b.item_name);
     if (nameCompare !== 0) return nameCompare;
 
-    const aIndex = sizeOrder.indexOf(a.selected_size);
-    const bIndex = sizeOrder.indexOf(b.selected_size);
+    const optionNameCompare = a.option_name.localeCompare(b.option_name);
+    if (optionNameCompare !== 0) return optionNameCompare;
+
+    const aIndex = optionOrder.indexOf(a.selected_option);
+    const bIndex = optionOrder.indexOf(b.selected_option);
 
     if (aIndex === -1 && bIndex === -1) {
-      return a.selected_size.localeCompare(b.selected_size);
+      return a.selected_option.localeCompare(b.selected_option);
     }
 
     if (aIndex === -1) return 1;
@@ -84,23 +101,33 @@ function ItemSummary({ orders }: { orders: any[] }) {
       </div>
 
       <div className="flex flex-col gap-1">
-        {summary.map((detail, index) => (
-          <div
-            key={`${detail.item_name}_${detail.selected_size || "nosize"}_${index}`}
-            className="flex justify-between gap-2 text-[11px] rounded-md bg-pinkAccent/20 px-2 py-1"
-          >
-            <span className="break-words">
-              {detail.item_name}
-              {Number(detail.has_size) === 1 && (
-                <> {String(detail.selected_size || "-").toUpperCase()}</>
-              )}
-            </span>
+        {summary.map((detail, index) => {
+          const hasOption =
+            detail.option_name.trim() !== "" &&
+            detail.selected_option.trim() !== "";
 
-            <span className="font-semibold whitespace-nowrap">
-              x{Number(detail.qty || 0)}
-            </span>
-          </div>
-        ))}
+          return (
+            <div
+              key={`${detail.item_name}_${detail.option_name || "option"}_${detail.selected_option || "value"}_${index}`}
+              className="flex justify-between gap-2 text-[11px] rounded-md bg-pinkAccent/20 px-2 py-1"
+            >
+              <span className="break-words">
+                {detail.item_name}
+                {hasOption && (
+                  <>
+                    {" "}
+                    ({formatOptionName(detail.option_name)}{" "}
+                    {String(detail.selected_option).toUpperCase()})
+                  </>
+                )}
+              </span>
+
+              <span className="font-semibold whitespace-nowrap">
+                x{Number(detail.qty || 0)}
+              </span>
+            </div>
+          );
+        })}
       </div>
     </div>
   );
@@ -125,14 +152,14 @@ export default function ShopOrderTable({
         </thead>
 
         <tbody>
-          {data.map((item) => {
+          {data.map((item, rowIndex: number) => {
             const shipmentId = String(item.shipment?.id || "");
             const edited = editedRows[shipmentId] || {};
             const orders = Array.isArray(item.orders) ? item.orders : [];
 
             return (
               <tr
-                key={item.user.uuid}
+                key={`${shipmentId || "shipment"}_${item.user?.uuid || "user"}_${rowIndex}`}
                 className={`border-t ${editedRows[shipmentId] ? "bg-yellow-50" : ""}`}
               >
                 {/* USER */}
@@ -141,21 +168,22 @@ export default function ShopOrderTable({
                     <div className="font-semibold text-base text-textMain break-words">
                       {item.user.username}
                     </div>
+
                     <div className="flex gap-1 mt-1 min-w-0">
-                      <UserRound className=" w-3 h-3 shrink-0 mt-[2px]" />
-                      <span className=" truncate ">
-                        {item.user.name || "-"}
-                      </span>
+                      <UserRound className="w-3 h-3 shrink-0 mt-[2px]" />
+                      <span className="truncate">{item.user.name || "-"}</span>
                     </div>
-                    <div className=" flex gap-1 mt-1  min-w-0 ">
-                      <Phone className=" w-3 h-3 shrink-0 mt-[2px] " />
-                      <span className=" truncate ">
+
+                    <div className="flex gap-1 mt-1 min-w-0">
+                      <Phone className="w-3 h-3 shrink-0 mt-[2px]" />
+                      <span className="truncate">
                         {item.user.phone || "-"}
                       </span>
                     </div>
-                    <div className=" flex gap-1 mt-2 min-w-0 ">
-                      <House className=" w-3 h-3 shrink-0 mt-[2px] " />
-                      <span className=" break-words line-clamp-3 ">
+
+                    <div className="flex gap-1 mt-2 min-w-0">
+                      <House className="w-3 h-3 shrink-0 mt-[2px]" />
+                      <span className="break-words line-clamp-3">
                         {item.user.address || "-"}
                       </span>
                     </div>
@@ -165,9 +193,9 @@ export default function ShopOrderTable({
                 {/* ORDERS */}
                 <td className="p-2 align-top w-[240px]">
                   <div className="flex flex-col gap-1">
-                    {orders.map((o: any) => (
+                    {orders.map((o: any, orderIndex: number) => (
                       <div
-                        key={o.reward_id}
+                        key={`${o.reward_id || "reward"}_${orderIndex}`}
                         className="flex justify-between gap-2"
                       >
                         <span className="break-words">{o.title}</span>
@@ -180,17 +208,17 @@ export default function ShopOrderTable({
                 </td>
 
                 {/* TOTAL */}
-                <td className=" p-2 align-top font-semibold text-pinkSecondary whitespace-nowrap w-[100px] ">
+                <td className="p-2 align-top font-semibold text-pinkSecondary whitespace-nowrap w-[100px]">
                   ฿ {formatTHB(item.total_amount)}
                 </td>
 
                 {/* SHIPPING */}
                 <td className="p-2 align-top w-[260px]">
-                  <div className=" flex flex-col gap-2 ">
+                  <div className="flex flex-col gap-2">
                     <input
                       type="text"
                       placeholder="Tracking No"
-                      className=" border border-pinkAccent rounded-lg px-3 py-2 outline-none w-full "
+                      className="border border-pinkAccent rounded-lg px-3 py-2 outline-none w-full"
                       value={
                         edited.tracking_no ?? item.shipment.tracking_no ?? ""
                       }
@@ -199,7 +227,7 @@ export default function ShopOrderTable({
                       }
                     />
 
-                    <div className=" flex gap-2 ">
+                    <div className="flex gap-2">
                       <select
                         name="carrier"
                         id="carrier"
@@ -215,11 +243,12 @@ export default function ShopOrderTable({
                         <option value="Flash">Flash</option>
                         <option value="J&T">J&T</option>
                       </select>
+
                       <button
-                        className=" w-10 h-10 shrink-0 rounded-lg bg-pinkSecondary text-white flex justify-center items-center hover:opacity-90 transition "
+                        className="w-10 h-10 shrink-0 rounded-lg bg-pinkSecondary text-white flex justify-center items-center hover:opacity-90 transition"
                         onClick={() => handleSave(item)}
                       >
-                        <Save className=" w-4 h-4 " />
+                        <Save className="w-4 h-4" />
                       </button>
                     </div>
                   </div>

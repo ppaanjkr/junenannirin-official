@@ -1,11 +1,11 @@
 import ImagePreviewModal from "@/components/ImagePreviewModal";
 import { formatTHB } from "@/lib/formatTHB";
 import { driveThumb } from "@/lib/workUtils";
-import { format } from "path";
 
 type Props = {
   shop: any;
 };
+
 export default function ShopItemSummary({ shop }: Props) {
   return (
     <section className="mt-4">
@@ -15,6 +15,7 @@ export default function ShopItemSummary({ shop }: Props) {
           <span className="w-1.5 h-4 bg-pinkSecondary rounded-full"></span>
           Product Summary
         </h2>
+
         <div className="mt-4 grid grid-cols-12 gap-4">
           {shop &&
             shop.rewardSummary &&
@@ -30,11 +31,6 @@ export default function ShopItemSummary({ shop }: Props) {
                     alt={item.title}
                     className="w-24 h-full md:w-32 object-cover rounded-md border border-pinkAccent flex-shrink-0"
                   />
-                  {/* <img
-                    src="/test.jpg"
-                    alt=""
-                    className="w-24 h-24 object-cover rounded-md border border-pinkAccent flex-shrink-0"
-                  /> */}
 
                   <div className="flex flex-col min-w-0">
                     <span className="break-words">{item.title}</span>
@@ -60,6 +56,7 @@ export default function ShopItemSummary({ shop }: Props) {
           <span className="w-1.5 h-4 bg-pinkSecondary rounded-full"></span>
           Items Usage
         </h2>
+
         <div className="mt-4 grid grid-cols-12 gap-2">
           {shop &&
             shop.itemSummary &&
@@ -71,36 +68,54 @@ export default function ShopItemSummary({ shop }: Props) {
                 <span className="font-semibold text-pinkSecondary text-lg">
                   {item.qty}
                 </span>
+
                 <span className="text-sm">{item.name}</span>
               </div>
             ))}
         </div>
       </div>
 
-      {/* items by size */}
-      {shop?.sizeSummary && shop.sizeSummary.length > 0 && (
+      {/* items by option */}
+      {/* items by option */}
+      {shop?.optionSummary && shop.optionSummary.length > 0 && (
         <div className="bg-white rounded-lg p-4 shadow-soft border border-pinkAccent mt-4">
           <h2 className="font-semibold mb-4 flex items-center gap-2">
             <span className="w-1.5 h-4 bg-pinkSecondary rounded-full"></span>
-            Items Usage by Size
+            Items Usage by Option
           </h2>
 
           <div className="mt-4 grid grid-cols-12 gap-2">
-            {shop.sizeSummary.flatMap((item: any) =>
-              (item.sizes || []).map((size: any) => (
-                <div
-                  key={`${item.item_name}_${size.size}`}
-                  className="col-span-6 md:col-span-4 flex flex-col justify-center items-center rounded-md border border-pinkAccent p-2"
-                >
-                  <span className="font-semibold text-pinkSecondary text-lg">
-                    {size.qty}
-                  </span>
+            {shop.optionSummary.flatMap((item: any, itemIndex: number) =>
+              (item.options || []).map((option: any, optionIndex: number) => {
+                const optionName = String(option.option_name || "").trim();
+                const selectedOption = String(
+                  option.selected_option || "",
+                ).trim();
 
-                  <span className="text-sm text-center">
-                    {item.item_name} - {String(size.size).toUpperCase()}
-                  </span>
-                </div>
-              )),
+                return (
+                  <div
+                    key={`${item.item_name || "item"}_${optionName || "option"}_${selectedOption || "value"}_${itemIndex}_${optionIndex}`}
+                    className="col-span-6 md:col-span-4 flex flex-col justify-center items-center rounded-md border border-pinkAccent p-2"
+                  >
+                    <span className="font-semibold text-pinkSecondary text-lg">
+                      {option.qty}
+                    </span>
+
+                    <span className="text-sm text-center">
+                      {item.item_name}
+                      {optionName && selectedOption && (
+                        <>
+                          {" "}
+                          -{" "}
+                          {String(optionName).charAt(0).toUpperCase() +
+                            String(optionName).slice(1)}{" "}
+                          {String(selectedOption).toUpperCase()}
+                        </>
+                      )}
+                    </span>
+                  </div>
+                );
+              }),
             )}
           </div>
         </div>

@@ -192,25 +192,29 @@ export default function SectionPaymentUpload({
         action: "createUserOrder",
         user_id: user.uuid,
         project_id: project.id,
+
         items: items.map((i: any) => ({
-          id: String(i.id),
+          id: i.id,
           name: i.name,
           price: Number(i.price || 0),
           qty: Number(i.qty || 0),
 
-          // เพิ่มตรงนี้ เพื่อรองรับ size
           selections: Array.isArray(i.selections)
             ? i.selections.map((s: any) => ({
-                reward_item_id: String(s.reward_item_id || ""),
-                item_name: s.item_name || "",
-                selected_size: s.selected_size || "",
+                reward_item_id: s.reward_item_id,
+                item_name: s.item_name,
+                option_name: s.option_name || (s.selected_size ? "size" : ""),
+                selected_option: s.selected_option || s.selected_size || "",
+
+                qty: Number(s.qty || 0),
               }))
             : [],
         })),
-        referenceId: referenceId,
-        transRef: transRef,
-        dateTime: dateTime,
-        amount: amount,
+
+        referenceId,
+        transRef,
+        dateTime,
+        amount,
       };
     } catch (err) {
       console.error("payload error", err);

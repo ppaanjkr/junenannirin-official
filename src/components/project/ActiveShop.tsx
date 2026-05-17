@@ -15,7 +15,9 @@ import { getEndTime } from "@/lib/workUtils";
 type CartSelection = {
   reward_item_id: string;
   item_name: string;
-  selected_size: string;
+  option_name: string;
+  selected_option: string;
+  qty: number;
 };
 
 type CartLine = {
@@ -65,16 +67,17 @@ export default function ActiveShop({
 
     const status = String(project.status || "").toLowerCase();
 
-    // ถ้า status ไม่ใช่ open = ถือว่าปิดโครงการ
     const isClosed = status !== "open";
 
     const end = getEndTime(project.end_date);
 
     const isExpired = end !== null && end < Date.now();
+
     const canOrder = !isExpired;
+
     setCanPlaceOrder(canOrder);
 
-    // ล้าง cart
+    // ล้าง cart ถ้า order ไม่ได้แล้ว
     if (!canOrder && !clearedRef.current) {
       clearedRef.current = true;
 
@@ -97,19 +100,32 @@ export default function ActiveShop({
       return {};
     }
   });
+
   useEffect(() => {
     localStorage.setItem("cart", JSON.stringify(cart));
   }, [cart]);
 
-  // action
+  // =====================================================
+  // CART KEY
+  // ใช้ option_name + selected_option แทน selected_size
+  // =====================================================
+
   function buildCartKey(rewardId: string, selections: CartSelection[]) {
-    const sizePart = selections
-      .map((s) => `${s.reward_item_id}:${s.selected_size}`)
+    const optionPart = selections
+      .map(
+        (s) =>
+          `${s.reward_item_id}:${s.option_name}:${s.selected_option}`,
+      )
       .sort()
       .join("|");
 
-    return sizePart ? `${rewardId}|${sizePart}` : rewardId;
+    return optionPart ? `${rewardId}|${optionPart}` : rewardId;
   }
+
+  // =====================================================
+  // INC
+  // =====================================================
+
   function inc(reward: any, selections: CartSelection[]) {
     if (!canPlaceOrder) return;
 
@@ -132,6 +148,10 @@ export default function ActiveShop({
       };
     });
   }
+
+  // =====================================================
+  // DEC
+  // =====================================================
 
   function dec(reward: any, selections: CartSelection[]) {
     if (!canPlaceOrder) return;
@@ -159,7 +179,10 @@ export default function ActiveShop({
     });
   }
 
-  // total
+  // =====================================================
+  // TOTAL
+  // =====================================================
+
   const total = Object.values(cart).reduce((sum, line) => {
     return sum + line.price * line.qty;
   }, 0);
@@ -168,7 +191,12 @@ export default function ActiveShop({
     return sum + line.qty;
   }, 0);
 
-  // order
+  // =====================================================
+  // BUILD ORDER
+  // ตรงนี้สำคัญ: selection.qty ต้องคูณ line.qty
+  // เพราะ GAS จะเอาไปบันทึก UserRewardItemSelections
+  // =====================================================
+
   function buildOrder() {
     return Object.values(cart).map((line) => ({
       id: line.reward_id,
@@ -176,9 +204,16 @@ export default function ActiveShop({
       price: line.price,
       img: line.img,
       qty: line.qty,
-      selections: line.selections,
+      selections: line.selections.map((selection) => ({
+        reward_item_id: selection.reward_item_id,
+        item_name: selection.item_name,
+        option_name: selection.option_name,
+        selected_option: selection.selected_option,
+        qty: Number(selection.qty || 1) * Number(line.qty || 1),
+      })),
     }));
   }
+
   function handleCheckout() {
     const order = buildOrder();
 
@@ -189,18 +224,19 @@ export default function ActiveShop({
     // กัน project ซ้อน
     localStorage.setItem("fc_project", String(project.id));
 
-    // redirect
-    // window.location.href = "/project/payment";
     router.replace("/project/payment");
   }
 
   return (
     <>
       {isLoading && <LoadingOverlay />}
+
       <SectionProject data={data} theme={theme} />
+
       {user && (
         <SectionPurchaseSummary data={shopSummary} theme={theme} user={user} />
       )}
+
       <SectionItems
         data={rewards}
         theme={theme}
@@ -210,6 +246,7 @@ export default function ActiveShop({
         dec={dec}
         canPlaceOrder={canPlaceOrder}
       />
+
       {user && canPlaceOrder && (
         <SectionPlaceOrder
           theme={theme}
