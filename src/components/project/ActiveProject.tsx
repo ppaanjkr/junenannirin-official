@@ -5,9 +5,18 @@ import SectionProject from "./SectionProject";
 import SectionGoal from "./SectionGoal";
 import SectionReward from "./SectionReward";
 
-export default function ActiveProject({ data }: { data: ActiveProjectData }) {
+export default function ActiveProject({
+  data,
+  previewMode = false,
+}: {
+  data: ActiveProjectData;
+  previewMode?: boolean;
+}) {
   const { project, targets, rewards, bank } = data;
+
   useEffect(() => {
+    if (previewMode) return;
+
     if (!project) return;
 
     if (localStorage.getItem("project")) return;
@@ -26,10 +35,13 @@ export default function ActiveProject({ data }: { data: ActiveProjectData }) {
         qrcode: bank.qrcode || "",
       }),
     );
-  }, [project]);
+  }, [project, bank, previewMode]);
 
   const [projectData, setProjectData] = useState<any>(null);
+
   useEffect(() => {
+    if (previewMode) return;
+
     try {
       const raw = localStorage.getItem("project");
 
@@ -39,8 +51,10 @@ export default function ActiveProject({ data }: { data: ActiveProjectData }) {
     } catch {
       setProjectData(null);
     }
-  }, []);
+  }, [previewMode]);
+
   const theme = getThemeColors(project.theme_color);
+
   return (
     <>
       <SectionProject data={data} theme={theme} />

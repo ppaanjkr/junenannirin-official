@@ -35,14 +35,12 @@ type Props = {
   inc: (reward: Reward, selections: CartSelection[]) => void;
   dec: (reward: Reward, selections: CartSelection[]) => void;
   canPlaceOrder: boolean;
+  previewMode?: boolean;
 };
 
 function buildCartKey(rewardId: string, selections: CartSelection[]) {
   const optionPart = selections
-    .map(
-      (s) =>
-        `${s.reward_item_id}:${s.option_name}:${s.selected_option}`,
-    )
+    .map((s) => `${s.reward_item_id}:${s.option_name}:${s.selected_option}`)
     .sort()
     .join("|");
 
@@ -57,6 +55,7 @@ export default function SectionItems({
   inc,
   dec,
   canPlaceOrder,
+  previewMode = false,
 }: Props) {
   const [selectedOptions, setSelectedOptions] = useState<
     Record<string, string>
@@ -70,9 +69,7 @@ export default function SectionItems({
   );
 
   function getOptionItems(item: Reward) {
-    return (item.items || []).filter(
-      (ri: any) => Number(ri.has_option) === 1,
-    );
+    return (item.items || []).filter((ri: any) => Number(ri.has_option) === 1);
   }
 
   function getSelections(item: Reward): CartSelection[] {
@@ -98,6 +95,9 @@ export default function SectionItems({
   }
 
   function handleAdd(item: Reward) {
+    if (previewMode) return;
+    if (!canPlaceOrder) return;
+
     const optionItems = getOptionItems(item);
 
     const errors: Record<string, boolean> = {};
@@ -127,6 +127,8 @@ export default function SectionItems({
     inc(item, selections);
   }
 
+  const showActions = user || previewMode;
+
   return (
     <section>
       <div className="flex justify-between items-center mt-6">
@@ -134,6 +136,10 @@ export default function SectionItems({
 
         {canPlaceOrder && (
           <span className="text-sm text-text-sub">{itemCount} items</span>
+        )}
+
+        {previewMode && (
+          <span className="text-sm text-text-sub">Preview only</span>
         )}
       </div>
 
@@ -165,15 +171,12 @@ export default function SectionItems({
                     <p className="text-textSub text-sm">{item.description}</p>
 
                     {/* OPTION SELECTORS */}
-                    {user &&
-                      canPlaceOrder &&
+                    {showActions &&
                       getOptionItems(item).map((ri: any) => {
                         const key = `${item.id}_${ri.id}`;
                         const value = selectedOptions[key] ?? "";
 
-                        const optionName = String(
-                          ri.option_name || "option",
-                        );
+                        const optionName = String(ri.option_name || "option");
 
                         const options = Array.isArray(ri.options)
                           ? ri.options
@@ -201,7 +204,11 @@ export default function SectionItems({
                                       option.id || option.option_value,
                                     )}
                                     type="button"
+                                    disabled={previewMode || !canPlaceOrder}
                                     onClick={() => {
+                                      if (previewMode) return;
+                                      if (!canPlaceOrder) return;
+
                                       setSelectedOptions((prev) => ({
                                         ...prev,
                                         [key]: optionValue,
@@ -212,7 +219,7 @@ export default function SectionItems({
                                         [key]: false,
                                       }));
                                     }}
-                                    className="min-w-8 h-8 md:min-w-10 md:h-10 px-2 rounded-lg border text-sm font-semibold transition disabled:opacity-40"
+                                    className="min-w-8 h-8 md:min-w-10 md:h-10 px-2 rounded-lg border text-sm font-semibold transition disabled:opacity-40 disabled:cursor-not-allowed"
                                     style={{
                                       borderColor: optionErrors[key]
                                         ? "#ef4444"
@@ -250,15 +257,18 @@ export default function SectionItems({
                         ฿ {Number(item.min_amount || 0).toLocaleString()}
                       </div>
 
-                      {user && canPlaceOrder && (
+                      {showActions && (
                         <div
                           className="mt-1 flex items-center rounded-full px-1 text-sm"
                           style={{ backgroundColor: `${theme.accent}80` }}
                         >
                           <button
-                            onClick={() => dec(item, selections)}
-                            disabled={qty === 0 || !canPlaceOrder}
-                            className="w-6 h-6 rounded-full text-white flex justify-center items-center disabled:opacity-30"
+                            onClick={() => {
+                              if (previewMode) return;
+                              dec(item, selections);
+                            }}
+                            disabled={previewMode || qty === 0 || !canPlaceOrder}
+                            className="w-6 h-6 rounded-full text-white flex justify-center items-center disabled:opacity-30 disabled:cursor-not-allowed"
                             style={{ backgroundColor: `${theme.secondary}80` }}
                           >
                             −
@@ -270,8 +280,8 @@ export default function SectionItems({
 
                           <button
                             onClick={() => handleAdd(item)}
-                            disabled={!canPlaceOrder}
-                            className="w-6 h-6 rounded-full text-white flex justify-center items-center disabled:opacity-30"
+                            disabled={previewMode || !canPlaceOrder}
+                            className="w-6 h-6 rounded-full text-white flex justify-center items-center disabled:opacity-30 disabled:cursor-not-allowed"
                             style={{ backgroundColor: theme.secondary }}
                           >
                             +

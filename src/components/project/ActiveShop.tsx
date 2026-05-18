@@ -32,9 +32,11 @@ type CartLine = {
 export default function ActiveShop({
   data,
   user,
+  previewMode = false,
 }: {
   data: ActiveProjectData;
   user: any;
+  previewMode?: boolean;
 }) {
   const router = useRouter();
   const clearedRef = useRef(false);
@@ -50,20 +52,27 @@ export default function ActiveShop({
   useEffect(() => {
     if (!project) return;
 
-    localStorage.setItem(
-      "project",
-      JSON.stringify({
-        id: project.id,
-        name: project.name,
-        theme_color: project.theme_color,
-        bank_name: bank.bank_name || "",
-        bank_short_name: bank.bank_short_name || "",
-        account_name: bank.account_name || "",
-        account_name_en: bank.account_name_en || "",
-        account_no: bank.account_no || "",
-        qrcode: bank.qrcode || "",
-      }),
-    );
+    if (!previewMode) {
+      localStorage.setItem(
+        "project",
+        JSON.stringify({
+          id: project.id,
+          name: project.name,
+          theme_color: project.theme_color,
+          bank_name: bank.bank_name || "",
+          bank_short_name: bank.bank_short_name || "",
+          account_name: bank.account_name || "",
+          account_name_en: bank.account_name_en || "",
+          account_no: bank.account_no || "",
+          qrcode: bank.qrcode || "",
+        }),
+      );
+    }
+
+    if (previewMode) {
+      setCanPlaceOrder(false);
+      return;
+    }
 
     const status = String(project.status || "").toLowerCase();
 
@@ -85,12 +94,14 @@ export default function ActiveShop({
       localStorage.removeItem("fc_cart");
       localStorage.removeItem("fc_order");
     }
-  }, [project, bank]);
+  }, [project, bank, previewMode]);
 
   const theme = getThemeColors(project.theme_color);
 
   const [cart, setCart] = useState<Record<string, CartLine>>(() => {
     if (typeof window === "undefined") return {};
+
+    if (previewMode) return {};
 
     const saved = localStorage.getItem("cart");
 
@@ -102,8 +113,10 @@ export default function ActiveShop({
   });
 
   useEffect(() => {
+    if (previewMode) return;
+
     localStorage.setItem("cart", JSON.stringify(cart));
-  }, [cart]);
+  }, [cart, previewMode]);
 
   // =====================================================
   // CART KEY
@@ -112,10 +125,7 @@ export default function ActiveShop({
 
   function buildCartKey(rewardId: string, selections: CartSelection[]) {
     const optionPart = selections
-      .map(
-        (s) =>
-          `${s.reward_item_id}:${s.option_name}:${s.selected_option}`,
-      )
+      .map((s) => `${s.reward_item_id}:${s.option_name}:${s.selected_option}`)
       .sort()
       .join("|");
 
@@ -127,6 +137,7 @@ export default function ActiveShop({
   // =====================================================
 
   function inc(reward: any, selections: CartSelection[]) {
+    if (previewMode) return;
     if (!canPlaceOrder) return;
 
     const rewardId = String(reward.id);
@@ -154,6 +165,7 @@ export default function ActiveShop({
   // =====================================================
 
   function dec(reward: any, selections: CartSelection[]) {
+    if (previewMode) return;
     if (!canPlaceOrder) return;
 
     const rewardId = String(reward.id);
@@ -215,6 +227,8 @@ export default function ActiveShop({
   }
 
   function handleCheckout() {
+    if (previewMode) return;
+
     const order = buildOrder();
 
     if (!order.length) return;
@@ -229,11 +243,11 @@ export default function ActiveShop({
 
   return (
     <>
-      {isLoading && <LoadingOverlay />}
+      {!previewMode && isLoading && <LoadingOverlay />}
 
       <SectionProject data={data} theme={theme} />
 
-      {user && (
+      {!previewMode && user && (
         <SectionPurchaseSummary data={shopSummary} theme={theme} user={user} />
       )}
 
@@ -244,10 +258,22 @@ export default function ActiveShop({
         cart={cart}
         inc={inc}
         dec={dec}
-        canPlaceOrder={canPlaceOrder}
+        canPlaceOrder={!previewMode && canPlaceOrder}
+        previewMode={previewMode}
       />
 
-      {user && canPlaceOrder && (
+      {previewMode && (
+        <SectionPlaceOrder
+          theme={theme}
+          total={0}
+          count={0}
+          cart={{}}
+          onCheckout={handleCheckout}
+          previewMode={previewMode}
+        />
+      )}
+
+      {!previewMode && user && canPlaceOrder && (
         <SectionPlaceOrder
           theme={theme}
           total={total}

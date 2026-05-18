@@ -26,12 +26,14 @@ export default function SectionPlaceOrder({
   count,
   cart,
   onCheckout,
+  previewMode = false,
 }: {
   theme: Theme;
   total: number;
   count: number;
   cart: Record<string, CartLine>;
   onCheckout: () => void;
+  previewMode?: boolean;
 }) {
   return (
     <div
@@ -61,18 +63,25 @@ export default function SectionPlaceOrder({
               {count} item{count > 1 ? "s" : ""}
             </div>
           )}
+
+          {previewMode && (
+            <div className="text-xs text-text-sub mt-0.5">Preview only</div>
+          )}
         </div>
 
         <button
-          className="text-white px-5 py-2 rounded-xl font-semibold disabled:opacity-50"
+          className="text-white px-5 py-2 rounded-xl font-semibold disabled:opacity-50 disabled:cursor-not-allowed"
           id="orderBtn"
           style={{
             backgroundColor: `${theme.secondary}`,
           }}
-          disabled={total === 0}
-          onClick={onCheckout}
+          disabled={previewMode || total === 0}
+          onClick={() => {
+            if (previewMode) return;
+            onCheckout();
+          }}
         >
-          Place Order
+          {previewMode ? "Preview Only" : "Place Order"}
         </button>
       </div>
     </div>
