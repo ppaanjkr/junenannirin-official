@@ -40,7 +40,9 @@ export default function SectionProject({
 
   // image
   let imageUrl = project.image_url || "";
-  // if (imageUrl) imageUrl = driveThumb(imageUrl);
+  const firstMoreImage = Array.isArray(project.img_more)
+    ? project.img_more[0]
+    : project.img_more; 
 
   // desc
   const desc = (project.description || "")
@@ -117,8 +119,7 @@ export default function SectionProject({
 
           {/* more img */}
           <div>
-            <ImagePreviewModal src={driveThumb(project.img_more)} alt={project.name} className="w-full object-center"/>
-            {/* <ImagePreviewModal src={`test.jpg`} alt={project.name} className="w-full object-center"/> */}
+            <ImagePreviewModal src={driveThumb(firstMoreImage)} alt={project.name} className="w-full object-center"/>
           </div>
 
           {/* progress */}
