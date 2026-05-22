@@ -9,12 +9,6 @@ export async function GET() {
 
     return NextResponse.json({
       success: true,
-      debug: {
-        projectId: process.env.FIREBASE_PROJECT_ID,
-        path: "banks",
-        size: snap.size,
-        ids: snap.docs.map((d) => d.id),
-      },
       data: snap.docs.map((doc) => ({
         id: doc.data().id || doc.id,
         docId: doc.id,
