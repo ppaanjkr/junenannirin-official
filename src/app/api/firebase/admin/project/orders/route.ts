@@ -1,6 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
 import { adminDb } from "@/lib/firebase/admin";
 
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
+
 function parseDateTime(value: any) {
   if (!value) return 0;
 

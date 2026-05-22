@@ -1,6 +1,9 @@
 import { adminDb } from "@/lib/firebase/admin";
 import { NextRequest, NextResponse } from "next/server";
 
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
+
 function serializeDate(value: any) {
   if (!value) return "";
 

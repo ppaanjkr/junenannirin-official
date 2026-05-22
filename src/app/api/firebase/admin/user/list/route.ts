@@ -1,12 +1,23 @@
 import { NextResponse } from "next/server";
 import { adminDb } from "@/lib/firebase/admin";
 
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
+
 function toIsoDate(value: any) {
   if (!value) return "";
 
-  if (value?.toDate) return value.toDate().toISOString();
+  if (typeof value?.toDate === "function") {
+    return value.toDate().toISOString();
+  }
 
-  if (value instanceof Date) return value.toISOString();
+  if (value?._seconds) {
+    return new Date(value._seconds * 1000).toISOString();
+  }
+
+  if (value instanceof Date) {
+    return value.toISOString();
+  }
 
   return value;
 }

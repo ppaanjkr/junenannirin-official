@@ -1,6 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
 import { adminDb } from "@/lib/firebase/admin";
 
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
+
 function toPlainData(doc: FirebaseFirestore.QueryDocumentSnapshot) {
   return {
     docId: doc.id,
