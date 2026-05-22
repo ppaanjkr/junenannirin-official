@@ -1,24 +1,25 @@
 import { NextResponse } from "next/server";
 import { adminDb } from "@/lib/firebase/admin";
 
+export const dynamic = "force-dynamic";
+
 export async function GET() {
   try {
     const snap = await adminDb.collection("banks").get();
 
-    const banks = snap.docs
-      .map((doc) => ({
-        id: doc.id,
-        ...doc.data(),
-      }))
-      .sort(
-        (a: any, b: any) =>
-          new Date(b.created_at || 0).getTime() -
-          new Date(a.created_at || 0).getTime(),
-      );
-
     return NextResponse.json({
       success: true,
-      data: banks,
+      debug: {
+        projectId: process.env.FIREBASE_PROJECT_ID,
+        path: "banks",
+        size: snap.size,
+        ids: snap.docs.map((d) => d.id),
+      },
+      data: snap.docs.map((doc) => ({
+        id: doc.data().id || doc.id,
+        docId: doc.id,
+        ...doc.data(),
+      })),
     });
   } catch (err: any) {
     return NextResponse.json(
