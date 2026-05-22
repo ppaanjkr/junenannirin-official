@@ -1,39 +1,29 @@
 import { NextRequest, NextResponse } from "next/server";
+import { checkUser } from "@/lib/firebase/user";
 
 export async function POST(req: NextRequest) {
-
   try {
-
     const body = await req.json();
 
-    const API_URL =
-      process.env.NEXT_PUBLIC_API_URL!;
+    if (!body.lineUserId) {
+      return NextResponse.json(
+        { success: false, message: "lineUserId is required" },
+        { status: 400 },
+      );
+    }
 
-    const gasRes = await fetch(API_URL, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        action: "checkUser",
-        lineUserId: body.lineUserId,
-      }),
-      cache: "no-store",
-    });
-
-    const data = await gasRes.json();
+    const data = await checkUser(body.lineUserId);
 
     return NextResponse.json(data);
-
   } catch (err) {
-
     return NextResponse.json(
       {
         success: false,
+        message: "Check user failed",
       },
       {
         status: 500,
-      }
+      },
     );
   }
 }

@@ -13,9 +13,10 @@ import { useRouter } from "next/navigation";
 import { useState } from "react";
 
 export default function Page({ params }: { params: { id: string } }) {
+
   const id = params.id;
   const router = useRouter();
-  const { loading } = useUserContext();
+  const { user, loading } = useUserContext();
 
   const { project, isDetailLoading } = useProjectDetail(id);
 
@@ -55,6 +56,8 @@ export default function Page({ params }: { params: { id: string } }) {
             donation={project?.donation}
             projectId={project?.project?.id ?? ""}
             orders={orders}
+            project={project?.project}
+            user={user}
           />
         )}
 
@@ -64,6 +67,7 @@ export default function Page({ params }: { params: { id: string } }) {
             shop={project?.shop?.rewardSummary}
             donation={project?.donation}
             projectId={id}
+            user={user}
           />
         )}
       </main>

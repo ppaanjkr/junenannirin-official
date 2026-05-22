@@ -32,12 +32,16 @@ export function convertToThaiYear(dateString: string) {
   return year.toString();
 }
 
-export function formatThaiDateWithTime(dateInput: string | Date) {
+export function formatThaiDateWithTime(dateInput: any) {
   if (!dateInput) return "-";
 
   let date: Date | null = null;
 
-  if (dateInput instanceof Date) {
+  if (dateInput?.toDate) {
+    date = dateInput.toDate();
+  } else if (dateInput?._seconds) {
+    date = new Date(dateInput._seconds * 1000);
+  } else if (dateInput instanceof Date) {
     date = dateInput;
   } else if (
     typeof dateInput === "string" &&

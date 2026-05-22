@@ -1,6 +1,6 @@
 export type ProjectType = "donation" | "shop";
 
-export type ProjectStatus = "draft" | "open" | "paused" | "closed";
+export type ProjectStatus = "draft" | "open" | "paused" | "closed" | "close";
 
 export type ProjectFormImageFile = {
   file_name: string;
@@ -13,6 +13,8 @@ export type ProjectFormRewardItemOption = {
 };
 
 export type ProjectFormRewardItem = {
+  id?: string;
+  reward_id?: string;
   item_name: string;
   qty: number;
   has_option: number;
@@ -26,13 +28,9 @@ export type ProjectFormReward = {
   description: string;
   min_amount: number;
   price: number;
-
-  // url เดิมจาก sheet
   image_url: string;
-
-  // ไฟล์ใหม่จาก frontend
   image_file?: ProjectFormImageFile | null;
-
+  image_delete_url?: string;
   items: ProjectFormRewardItem[];
 };
 
@@ -42,9 +40,9 @@ export type ProjectFormTarget = {
   amount: number;
   title: string;
   description: string;
-
   image_url: string;
   image_file?: ProjectFormImageFile | null;
+  image_delete_url?: string;
 };
 
 export type ProjectFormState = {
@@ -54,9 +52,11 @@ export type ProjectFormState = {
 
   image_url: string;
   image_file?: ProjectFormImageFile | null;
+  image_delete_url?: string;
 
   img_more: string[];
-  img_more_files?: ProjectFormImageFile[];
+  img_more_files?: (ProjectFormImageFile | null)[];
+  img_more_delete_urls?: string[];
 
   start_date: string;
   end_date: string;
@@ -79,8 +79,10 @@ export const defaultProjectForm: ProjectFormState = {
   description: "",
   image_url: "",
   image_file: null,
+  image_delete_url: "",
   img_more: [],
   img_more_files: [],
+  img_more_delete_urls: [],
   start_date: "",
   end_date: "",
   target_amount: 0,

@@ -1,4 +1,7 @@
-import { useState } from "react";
+"use client";
+
+import { updateUserProfile } from "@/lib/api/user";
+import { useEffect, useState } from "react";
 
 type Props = {
   user: any;
@@ -7,6 +10,7 @@ type Props = {
   setLoading: (loading: boolean) => void;
   setPopup: (popup: any) => void;
 };
+
 export default function SectionEditProfile({
   user,
   setUser,
@@ -15,13 +19,29 @@ export default function SectionEditProfile({
   setPopup,
 }: Props) {
   const [phone, setPhone] = useState(user?.phone || "");
+
   const [form, setForm] = useState({
     action: "updateUser",
     user_id: user?.uuid || "",
-    phone: phone || "",
+    phone: user?.phone || "",
     name: user?.name || "",
     address: user?.address || "",
   });
+
+  useEffect(() => {
+    if (!user) return;
+
+    setPhone(user?.phone || "");
+
+    setForm({
+      action: "updateUser",
+      user_id: user?.uuid || "",
+      phone: user?.phone || "",
+      name: user?.name || "",
+      address: user?.address || "",
+    });
+  }, [user]);
+
   function handleChange(e: React.ChangeEvent<HTMLInputElement>) {
     const value = e.target.value.replace(/\D/g, "").slice(0, 10);
 
@@ -34,14 +54,12 @@ export default function SectionEditProfile({
   }
 
   function handleKeyDown(e: React.KeyboardEvent<HTMLInputElement>) {
-    // allow control keys
     if (
       ["Backspace", "Delete", "ArrowLeft", "ArrowRight", "Tab"].includes(e.key)
     ) {
       return;
     }
 
-    // allow only numbers
     if (!/^\d$/.test(e.key)) {
       e.preventDefault();
     }
@@ -50,7 +68,6 @@ export default function SectionEditProfile({
   function handlePaste(e: React.ClipboardEvent<HTMLInputElement>) {
     const paste = e.clipboardData.getData("text");
 
-    // allow only numbers , max 10 digits
     if (!/^\d{1,10}$/.test(paste)) {
       e.preventDefault();
     }
@@ -68,18 +85,13 @@ export default function SectionEditProfile({
     }
 
     try {
-      const res = await fetch(process.env.NEXT_PUBLIC_API_URL!, {
-        method: "POST",
-        body: JSON.stringify(form),
-      });
-
-      const data = await res.json();
+      const data = await updateUserProfile(form);
 
       if (!data.success) {
         setPopup({
           open: true,
           type: "error",
-          message: data.message,
+          message: data.message || "Update profile failed",
         });
         return;
       }
@@ -101,10 +113,17 @@ export default function SectionEditProfile({
       });
     } catch (err) {
       console.error(err);
+
+      setPopup({
+        open: true,
+        type: "error",
+        message: "Update profile failed",
+      });
     } finally {
       setLoading(false);
     }
   }
+
   return (
     <section className="bg-white rounded-lg border p-4 shadow-sm mt-4">
       <h2 className="font-semibold mb-4 flex items-center gap-2">
@@ -135,6 +154,7 @@ export default function SectionEditProfile({
               }
             />
           </div>
+
           <div className="col-span-12 md:col-span-6">
             <div>
               <span className="font-semibold">Phonenumber</span>
@@ -154,6 +174,7 @@ export default function SectionEditProfile({
               inputMode="numeric"
             />
           </div>
+
           <div className="col-span-12">
             <div>
               <span className="font-semibold">Address</span>
@@ -174,6 +195,7 @@ export default function SectionEditProfile({
               }
             />
           </div>
+
           <div className="col-span-12">
             <button
               type="submit"

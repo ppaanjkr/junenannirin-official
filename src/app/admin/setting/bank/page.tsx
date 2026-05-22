@@ -82,7 +82,7 @@ export default function Page() {
     setLoading(true);
 
     try {
-      const res = await fetch("/api/gas", {
+      const res = await fetch("/api/firebase/bank/delete", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

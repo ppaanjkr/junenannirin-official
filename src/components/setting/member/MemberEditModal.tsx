@@ -5,6 +5,7 @@ import Popup from "@/components/ModalPopup";
 import { teamOptions } from "@/data/teams";
 import { X } from "lucide-react";
 import { useEffect, useState } from "react";
+import { updateAdminUser } from "@/lib/api/admin";
 
 type Props = {
   open: boolean;
@@ -152,18 +153,7 @@ export default function MemberEditModal({
         active: form.active,
       };
 
-      const res = await fetch("/api/gas", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          action: "updateMember",
-          user: payload,
-        }),
-      });
-
-      const data = await res.json();
+      const data = await updateAdminUser(payload);
 
       if (!data.success) {
         showError(data.message || "Update member failed");

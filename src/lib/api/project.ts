@@ -1,8 +1,17 @@
-import { apiFetch } from "./client";
-import type { ProjectListResponse, ActiveProjectResponse } from "./types";
+export async function getActiveProject() {
+  const res = await fetch("/api/firebase/project/active", {
+    method: "GET",
+    cache: "no-store",
+  });
 
-export const getProjects = () =>
-  apiFetch<ProjectListResponse>("?action=projects");
+  return res.json();
+}
 
-export const getActiveProject = () =>
-  apiFetch<ActiveProjectResponse>("?action=active");
+export async function getProjects() {
+  const res = await fetch("/api/firebase/project/list", {
+    method: "GET",
+    cache: "no-store",
+  });
+
+  return res.json();
+}

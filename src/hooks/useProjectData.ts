@@ -1,14 +1,11 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-
 import { getProjects, getActiveProject } from "../lib/api/project";
 
 export default function useProjectData() {
   const [projects, setProjects] = useState<any[]>([]);
-
   const [activeData, setActiveData] = useState<any>(null);
-
   const [isLoading, setIsLoading] = useState(true);
 
   const hasFetched = useRef(false);
@@ -16,6 +13,7 @@ export default function useProjectData() {
   useEffect(() => {
     if (hasFetched.current) return;
     hasFetched.current = true;
+
     const fetchData = async () => {
       setIsLoading(true);
 
@@ -23,6 +21,11 @@ export default function useProjectData() {
         const { data: active } = await getActiveProject();
 
         setActiveData(active || null);
+
+        if (active) {
+          setProjects([]);
+          return;
+        }
 
         const { data: list = [] } = await getProjects();
 
@@ -33,6 +36,7 @@ export default function useProjectData() {
         setIsLoading(false);
       }
     };
+
     fetchData();
   }, []);
 

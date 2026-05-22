@@ -7,15 +7,33 @@ import SectionBack from "@/components/SectionBack";
 import SectionContact from "@/components/SectionContact";
 import { useUserContext } from "@/context/UserContext";
 import useAuthGuard from "@/hooks/useAuthGuard";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { teamOptions } from "@/data/teams";
 
 export default function Page() {
   const router = useRouter();
-  const { user, setUser } = useUserContext();
+  const { setUser } = useUserContext();
 
   const [tempUser, setTempUser] = useState<any>(null);
+  const [loading, setLoading] = useState(false);
+
+  const { popup, setPopup } = useAuthGuard();
+
+  const [form, setForm] = useState({
+    lineUserId: "",
+    username: "",
+    phone: "",
+    team: "",
+    name: "",
+    address: "",
+  });
+
+  const [phone, setPhone] = useState("");
+
+  const registerTeamOptions = teamOptions.filter(
+    (team) => team.value !== "admin",
+  );
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
@@ -27,7 +45,6 @@ export default function Page() {
       const parsed = JSON.parse(decodeURIComponent(userParam));
 
       setTempUser(parsed);
-
       sessionStorage.setItem("tempUser", JSON.stringify(parsed));
 
       window.history.replaceState({}, "", window.location.pathname);
@@ -46,40 +63,20 @@ export default function Page() {
       const parsed = JSON.parse(stored);
       setTempUser(parsed);
     } catch {}
-  }, []);
+  }, [tempUser]);
 
   useEffect(() => {
     if (!tempUser) return;
 
     if (tempUser.status === "EXIST") {
-      localStorage.setItem("user", JSON.stringify(tempUser)); // login จริง
+      localStorage.setItem("user", JSON.stringify(tempUser));
       setUser(tempUser);
 
       sessionStorage.removeItem("tempUser");
 
       router.replace("/project");
     }
-  }, [tempUser]);
-
-  const [loading, setLoading] = useState(false);
-
-  const { popup, setPopup } = useAuthGuard();
-
-  const [form, setForm] = useState({
-    action: "createUser",
-    lineUserId: "",
-    username: "",
-    phone: "",
-    team: "",
-    name: "",
-    address: "",
-  });
-
-  const [phone, setPhone] = useState("");
-
-  const registerTeamOptions = teamOptions.filter(
-    (team) => team.value !== "admin",
-  );
+  }, [tempUser, router, setUser]);
 
   function handleChange(e: React.ChangeEvent<HTMLInputElement>) {
     const value = e.target.value.replace(/\D/g, "").slice(0, 10);
@@ -93,14 +90,12 @@ export default function Page() {
   }
 
   function handleKeyDown(e: React.KeyboardEvent<HTMLInputElement>) {
-    // allow control keys
     if (
       ["Backspace", "Delete", "ArrowLeft", "ArrowRight", "Tab"].includes(e.key)
     ) {
       return;
     }
 
-    // allow only numbers
     if (!/^\d$/.test(e.key)) {
       e.preventDefault();
     }
@@ -109,7 +104,6 @@ export default function Page() {
   function handlePaste(e: React.ClipboardEvent<HTMLInputElement>) {
     const paste = e.clipboardData.getData("text");
 
-    // allow only numbers , max 10 digits
     if (!/^\d{1,10}$/.test(paste)) {
       e.preventDefault();
     }
@@ -117,35 +111,36 @@ export default function Page() {
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    setLoading(true);
-
-    const payload = {
-      ...form,
-      lineUserId: tempUser?.lineUserId,
-    };
 
     if (form.phone[0] !== "0" || form.phone.length !== 10) {
       setPopup({ open: true, message: "Invalid phone number", type: "error" });
-      setLoading(false);
       return;
     }
 
     if (form.team === "") {
       setPopup({ open: true, message: "Select team", type: "error" });
-      setLoading(false);
       return;
     }
 
+    setLoading(true);
+
+    const payload = {
+      ...form,
+      lineUserId: tempUser?.lineUserId || "",
+    };
+
     try {
-      const res = await fetch(process.env.NEXT_PUBLIC_API_URL!, {
+      const res = await fetch("/api/firebase/user/create", {
         method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
         body: JSON.stringify(payload),
       });
 
       const data = await res.json();
 
       if (data.status === "EXIST") {
-        setLoading(false);
         setPopup({
           open: true,
           type: "error",
@@ -160,7 +155,6 @@ export default function Page() {
       }
 
       if (data.status === "USERNAME_DUPLICATE") {
-        setLoading(false);
         setPopup({
           open: true,
           type: "error",
@@ -168,8 +162,9 @@ export default function Page() {
         });
 
         return;
-      } else if (data.status === "PHONENUMBER_DUPLICATE") {
-        setLoading(false);
+      }
+
+      if (data.status === "PHONENUMBER_DUPLICATE") {
         setPopup({
           open: true,
           type: "error",
@@ -177,8 +172,9 @@ export default function Page() {
         });
 
         return;
-      } else if (data.status === "CREATED") {
-        setLoading(false);
+      }
+
+      if (data.status === "CREATED") {
         const user = {
           uuid: data.user?.uuid,
           lineUserId: data.user?.lineUserId,
@@ -187,8 +183,9 @@ export default function Page() {
           team: data.user?.team,
           name: data.user?.name,
           address: data.user?.address,
-          status: data.user?.active,
-          expireAt: Date.now() + 30 * 24 * 60 * 60 * 1000
+          status: data.status,
+          active: data.user?.active,
+          expireAt: Date.now() + 30 * 24 * 60 * 60 * 1000,
         };
 
         localStorage.setItem("user", JSON.stringify(user));
@@ -207,21 +204,32 @@ export default function Page() {
         }, 1200);
       }
     } catch (err) {
-      setLoading(false);
       console.error(err);
+
+      setPopup({
+        open: true,
+        type: "error",
+        message: "Register failed",
+      });
+    } finally {
+      setLoading(false);
     }
   }
+
   return (
     <>
       {loading && <LoadingOverlay />}
+
       <Popup
         open={popup.open}
         type={popup.type}
         message={popup.message}
         onClose={() => setPopup({ ...popup, open: false })}
       />
+
       <main className="max-w-5xl mx-auto px-6 py-4 md:max-w-3xl">
         <SectionBack onclick={() => router.replace("/")} title={"Register"} />
+
         <section className="rounded-md bg-white shadow-sm p-4">
           <div className="flex justify-center">
             <span className="px-3 py-2 rounded-full bg-pinkAccent text-sm font-semibold">
@@ -236,6 +244,7 @@ export default function Page() {
                   <span className="font-semibold">Username</span>
                   <span className="text-red-500">*</span>
                 </div>
+
                 <input
                   type="text"
                   id="username"
@@ -249,11 +258,13 @@ export default function Page() {
                   }
                 />
               </div>
+
               <div className="col-span-12 md:col-span-6 flex flex-col gap-1">
                 <div>
                   <span className="font-semibold">Phonenumber</span>
                   <span className="text-red-500">*</span>
                 </div>
+
                 <input
                   type="text"
                   id="phone"
@@ -268,11 +279,13 @@ export default function Page() {
                   inputMode="numeric"
                 />
               </div>
+
               <div className="col-span-12 flex flex-col gap-1 mb-2">
                 <div>
                   <span className="font-semibold">Pick your team</span>
                   <span className="text-red-500">*</span>
                 </div>
+
                 <ButtonTeam
                   name="team"
                   options={registerTeamOptions}
@@ -280,11 +293,13 @@ export default function Page() {
                   onChange={(val) => setForm({ ...form, team: val })}
                 />
               </div>
+
               <div className="col-span-12 md:col-span-6 flex flex-col gap-1">
                 <div>
                   <span className="font-semibold">Shipping Name</span>
                   <span className="text-red-500">*</span>
                 </div>
+
                 <input
                   type="text"
                   id="name"
@@ -295,11 +310,13 @@ export default function Page() {
                   onChange={(e) => setForm({ ...form, name: e.target.value })}
                 />
               </div>
+
               <div className="col-span-12 flex flex-col gap-1">
                 <div>
                   <span className="font-semibold">Address</span>
                   <span className="text-red-500">*</span>
                 </div>
+
                 <textarea
                   id="address"
                   rows={3}
@@ -312,6 +329,7 @@ export default function Page() {
                   }
                 />
               </div>
+
               <div className="col-span-12">
                 <button
                   type="submit"
@@ -323,6 +341,7 @@ export default function Page() {
             </div>
           </form>
         </section>
+
         <SectionContact />
       </main>
     </>

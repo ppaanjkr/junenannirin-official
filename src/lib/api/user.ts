@@ -1,11 +1,64 @@
-import { apiFetch } from "./client";
-import type { ProfileHistoryResponse, ProfileSummaryResponse, UserPurchaseSummeryResponse } from "./types";
+import type {
+  ProfileHistoryResponse,
+  ProfileSummaryResponse,
+  UserPurchaseSummeryResponse,
+} from "./types";
 
-export const getProfileSummary = (user_id: string) =>
-  apiFetch<ProfileSummaryResponse>(`?action=getProfileSummary&user_id=${user_id}`);
+export async function getProfileSummary(
+  userId: string,
+): Promise<ProfileSummaryResponse> {
+  const params = new URLSearchParams({
+    user_id: userId,
+  });
 
-export const getProfileHistory = (user_id: string) =>
-  apiFetch<ProfileHistoryResponse>(`?action=getUserHistory&user_id=${user_id}`);
+  const res = await fetch(`/api/firebase/user/summary?${params}`, {
+    method: "GET",
+    cache: "no-store",
+  });
 
-export const getUserShopSummary = (project_id: string, user_id: string) =>
-  apiFetch<UserPurchaseSummeryResponse>(`?action=getUserShopSummary&project_id=${project_id}&user_id=${user_id}`);
+  return res.json();
+}
+
+export async function updateUserProfile(payload: any) {
+  const res = await fetch("/api/firebase/user/update", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(payload),
+  });
+
+  return res.json();
+}
+
+export async function getProfileHistory(
+  userId: string,
+): Promise<ProfileHistoryResponse> {
+  const params = new URLSearchParams({
+    user_id: userId,
+  });
+
+  const res = await fetch(`/api/firebase/user/history?${params}`, {
+    method: "GET",
+    cache: "no-store",
+  });
+
+  return res.json();
+}
+
+export async function getUserShopSummary(
+  projectId: string,
+  userId: string,
+): Promise<UserPurchaseSummeryResponse> {
+  const params = new URLSearchParams({
+    project_id: projectId,
+    user_id: userId,
+  });
+
+  const res = await fetch(`/api/firebase/user/shop-summary?${params}`, {
+    method: "GET",
+    cache: "no-store",
+  });
+
+  return res.json();
+}

@@ -1,5 +1,7 @@
 "use client";
 
+import { bankOptions } from "@/data/bank";
+import { createOrder } from "@/lib/api/order";
 import { randomNumeric } from "@/lib/workUtils";
 import { Upload } from "lucide-react";
 import { useRef, useState } from "react";
@@ -77,7 +79,10 @@ export default function SectionPaymentUpload({
   async function handleSubmitOrder() {
     setLoading(true);
 
-    if (!file) return;
+    if (!file) {
+      setLoading(false);
+      return;
+    }
 
     // const slip = await verifySlip(file);
 
@@ -128,23 +133,17 @@ export default function SectionPaymentUpload({
     const payload = getOrderPayload(referenceId, transRef, dateTime, amount);
 
     if (!payload) {
+      setLoading(false);
       alert("Something went wrong");
       return;
     }
+
     try {
       setLoading(true);
-      const res = await fetch("/api/gas", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(payload),
-      });
-
-      const data = await res.json();
+      const data = await createOrder(payload);
 
       if (!data.success) {
-        throw new Error(data.message || "error");
+        throw new Error(data.message || data.error || "error");
       }
 
       // clear cart
@@ -171,6 +170,7 @@ export default function SectionPaymentUpload({
       setLoading(false);
     }
   }
+
   function getOrderPayload(
     referenceId: string,
     transRef: string,
@@ -188,10 +188,16 @@ export default function SectionPaymentUpload({
       const project = JSON.parse(projectRaw);
       const items = JSON.parse(orderRaw);
 
+      const projectId = project.id || project.project?.id;
+
+      if (!user.uuid || !projectId || !Array.isArray(items)) {
+        return null;
+      }
+
       return {
         action: "createUserOrder",
         user_id: user.uuid,
-        project_id: project.id,
+        project_id: projectId,
 
         items: items.map((i: any) => ({
           id: i.id,
@@ -224,14 +230,12 @@ export default function SectionPaymentUpload({
 
   //   verfiy slip
   async function verifySlip(file: File) {
-    const bank = [
-      { name: "ธนาคารกสิกรไทย", code: "01004" },
-      { name: "ธนาคารกรุงไทย", code: "01006" },
-      { name: "พร้อมเพย์", code: "02001" },
-      { name: "ธนาคารกรุงเทพ", code: "01002" },
-    ];
-
-    const bank_code = bank.find((b) => b.name === data.bank_name)?.code;
+    const bank_code = bankOptions.find(
+      (b: any) =>
+        b.bank_name === data.bank_name ||
+        b.name === data.bank_name ||
+        b.bank_short_name === data.bank_name,
+    )?.code;
 
     if (!bank_code) {
       throw new Error("Invalid bank");
@@ -315,12 +319,12 @@ export default function SectionPaymentUpload({
           )}
 
           {/* FILLED */}
-          {/* FILLED */}
           {file && (
             <div className="flex items-center gap-3 text-left w-full">
               <img
                 src={preview}
                 className="w-16 h-16 rounded-lg object-cover flex-shrink-0"
+                alt="Slip preview"
               />
 
               <div className="flex-1 min-w-0">
@@ -356,6 +360,7 @@ export default function SectionPaymentUpload({
           />
         </div>
       </section>
+
       <section className="mt-4">
         <button
           id="confirmPayBtn"

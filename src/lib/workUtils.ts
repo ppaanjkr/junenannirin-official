@@ -4,25 +4,35 @@ export function splitComma(v?: string) {
 }
 
 // รองรับ drive link แบบ file/d/ID/view?..., หรือให้มาเป็น ID ตรงๆ
-export function driveThumb(urlOrId?: string) {
-  const v = (urlOrId ?? "").trim();
+export function driveThumb(urlOrId?: unknown) {
+  if (typeof urlOrId !== "string") return "";
+
+  const v = urlOrId.trim();
   if (!v) return "";
 
-  // plain id
-  if (/^[a-zA-Z0-9_-]{10,}$/.test(v) && !v.includes("/")) {
-    return `https://drive.google.com/thumbnail?id=${v}&sz=w800`;
+  const patterns = [
+    /\/file\/d\/([^/]+)/,
+    /\/d\/([^/]+)/,
+    /id=([^&]+)/,
+  ];
+
+  let fileId = "";
+
+  for (const pattern of patterns) {
+    const match = v.match(pattern);
+    if (match?.[1]) {
+      fileId = match[1];
+      break;
+    }
   }
 
-  const m1 = v.match(/\/file\/d\/([^/]+)/);
-  if (m1?.[1]) return `https://drive.google.com/thumbnail?id=${m1[1]}&sz=w800`;
+  if (!fileId && !v.includes("/") && !v.includes("http")) {
+    fileId = v;
+  }
 
-  const m2 = v.match(/\/d\/([^/]+)/);
-  if (m2?.[1]) return `https://drive.google.com/thumbnail?id=${m2[1]}&sz=w800`;
+  if (!fileId) return v;
 
-  const m3 = v.match(/[?&]id=([^&]+)/);
-  if (m3?.[1]) return `https://drive.google.com/thumbnail?id=${m3[1]}&sz=w800`;
-
-  return v; // 🔥 fallback
+  return `https://drive.google.com/thumbnail?id=${fileId}&sz=w1000`;
 }
 
 export function randomNumeric(length = 12) {
@@ -44,14 +54,40 @@ export function getBankLogo(shortName?: string) {
   return "";
 }
 
-export function getEndTime(endDate?: string | null) {
-  if (!endDate) return null;
 
-  // ถ้ามี T อยู่แล้ว แปลว่าเป็น datetime / ISO
-  if (endDate.includes("T")) {
-    return new Date(endDate).getTime();
+// export function getEndTime(endDate?: string | null) {
+//   if (!endDate) return null;
+
+//   // ถ้ามี T อยู่แล้ว แปลว่าเป็น datetime / ISO
+//   if (endDate.includes("T")) {
+//     return new Date(endDate).getTime();
+//   }
+
+//   // ถ้าเป็น yyyy-mm-dd ให้หมดวันนั้นเวลา 23:59:59
+//   return new Date(`${endDate}T23:59:59`).getTime();
+// }
+
+function fileToBase64(file: File): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+
+    reader.onload = () => resolve(String(reader.result));
+    reader.onerror = reject;
+
+    reader.readAsDataURL(file);
+  });
+}
+
+function toIsoDate(value: any) {
+  if (!value) return "";
+
+  if (value?.toDate) {
+    return value.toDate().toISOString();
   }
 
-  // ถ้าเป็น yyyy-mm-dd ให้หมดวันนั้นเวลา 23:59:59
-  return new Date(`${endDate}T23:59:59`).getTime();
+  if (value instanceof Date) {
+    return value.toISOString();
+  }
+
+  return value;
 }

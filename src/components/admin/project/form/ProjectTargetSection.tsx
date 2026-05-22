@@ -12,6 +12,11 @@ type Props = {
   ) => void;
 };
 
+function markDeleteImageUrl(currentUrl?: string) {
+  if (!currentUrl || currentUrl.startsWith("blob:")) return "";
+  return currentUrl;
+}
+
 export default function ProjectTargetSection({ form, updateForm }: Props) {
   function addTarget() {
     updateForm("targets", [
@@ -23,18 +28,14 @@ export default function ProjectTargetSection({ form, updateForm }: Props) {
         description: "",
         image_url: "",
         image_file: null,
+        image_delete_url: "",
       },
     ]);
   }
 
   function updateTarget(index: number, key: string, value: any) {
     const next = [...form.targets];
-
-    next[index] = {
-      ...next[index],
-      [key]: value,
-    };
-
+    next[index] = { ...next[index], [key]: value };
     updateForm("targets", next);
   }
 
@@ -45,11 +46,27 @@ export default function ProjectTargetSection({ form, updateForm }: Props) {
     const previewUrl = URL.createObjectURL(file);
 
     const next = [...form.targets];
+    const oldUrl = next[index].image_url || "";
 
     next[index] = {
       ...next[index],
+      image_delete_url: markDeleteImageUrl(oldUrl),
       image_file: imageFile,
       image_url: previewUrl,
+    };
+
+    updateForm("targets", next);
+  }
+
+  function removeTargetImage(index: number) {
+    const next = [...form.targets];
+    const oldUrl = next[index].image_url || "";
+
+    next[index] = {
+      ...next[index],
+      image_delete_url: markDeleteImageUrl(oldUrl),
+      image_file: null,
+      image_url: "",
     };
 
     updateForm("targets", next);
@@ -132,24 +149,34 @@ export default function ProjectTargetSection({ form, updateForm }: Props) {
                   className="col-span-12 md:col-span-6 rounded-lg border border-pinkAccent bg-white px-3 py-2 text-sm outline-none"
                 />
 
-                <input
-                  type="file"
-                  accept="image/*"
-                  onChange={(e) =>
-                    updateTargetImage(index, e.target.files?.[0])
-                  }
-                  className="col-span-12 md:col-span-6 rounded-lg border border-pinkAccent bg-white px-3 py-2 text-sm outline-none file:mr-3 file:rounded-md file:border-0 file:bg-pinkAccent file:px-3 file:py-1 file:text-pinkSecondary"
-                />
+                <div className="col-span-12 md:col-span-6">
+                  {preview ? (
+                    <div className="relative w-32">
+                      <ImagePreviewModal
+                        src={preview}
+                        alt={target.title || `target ${index + 1}`}
+                        className="w-32 h-32 object-cover rounded-lg border border-pinkAccent"
+                      />
 
-                {preview && (
-                  <div className="col-span-12">
-                    <ImagePreviewModal
-                      src={preview}
-                      alt={target.title || `target ${index + 1}`}
-                      className="w-full h-40 object-cover rounded-lg border border-pinkAccent"
+                      <button
+                        type="button"
+                        onClick={() => removeTargetImage(index)}
+                        className="absolute -top-2 -right-2 w-6 h-6 rounded-full bg-white border border-pinkSecondary text-pinkSecondary flex items-center justify-center shadow"
+                      >
+                        <X className="w-4 h-4" />
+                      </button>
+                    </div>
+                  ) : (
+                    <input
+                      type="file"
+                      accept="image/*"
+                      onChange={(e) =>
+                        updateTargetImage(index, e.target.files?.[0])
+                      }
+                      className="w-full rounded-lg border border-pinkAccent bg-white px-3 py-2 text-sm outline-none file:mr-3 file:rounded-md file:border-0 file:bg-pinkAccent file:px-3 file:py-1 file:text-pinkSecondary"
                     />
-                  </div>
-                )}
+                  )}
+                </div>
 
                 <textarea
                   value={target.description}

@@ -6,6 +6,7 @@ import ShopOrderCard from "./ShopOrderCard";
 import ShopOrderTable from "./ShopOrderTable";
 import Pagination from "@/components/Pagination";
 import Popup from "@/components/ModalPopup";
+import { updateAdminShipments } from "@/lib/api/admin";
 
 type Props = {
   projectId: string;
@@ -153,18 +154,7 @@ export default function ShopOrderList({ projectId, orders }: Props) {
         },
       ];
 
-      const res = await fetch("/api/gas", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          action: "updateShipments",
-          shipments,
-        }),
-      });
-
-      const json = await res.json();
+      const json = await updateAdminShipments(shipments);
 
       if (!json.success) {
         throw new Error(json.error || "Save failed");
@@ -222,18 +212,7 @@ export default function ShopOrderList({ projectId, orders }: Props) {
     setLoading(true);
 
     try {
-      const res = await fetch("/api/gas", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          action: "updateShipments",
-          shipments,
-        }),
-      });
-
-      const json = await res.json();
+      const json = await updateAdminShipments(shipments);
 
       if (!json.success) {
         throw new Error(json.error || "Save failed");

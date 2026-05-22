@@ -46,12 +46,15 @@ export default function ProjectForm({
   setPageLoading,
 }: Props) {
   const router = useRouter();
-
   const { banks, isBankLoading } = useBankList();
 
   const [form, setForm] = useState<ProjectFormState>(defaultProjectForm);
 
   useEffect(() => {
+    if (mode === "create") {
+      setForm(defaultProjectForm);
+    }
+
     if (mode === "edit" && initialData) {
       setForm(mapProjectDetailToForm(initialData));
     }
@@ -78,14 +81,10 @@ export default function ProjectForm({
         type: "error",
         message: "Project name is required",
       });
-
       return false;
     }
 
-    // ถ้า draft ให้ required แค่ชื่อพอ
-    if (form.status === "draft") {
-      return true;
-    }
+    if (form.status === "draft") return true;
 
     if (!form.type) {
       setPopup({
@@ -93,7 +92,6 @@ export default function ProjectForm({
         type: "error",
         message: "Select project type",
       });
-
       return false;
     }
 
@@ -103,7 +101,6 @@ export default function ProjectForm({
         type: "error",
         message: "Select bank account",
       });
-
       return false;
     }
 
@@ -113,7 +110,6 @@ export default function ProjectForm({
         type: "error",
         message: "Target amount is required",
       });
-
       return false;
     }
 
@@ -123,7 +119,6 @@ export default function ProjectForm({
         type: "error",
         message: "Add at least 1 product",
       });
-
       return false;
     }
 
@@ -138,15 +133,20 @@ export default function ProjectForm({
     try {
       const payload = buildProjectPayload(form);
 
-      const res = await fetch("/api/gas", {
+      const url =
+        mode === "create"
+          ? "/api/firebase/admin/project/create"
+          : "/api/firebase/admin/project/update";
+
+      const res = await fetch(url, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          action: mode === "create" ? "createProject" : "updateProject",
           project: {
             ...payload,
+            id: projectId || form.id,
             created_by: user?.uuid || "",
             updated_by: user?.uuid || "",
           },
@@ -161,7 +161,6 @@ export default function ProjectForm({
           type: "error",
           message: data.message || "Save project failed",
         });
-
         return;
       }
 

@@ -12,39 +12,51 @@ type Props = {
   ) => void;
 };
 
+function markDeleteImageUrl(currentUrl?: string) {
+  if (!currentUrl || currentUrl.startsWith("blob:")) return "";
+  return currentUrl;
+}
+
 export default function ProjectImageSection({ form, updateForm }: Props) {
-  async function handleCoverFile(file?: File) {
-    if (!file) return;
-
-    const imageFile = await fileToBase64(file);
-
-    updateForm("image_file", imageFile);
-    updateForm("image_url", URL.createObjectURL(file));
-  }
-
   async function handleMoreFile(index: number, file?: File) {
     if (!file) return;
 
     const imageFile = await fileToBase64(file);
+    const oldUrl = form.img_more[index] || "";
 
     const nextFiles = [...(form.img_more_files || [])];
     const nextPreview = [...(form.img_more || [])];
+    const nextDeleteUrls = [...(form.img_more_delete_urls || [])];
 
     nextFiles[index] = imageFile;
     nextPreview[index] = URL.createObjectURL(file);
 
+    const deleteUrl = markDeleteImageUrl(oldUrl);
+    if (deleteUrl) nextDeleteUrls.push(deleteUrl);
+
     updateForm("img_more_files", nextFiles);
     updateForm("img_more", nextPreview);
+    updateForm("img_more_delete_urls", nextDeleteUrls);
   }
 
   function addMoreImage() {
     if (form.img_more.length >= 2) return;
 
     updateForm("img_more", [...form.img_more, ""]);
-    updateForm("img_more_files", [...(form.img_more_files || []), null as any]);
+    updateForm("img_more_files", [...(form.img_more_files || []), null]);
   }
 
   function removeMoreImage(index: number) {
+    const oldUrl = form.img_more[index] || "";
+    const deleteUrl = markDeleteImageUrl(oldUrl);
+
+    if (deleteUrl) {
+      updateForm("img_more_delete_urls", [
+        ...(form.img_more_delete_urls || []),
+        deleteUrl,
+      ]);
+    }
+
     updateForm(
       "img_more",
       form.img_more.filter((_, i) => i !== index),
@@ -56,101 +68,69 @@ export default function ProjectImageSection({ form, updateForm }: Props) {
     );
   }
 
-  const coverPreview =
-    form.image_file && form.image_url
-      ? form.image_url
-      : form.image_url
-        ? driveThumb(form.image_url)
-        : "";
-
   return (
     <section className="bg-white rounded-xl shadow-sm border border-pinkAccent p-5">
       <h2 className="text-sm font-semibold text-textMain mb-4 flex items-center gap-2">
         <span className="w-1.5 h-4 bg-pinkSecondary rounded-full"></span>
-        Images
+        More Images
       </h2>
 
-      <div>
-        <label className="block text-xs font-medium text-textSub mb-1.5">
-          Cover Image
+      <div className="flex items-center justify-between mb-2">
+        <label className="block text-xs font-medium text-textSub">
+          More Images
         </label>
 
-        <input
-          type="file"
-          accept="image/*"
-          onChange={(e) => handleCoverFile(e.target.files?.[0])}
-          className="w-full rounded-lg border border-pinkAccent bg-white px-4 py-2.5 text-sm outline-none file:mr-3 file:rounded-md file:border-0 file:bg-pinkAccent file:px-3 file:py-1.5 file:text-pinkSecondary"
-        />
-
-        {coverPreview && (
-          <div className="mt-3 rounded-xl overflow-hidden border border-pinkAccent">
-            <ImagePreviewModal
-              src={coverPreview}
-              alt={form.name || "cover"}
-              className="w-full h-56 object-cover"
-            />
-          </div>
-        )}
+        <button
+          type="button"
+          onClick={addMoreImage}
+          disabled={form.img_more.length >= 2}
+          className="text-xs px-3 py-1 rounded-full bg-pinkAccent text-pinkSecondary disabled:opacity-40"
+        >
+          Add
+        </button>
       </div>
 
-      <div className="mt-4">
-        <div className="flex items-center justify-between mb-2">
-          <label className="block text-xs font-medium text-textSub">
-            More Images
-          </label>
+      <div className="space-y-3">
+        {form.img_more.map((url, index) => {
+          const preview =
+            form.img_more_files?.[index] && url ? url : url ? driveThumb(url) : "";
 
-          <button
-            type="button"
-            onClick={addMoreImage}
-            disabled={form.img_more.length >= 2}
-            className="text-xs px-3 py-1 rounded-full bg-pinkAccent text-pinkSecondary disabled:opacity-40"
-          >
-            Add
-          </button>
-        </div>
-
-        <div className="space-y-3">
-          {form.img_more.map((url, index) => {
-            const preview =
-              form.img_more_files?.[index] && url ? url : url ? driveThumb(url) : "";
-
-            return (
-              <div
-                key={`more_image_${index}`}
-                className="rounded-lg border border-pinkAccent p-3"
-              >
-                <div className="flex gap-2">
-                  <input
-                    type="file"
-                    accept="image/*"
-                    onChange={(e) => handleMoreFile(index, e.target.files?.[0])}
-                    className="flex-1 rounded-lg border border-pinkAccent bg-white px-3 py-2 text-sm outline-none file:mr-3 file:rounded-md file:border-0 file:bg-pinkAccent file:px-3 file:py-1 file:text-pinkSecondary"
+          return (
+            <div
+              key={`more_image_${index}`}
+              className="rounded-lg border border-pinkAccent p-3"
+            >
+              {preview ? (
+                <div className="relative w-full">
+                  <ImagePreviewModal
+                    src={preview}
+                    alt={`more image ${index + 1}`}
+                    className="w-full h-40 object-cover rounded-lg border border-pinkAccent"
                   />
 
                   <button
                     type="button"
                     onClick={() => removeMoreImage(index)}
-                    className="w-10 rounded-lg bg-red-50 text-red-400 flex items-center justify-center"
+                    className="absolute -top-2 -right-2 w-6 h-6 rounded-full bg-white border border-pinkSecondary text-pinkSecondary flex items-center justify-center shadow"
                   >
                     <X className="w-4 h-4" />
                   </button>
                 </div>
+              ) : (
+                <input
+                  type="file"
+                  accept="image/*"
+                  onChange={(e) => handleMoreFile(index, e.target.files?.[0])}
+                  className="w-full rounded-lg border border-pinkAccent bg-white px-3 py-2 text-sm outline-none file:mr-3 file:rounded-md file:border-0 file:bg-pinkAccent file:px-3 file:py-1 file:text-pinkSecondary"
+                />
+              )}
+            </div>
+          );
+        })}
 
-                {preview && (
-                  <ImagePreviewModal
-                    src={preview}
-                    alt={`more image ${index + 1}`}
-                    className="mt-3 w-full h-40 object-cover rounded-lg border border-pinkAccent"
-                  />
-                )}
-              </div>
-            );
-          })}
-
-          {form.img_more.length === 0 && (
-            <p className="text-xs text-textSub">No more images</p>
-          )}
-        </div>
+        {form.img_more.length === 0 && (
+          <p className="text-xs text-textSub">No more images</p>
+        )}
       </div>
     </section>
   );

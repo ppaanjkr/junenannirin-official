@@ -3,40 +3,111 @@
 import LoadingOverlay from "@/components/LoadingOverlay";
 import Popup from "@/components/ModalPopup";
 import SectionBack from "@/components/SectionBack";
+import ProjectForm from "@/components/admin/project/form/ProjectForm";
 import { useUserContext } from "@/context/UserContext";
-import useAuthGuard from "@/hooks/useAuthGuard";
-import { useProjectDetail } from "@/hooks/useAdmin";
+import { useParams } from "next/navigation";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 
-export default function Page({ params }: { params: { id: string } }) {
-  const id = params.id;
+type PopupState = {
+  open: boolean;
+  type: "success" | "error";
+  message: string;
+};
+
+export default function AdminProjectEditPage() {
   const router = useRouter();
 
-  const { loading } = useUserContext();
-  const { popup, setPopup } = useAuthGuard();
+  const params = useParams();
+  const id = String(params?.id || "");
 
-  const { project, isDetailLoading } = useProjectDetail(id);
+  const { user } = useUserContext();
+
+  const [projectDetail, setProjectDetail] = useState<any>(null);
+  const [pageLoading, setPageLoading] = useState(true);
+
+  const [popup, setPopup] = useState<PopupState>({
+    open: false,
+    type: "success",
+    message: "",
+  });
+
+  useEffect(() => {
+    if (!id) return;
+
+    async function fetchProjectDetail() {
+      setPageLoading(true);
+
+      try {
+        const res = await fetch(
+          `/api/firebase/admin/project/edit-detail?id=${id}`,
+          {
+            method: "GET",
+            cache: "no-store",
+          },
+        );
+
+        const data = await res.json();
+
+        if (!data.success) {
+          setPopup({
+            open: true,
+            type: "error",
+            message: data.message || "Load project failed",
+          });
+          return;
+        }
+
+        setProjectDetail(data.data);
+      } catch (err) {
+        console.error(err);
+
+        setPopup({
+          open: true,
+          type: "error",
+          message: "Load project failed",
+        });
+      } finally {
+        setPageLoading(false);
+      }
+    }
+
+    fetchProjectDetail();
+  }, [id]);
 
   return (
     <>
-      {(loading || isDetailLoading) && <LoadingOverlay />}
+      {pageLoading && <LoadingOverlay />}
 
       <Popup
         open={popup.open}
         type={popup.type}
         message={popup.message}
-        onClose={() => setPopup({ ...popup, open: false })}
+        onClose={() =>
+          setPopup((prev) => ({
+            ...prev,
+            open: false,
+          }))
+        }
       />
 
-      <main className="max-w-5xl mx-auto px-6 py-4 md:max-w-3xl lg:max-w-6xl">
-        <SectionBack
-          onclick={() => router.replace(`/admin/project/${id}`)}
-          title={`Edit ${project?.project?.name || "Project"}`}
-        />
+      <main className="min-h-screen bg-pinkAccent/10 px-4 py-6 pb-28">
+        <div className="mx-auto max-w-6xl">
+          <SectionBack
+            onclick={() => router.replace(`/admin/project/${id}`)}
+            title="Edit Project"
+          />
 
-        {/* เดี๋ยวเอา ProjectForm mode="edit" มาใส่ตรงนี้ */}
-        <div className="bg-white border border-pinkAccent rounded-xl p-4 text-sm">
-          Edit Project
+          {projectDetail && (
+            <ProjectForm
+              mode="edit"
+              projectId={id}
+              initialData={projectDetail}
+              user={user}
+              setPopup={setPopup}
+              setPageLoading={setPageLoading}
+            />
+          )}
         </div>
       </main>
     </>

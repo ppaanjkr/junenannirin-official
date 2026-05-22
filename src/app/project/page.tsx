@@ -33,7 +33,7 @@ export default function Home() {
       console.error(err);
     }
   }, []);
-  
+
   return (
     <>
       <Popup
@@ -46,8 +46,7 @@ export default function Home() {
         {!user && <LineLogin />}
         {isLoading && <LoadingOverlay />}
 
-        {/* {!activeData && <ProjectList projects={projects} />} */}
-        {!isLoading && projects.length > 0 && (
+        {!isLoading && (
           <>
             {activeData &&
               (activeData.project.type === "donation" ? (
@@ -55,6 +54,9 @@ export default function Home() {
               ) : (
                 <ActiveShop data={activeData} user={user} />
               ))}
+
+            {/* ถ้าจะเปิด ProjectList ทีหลัง ค่อยใช้ตรงนี้ */}
+            {/* {!activeData && <ProjectList projects={projects} />} */}
           </>
         )}
         <SectionContact />

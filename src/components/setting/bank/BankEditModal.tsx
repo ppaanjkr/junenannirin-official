@@ -3,6 +3,8 @@
 import LoadingOverlay from "@/components/LoadingOverlay";
 import Popup from "@/components/ModalPopup";
 import { bankOptions } from "@/data/bank";
+import { fileToBase64 } from "@/lib/admin-project/fileToBase64";
+import { createAdminBank, updateAdminBank } from "@/lib/api/admin";
 import { X } from "lucide-react";
 import { useEffect, useState } from "react";
 
@@ -13,15 +15,12 @@ type Props = {
   onSaved: (bank: any, mode: "create" | "update") => void;
 };
 
-export default function BankEditModal({
-  open,
-  bank,
-  onClose,
-  onSaved,
-}: Props) {
+export default function BankEditModal({ open, bank, onClose, onSaved }: Props) {
   const isEdit = !!bank?.id;
 
   const [loading, setLoading] = useState(false);
+  const [qrFile, setQrFile] = useState<File | null>(null);
+  const [deleteQrcodeUrl, setDeleteQrcodeUrl] = useState("");
   const [savedPayload, setSavedPayload] = useState<any>(null);
   const [savedMode, setSavedMode] = useState<"create" | "update">("create");
 
@@ -58,7 +57,8 @@ export default function BankEditModal({
       id: bank?.id || "",
       bank_code: selectedBank?.code || bank?.bank_code || "",
       bank_name: selectedBank?.bank_name || bank?.bank_name || "",
-      bank_short_name: selectedBank?.bank_short_name || bank?.bank_short_name || "",
+      bank_short_name:
+        selectedBank?.bank_short_name || bank?.bank_short_name || "",
       account_name: bank?.account_name || "",
       account_name_en: bank?.account_name_en || "",
       account_no: bank?.account_no || "",
@@ -66,6 +66,8 @@ export default function BankEditModal({
       active: bank ? Number(bank.active) === 1 || bank.active === true : true,
     });
 
+    setQrFile(null);
+    setDeleteQrcodeUrl("");
     setLoading(false);
     setSavedPayload(null);
     setSavedMode(bank?.id ? "update" : "create");
@@ -79,9 +81,15 @@ export default function BankEditModal({
 
   if (!open) return null;
 
-  function handleChange(
-    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
-  ) {
+  function showError(message: string) {
+    setPopup({
+      open: true,
+      type: "error",
+      message,
+    });
+  }
+
+  function handleChange(e: React.ChangeEvent<HTMLInputElement>) {
     const { name, value } = e.target;
 
     setForm((prev) => ({
@@ -92,7 +100,6 @@ export default function BankEditModal({
 
   function handleBankChange(e: React.ChangeEvent<HTMLSelectElement>) {
     const code = e.target.value;
-
     const selectedBank = bankOptions.find((item) => item.code === code);
 
     setForm((prev) => ({
@@ -103,27 +110,44 @@ export default function BankEditModal({
     }));
   }
 
-  function showError(message: string) {
-    setPopup({
-      open: true,
-      type: "error",
-      message,
-    });
+  function handleQrFileChange(file?: File | null) {
+    if (!file) {
+      setQrFile(null);
+      return;
+    }
+
+    if (!file.type.startsWith("image/")) {
+      showError("Please upload image file only");
+      return;
+    }
+
+    if (form.qrcode) {
+      setDeleteQrcodeUrl(form.qrcode);
+      setForm((prev) => ({
+        ...prev,
+        qrcode: "",
+      }));
+    }
+
+    setQrFile(file);
+  }
+
+  function handleRemoveQr() {
+    if (form.qrcode) {
+      setDeleteQrcodeUrl(form.qrcode);
+    }
+
+    setForm((prev) => ({
+      ...prev,
+      qrcode: "",
+    }));
+
+    setQrFile(null);
   }
 
   function validate() {
     if (!form.bank_code) {
       showError("Please select bank");
-      return false;
-    }
-
-    if (!form.bank_name.trim()) {
-      showError("Bank name is required");
-      return false;
-    }
-
-    if (!form.bank_short_name.trim()) {
-      showError("Bank short name is required");
       return false;
     }
 
@@ -143,15 +167,18 @@ export default function BankEditModal({
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
 
-    setLoading(true);
+    if (!validate()) return;
 
-    if (!validate()) {
-      setLoading(false);
-      return;
-    }
+    setLoading(true);
 
     try {
       const mode: "create" | "update" = isEdit ? "update" : "create";
+
+      let qrcodeFile = null;
+
+      if (qrFile) {
+        qrcodeFile = await fileToBase64(qrFile);
+      }
 
       const payload = {
         id: form.id,
@@ -162,34 +189,22 @@ export default function BankEditModal({
         account_name_en: form.account_name_en.trim(),
         account_no: form.account_no.trim(),
         qrcode: form.qrcode.trim(),
+        qrcode_file: qrcodeFile,
+        delete_qrcode_url: deleteQrcodeUrl,
         active: form.active,
       };
 
-      const res = await fetch("/api/gas", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          action: mode === "create" ? "createBank" : "updateBank",
-          bank: payload,
-        }),
-      });
-
-      const data = await res.json();
+      const data =
+        mode === "create"
+          ? await createAdminBank({ bank: payload })
+          : await updateAdminBank({ bank: payload });
 
       if (!data.success) {
         showError(data.message || "Save bank failed");
         return;
       }
 
-      const savedBank = {
-        ...payload,
-        ...(data.data || {}),
-        active: payload.active ? 1 : 0,
-      };
-
-      setSavedPayload(savedBank);
+      setSavedPayload(data.data);
       setSavedMode(mode);
 
       setPopup({
@@ -202,7 +217,6 @@ export default function BankEditModal({
       });
     } catch (err) {
       console.error(err);
-
       showError("Save bank failed");
     } finally {
       setLoading(false);
@@ -225,6 +239,8 @@ export default function BankEditModal({
 
   function handleCloseModal() {
     setLoading(false);
+    setQrFile(null);
+    setDeleteQrcodeUrl("");
     setSavedPayload(null);
 
     setPopup({
@@ -250,11 +266,9 @@ export default function BankEditModal({
       <div className="fixed inset-0 z-[1000] bg-black/40 flex items-center justify-center px-4">
         <div className="bg-white rounded-lg shadow-lg w-full max-w-lg overflow-hidden">
           <div className="px-4 py-3 border-b border-pinkAccent flex justify-between items-center">
-            <div>
-              <h2 className="font-semibold text-lg">
-                {isEdit ? "Edit Bank" : "Add Bank"}
-              </h2>
-            </div>
+            <h2 className="font-semibold text-lg">
+              {isEdit ? "Edit Bank" : "Add Bank"}
+            </h2>
 
             <button
               type="button"
@@ -288,7 +302,6 @@ export default function BankEditModal({
                 value={form.bank_short_name}
                 readOnly
                 className="mt-1 w-full border border-pinkAccent rounded-lg px-3 py-2 outline-none bg-gray-50 text-gray-500"
-                placeholder="Auto from selected bank"
               />
             </div>
 
@@ -319,6 +332,7 @@ export default function BankEditModal({
                 value={form.account_no}
                 onChange={(e) => {
                   const value = e.target.value.replace(/[^0-9-]/g, "");
+
                   setForm((prev) => ({
                     ...prev,
                     account_no: value,
@@ -330,20 +344,49 @@ export default function BankEditModal({
             </div>
 
             <div>
-              <label className="text-sm font-medium">QR Code URL</label>
-              <textarea
-                name="qrcode"
-                value={form.qrcode}
-                onChange={handleChange}
-                className="mt-1 w-full border border-pinkAccent rounded-lg px-3 py-2 outline-none min-h-[80px]"
-                placeholder="Google Drive URL"
-              />
+              <label className="text-sm font-medium">QR Code</label>
+
+              {form.qrcode && !qrFile ? (
+                <div className="mt-2 relative w-32">
+                  <img
+                    src={form.qrcode}
+                    alt="QR Code"
+                    className="w-32 h-32 object-cover rounded-lg border border-pinkAccent"
+                  />
+
+                  <button
+                    type="button"
+                    onClick={handleRemoveQr}
+                    className="absolute -top-2 -right-2 w-6 h-6 rounded-full bg-white border border-pinkSecondary text-pinkSecondary flex items-center justify-center shadow"
+                  >
+                    <X className="w-4 h-4" />
+                  </button>
+                </div>
+              ) : (
+                <input
+                  type="file"
+                  accept="image/*"
+                  onChange={(e) => handleQrFileChange(e.target.files?.[0])}
+                  className="mt-1 w-full rounded-lg border border-pinkAccent bg-white px-3 py-2 text-sm outline-none file:mr-3 file:rounded-md file:border-0 file:bg-pinkAccent file:px-3 file:py-1 file:text-pinkSecondary"
+                />
+              )}
+
+              {qrFile && (
+                <p className="mt-1 text-xs text-textSub">
+                  Selected: {qrFile.name}
+                </p>
+              )}
+
+              {/* {deleteQrcodeUrl && (
+                <p className="mt-1 text-xs text-red-500">
+                  Old QR will be deleted after save
+                </p>
+              )} */}
             </div>
 
             <div className="flex items-center justify-between border border-pinkAccent rounded-lg px-3 py-2">
-              <div>
-                <div className="text-sm font-medium">Active</div>
-              </div>
+              <div className="text-sm font-medium">Active</div>
+
               <button
                 type="button"
                 onClick={() =>

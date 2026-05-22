@@ -10,7 +10,7 @@ import SectionPlaceOrder from "./SectionPlaceOrder";
 import { useUserPurchaseSummary } from "@/hooks/useProfile";
 import SectionPurchaseSummary from "./SectionPurchaseSummary";
 import LoadingOverlay from "../LoadingOverlay";
-import { getEndTime } from "@/lib/workUtils";
+// import { getEndTime } from "@/lib/workUtils";
 
 type CartSelection = {
   reward_item_id: string;
@@ -76,13 +76,36 @@ export default function ActiveShop({
 
     const status = String(project.status || "").toLowerCase();
 
-    const isClosed = status !== "open";
+    const getStartTime = (value: any): number | null => {
+      if (!value) return null;
 
+      const date = new Date(value);
+      if (isNaN(date.getTime())) return null;
+
+      date.setHours(0, 0, 0, 0);
+      return date.getTime();
+    };
+
+    const getEndTime = (value: any): number | null => {
+      if (!value) return null;
+
+      const date = new Date(value);
+      if (isNaN(date.getTime())) return null;
+
+      date.setHours(23, 59, 59, 999);
+      return date.getTime();
+    };
+
+    const now = Date.now();
+
+    const start = getStartTime(project.start_date);
     const end = getEndTime(project.end_date);
 
-    const isExpired = end !== null && end < Date.now();
+    const isOpen = status === "open";
+    const isNotStarted = start !== null && now < start;
+    const isExpired = end !== null && now > end;
 
-    const canOrder = !isExpired;
+    const canOrder = isOpen && !isNotStarted && !isExpired;
 
     setCanPlaceOrder(canOrder);
 
