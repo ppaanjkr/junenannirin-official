@@ -1,10 +1,12 @@
 "use client";
 
+import ImagePreviewModal from "@/components/ImagePreviewModal";
 import LoadingOverlay from "@/components/LoadingOverlay";
 import Popup from "@/components/ModalPopup";
 import { bankOptions } from "@/data/bank";
 import { fileToBase64 } from "@/lib/admin-project/fileToBase64";
 import { createAdminBank, updateAdminBank } from "@/lib/api/admin";
+import { driveThumb } from "@/lib/workUtils";
 import { X } from "lucide-react";
 import { useEffect, useState } from "react";
 
@@ -348,12 +350,11 @@ export default function BankEditModal({ open, bank, onClose, onSaved }: Props) {
 
               {form.qrcode && !qrFile ? (
                 <div className="mt-2 relative w-32">
-                  <img
-                    src={form.qrcode}
-                    alt="QR Code"
-                    className="w-32 h-32 object-cover rounded-lg border border-pinkAccent"
+                  <ImagePreviewModal
+                    src={driveThumb(form.qrcode)}
+                    alt={"QR Code"}
+                    className="w-full object-cover rounded-md border border-pinkAccent flex-shrink-0"
                   />
-
                   <button
                     type="button"
                     onClick={handleRemoveQr}
