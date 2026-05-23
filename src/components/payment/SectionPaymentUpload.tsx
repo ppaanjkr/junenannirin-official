@@ -84,51 +84,34 @@ export default function SectionPaymentUpload({
       return;
     }
 
-    // const slip = await verifySlip(file);
+    const slip = await verifySlip(file);
 
-    // const slipSuccessCode = ["200200", "200000"];
-    // if (!slip || !slipSuccessCode.includes(slip.code)) {
-    //   setLoading(false);
-    //   const message = slip.message || "Invalid slip";
-    //     setPopup({
-    //       open: true,
-    //       type: "error",
-    //       message: message,
-    //     });
-    //     return;
-    // }
-    // const slipSuccessCode = ["200200", "200000"];
-    // if (!slip || !slipSuccessCode.includes(slip.code)) {
-    //   setLoading(false);
-    //   const message = slip.message || "Invalid slip";
-    //     setPopup({
-    //       open: true,
-    //       type: "error",
-    //       message: message,
-    //     });
-    //     return;
-    // }
+    const slipSuccessCode = ["200200", "200000"];
+    if (!slip || !slipSuccessCode.includes(slip.code)) {
+      setLoading(false);
+      const message = slip.message || "Invalid slip";
+      setPopup({
+        open: true,
+        type: "error",
+        message: message,
+      });
+      return;
+    }
 
-    // if(slip.data.amount === total){
-    //   setLoading(false);
-    //   setPopup({
-    //     open: true,
-    //     type: "error",
-    //     message: "Invalid amount",
-    //   });
-    //   return;
-    // }
+    if (Number(slip.data.amount) !== Number(total)) {
+      setLoading(false);
+      setPopup({
+        open: true,
+        type: "error",
+        message: "Invalid amount",
+      });
+      return;
+    }
 
-    // let referenceId = slip.data.referenceId;
-    // let transRef = slip.data.transRef;
-    // let dateTime = slip.data.dateTime;
-    // let amount = slip.data.amount;
-
-    // for dev
-    const referenceId = randomNumeric(12);
-    const transRef = randomNumeric(14);
-    const dateTime = new Date().toISOString();
-    const amount = total;
+    let referenceId = slip.data.referenceId;
+    let transRef = slip.data.transRef;
+    let dateTime = slip.data.dateTime;
+    let amount = slip.data.amount;
 
     const payload = getOrderPayload(referenceId, transRef, dateTime, amount);
 
@@ -232,18 +215,18 @@ export default function SectionPaymentUpload({
   async function verifySlip(file: File) {
     const bank_code = bankOptions.find(
       (b: any) =>
-        b.bank_name === data.bank_name ||
-        b.name === data.bank_name ||
-        b.bank_short_name === data.bank_name,
+        b.bank_name === data.bank.bank_name ||
+        b.name === data.bank.bank_name ||
+        b.bank_short_name === data.bank.bank_name,
     )?.code;
 
     if (!bank_code) {
       throw new Error("Invalid bank");
     }
 
-    const account_no = data.account_no.replace(/-/g, "");
-    const account_name = data.account_name;
-    const account_name_en = data.account_name_en;
+    const account_no = data.bank.account_no?.replace(/-/g, "") ?? "";
+    const account_name = data.bank.account_name;
+    const account_name_en = data.bank.account_name_en;
 
     const formData = new FormData();
 
@@ -252,13 +235,13 @@ export default function SectionPaymentUpload({
     formData.append(
       "payload",
       JSON.stringify({
-        checkDuplicate: true,
+        // checkDuplicate: true,
         checkReceiver: [
           {
             accountType: bank_code,
             accountNumber: account_no,
-            // accountNameTH: account_name,
-            // accountNameEN: account_name_en,
+            accountNameTH: account_name,
+            accountNameEN: account_name_en,
           },
         ],
       }),
