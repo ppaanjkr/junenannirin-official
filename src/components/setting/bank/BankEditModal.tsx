@@ -265,9 +265,9 @@ export default function BankEditModal({ open, bank, onClose, onSaved }: Props) {
         onClose={handlePopupClose}
       />
 
-      <div className="fixed inset-0 z-[1000] bg-black/40 flex items-center justify-center px-4">
-        <div className="bg-white rounded-lg shadow-lg w-full max-w-lg overflow-hidden">
-          <div className="px-4 py-3 border-b border-pinkAccent flex justify-between items-center">
+      <div className="fixed inset-0 z-[1000] bg-black/40 flex items-start justify-center px-4 py-6 overflow-y-auto">
+        <div className="bg-white rounded-lg shadow-lg w-full max-w-lg max-h-[calc(100vh-48px)] overflow-hidden flex flex-col">
+          <div className="px-4 py-3 border-b border-pinkAccent flex justify-between items-center shrink-0">
             <h2 className="font-semibold text-lg">
               {isEdit ? "Edit Bank" : "Add Bank"}
             </h2>
@@ -281,7 +281,7 @@ export default function BankEditModal({ open, bank, onClose, onSaved }: Props) {
             </button>
           </div>
 
-          <form onSubmit={handleSubmit} className="p-4 flex flex-col gap-3">
+          <form onSubmit={handleSubmit} className="p-4 flex flex-col gap-3 overflow-y-auto">
             <div>
               <label className="font-medium">Bank Name</label>
               <select
