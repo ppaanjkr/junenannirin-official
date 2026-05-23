@@ -22,7 +22,6 @@ export default function SectionPaymentMethod({
   data: any;
   setPopup: (v: any) => void;
 }) {
-
   const [qrImage, setQrImage] = useState<string>(
     driveThumb(data?.bank?.qrcode),
   );
@@ -37,8 +36,45 @@ export default function SectionPaymentMethod({
 
     const bankOption = getBankOptionByShortName(data?.bank?.bank_short_name);
     setBankLogo(bankOption?.bank_logo || "");
-    
   }, [data]);
+
+  const isPromptPay =
+    data?.bank?.bank_short_name?.toLowerCase() === "promptpay" ||
+    data?.bank?.bank_short_name == "PromptPay";
+
+  function getDriveFileId(url?: string) {
+    if (!url) return "";
+
+    const patterns = [/\/file\/d\/([^/]+)/, /\/d\/([^/]+)/, /id=([^&]+)/];
+
+    for (const pattern of patterns) {
+      const match = url.match(pattern);
+      if (match?.[1]) return match[1];
+    }
+
+    return "";
+  }
+
+  function saveQrImage() {
+    const fileId = getDriveFileId(data?.bank?.qrcode);
+
+    if (!fileId) {
+      setPopup({
+        open: true,
+        type: "error",
+        message: "QR not found",
+      });
+      return;
+    }
+
+    const downloadUrl = `https://drive.google.com/uc?export=download&id=${fileId}`;
+
+    const a = document.createElement("a");
+    a.href = downloadUrl;
+    a.target = "_blank";
+    a.rel = "noopener noreferrer";
+    a.click();
+  }
 
   // useEffect(() => {
   //   setAccountNo(data?.account_no);
@@ -134,29 +170,47 @@ export default function SectionPaymentMethod({
             <br />
             {data?.bank.account_name_en || ""}
           </p>
-          <p className="font-bold">{data?.bank.account_no || ""}</p>
+          <p className="font-bold">
+            {data?.bank?.bank_short_name == "PromptPay" ||
+            data?.bank?.bank_short_name?.toLowerCase() == "promptpay"
+              ? "PromptPay"
+              : data?.bank.bank_account_no}
+          </p>
         </div>
-        <button
-          className="border px-3 py-1 rounded text-xs"
-          style={{
-            borderColor: `${theme.secondary}`,
-            color: `${theme.secondary}`,
-          }}
-          onClick={() => {
-            if (!data?.bank.account_no) return;
+        {isPromptPay ? (
+          <button
+            className="border px-3 py-1 rounded text-xs"
+            style={{
+              borderColor: `${theme.secondary}`,
+              color: `${theme.secondary}`,
+            }}
+            onClick={saveQrImage}
+          >
+            SAVE QR
+          </button>
+        ) : (
+          <button
+            className="border px-3 py-1 rounded text-xs"
+            style={{
+              borderColor: `${theme.secondary}`,
+              color: `${theme.secondary}`,
+            }}
+            onClick={() => {
+              if (!data?.bank?.account_no) return;
 
-            const cleaned = data.bank.account_no.replace(/-/g, "");
-            navigator.clipboard.writeText(cleaned);
+              const cleaned = data.bank.account_no.replace(/-/g, "");
+              navigator.clipboard.writeText(cleaned);
 
-            setPopup({
-              open: true,
-              type: "success",
-              message: "Copied!",
-            });
-          }}
-        >
-          COPY
-        </button>
+              setPopup({
+                open: true,
+                type: "success",
+                message: "Copied!",
+              });
+            }}
+          >
+            COPY
+          </button>
+        )}
       </div>
 
       <div
