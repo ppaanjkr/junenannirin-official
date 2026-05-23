@@ -178,16 +178,17 @@ export default function SectionPaymentMethod({
           </p>
         </div>
         {isPromptPay ? (
-          <button
-            className="border px-3 py-1 rounded text-xs"
-            style={{
-              borderColor: `${theme.secondary}`,
-              color: `${theme.secondary}`,
-            }}
-            onClick={saveQrImage}
-          >
-            SAVE QR
-          </button>
+          ""
+          // <button
+          //   className="border px-3 py-1 rounded text-xs"
+          //   style={{
+          //     borderColor: `${theme.secondary}`,
+          //     color: `${theme.secondary}`,
+          //   }}
+          //   onClick={saveQrImage}
+          // >
+          //   SAVE QR
+          // </button>
         ) : (
           <button
             className="border px-3 py-1 rounded text-xs"
