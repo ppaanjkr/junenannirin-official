@@ -235,7 +235,7 @@ export default function SectionPaymentUpload({
     formData.append(
       "payload",
       JSON.stringify({
-        // checkDuplicate: true,
+        checkDuplicate: true,
         checkReceiver: [
           {
             accountType: bank_code,
