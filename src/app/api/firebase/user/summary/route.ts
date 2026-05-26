@@ -1,19 +1,27 @@
 import { NextRequest, NextResponse } from "next/server";
 import { adminDb } from "@/lib/firebase/admin";
+import { getBearerToken, verifyAccessToken } from "@/lib/auth/jwt";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
 
 export async function GET(req: NextRequest) {
   try {
-    const userId = req.nextUrl.searchParams.get("user_id");
+    const token = getBearerToken(req);
+    const auth = await verifyAccessToken(token);
 
-    if (!userId) {
+    if (!auth?.uuid || Number(auth.active || 0) !== 1) {
       return NextResponse.json(
-        { success: false, message: "user_id is required" },
-        { status: 400 },
+        {
+          success: false,
+          message: "Unauthorized",
+        },
+        { status: 401 },
       );
     }
+
+    // ใช้ userId จาก token เท่านั้น ห้ามรับจาก query/body
+    const userId = String(auth.uuid).trim();
 
     const projectsSnap = await adminDb.collection("projects").get();
 
@@ -32,7 +40,7 @@ export async function GET(req: NextRequest) {
 
     const userRewardsSnap = await adminDb
       .collection("userrewards")
-      .where("user_id", "==", String(userId))
+      .where("user_id", "==", userId)
       .get();
 
     const userRewards = userRewardsSnap.docs.map((doc) => ({
@@ -54,7 +62,7 @@ export async function GET(req: NextRequest) {
 
     const donationsSnap = await adminDb
       .collection("donations")
-      .where("user_id", "==", String(userId))
+      .where("user_id", "==", userId)
       .get();
 
     const donations = donationsSnap.docs.map((doc) => ({
@@ -76,11 +84,14 @@ export async function GET(req: NextRequest) {
 
     const transactionsSnap = await adminDb
       .collection("transactions")
-      .where("user_id", "==", String(userId))
+      .where("user_id", "==", userId)
       .where("status", "==", "success")
       .get();
 
-    const transactions = transactionsSnap.docs.map((doc) => doc.data());
+    const transactions = transactionsSnap.docs.map((doc) => ({
+      docId: doc.id,
+      ...doc.data(),
+    })) as any[];
 
     const totalAmount = transactions.reduce(
       (sum: number, t: any) => sum + Number(t.amount || 0),

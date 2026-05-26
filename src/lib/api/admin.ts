@@ -6,9 +6,26 @@ import {
   ProjectListResponse,
 } from "./types";
 
+function getAccessToken() {
+  if (typeof window === "undefined") return "";
+
+  return localStorage.getItem("accessToken") || "";
+}
+
+function authHeaders() {
+  const token = getAccessToken();
+
+  return {
+    Authorization: `Bearer ${token}`,
+  };
+}
+
 export async function getAdminProjects(): Promise<ProjectListResponse> {
   const res = await fetch("/api/firebase/admin/project/list", {
     method: "GET",
+    headers: {
+      ...authHeaders(),
+    },
     cache: "no-store",
   });
 
@@ -24,6 +41,9 @@ export async function getAdminProjectDetail(
 
   const res = await fetch(`/api/firebase/admin/project/detail?${params}`, {
     method: "GET",
+    headers: {
+      ...authHeaders(),
+    },
     cache: "no-store",
   });
 
@@ -37,6 +57,9 @@ export async function getAdminProjectEditDetail(projectId: string) {
 
   const res = await fetch(`/api/firebase/admin/project/edit-detail?${params}`, {
     method: "GET",
+    headers: {
+      ...authHeaders(),
+    },
     cache: "no-store",
   });
 
@@ -48,7 +71,9 @@ export async function updateAdminProject(payload: any) {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
+      ...authHeaders(),
     },
+    cache: "no-store",
     body: JSON.stringify(payload),
   });
 
@@ -63,7 +88,9 @@ export async function closeProject(payload: {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
+      ...authHeaders(),
     },
+    cache: "no-store",
     body: JSON.stringify(payload),
   });
 
@@ -79,7 +106,9 @@ export async function updateProjectSubStatus(payload: {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
+      ...authHeaders(),
     },
+    cache: "no-store",
     body: JSON.stringify(payload),
   });
 
@@ -95,6 +124,9 @@ export async function getAdminProjectOrders(
 
   const res = await fetch(`/api/firebase/admin/project/orders?${params}`, {
     method: "GET",
+    headers: {
+      ...authHeaders(),
+    },
     cache: "no-store",
   });
 
@@ -106,7 +138,9 @@ export async function updateAdminShipments(shipments: any[]) {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
+      ...authHeaders(),
     },
+    cache: "no-store",
     body: JSON.stringify({
       shipments,
     }),
@@ -119,6 +153,9 @@ export async function updateAdminShipments(shipments: any[]) {
 export async function getAdminUsers(): Promise<AdminUsersResponse> {
   const res = await fetch("/api/firebase/admin/user/list", {
     method: "GET",
+    headers: {
+      ...authHeaders(),
+    },
     cache: "no-store",
   });
 
@@ -130,7 +167,9 @@ export async function updateAdminUser(payload: any) {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
+      ...authHeaders(),
     },
+    cache: "no-store",
     body: JSON.stringify(payload),
   });
 
@@ -138,9 +177,12 @@ export async function updateAdminUser(payload: any) {
 }
 
 // Banks
-export async function getAdminBanks() {
+export async function getAdminBanks(): Promise<AdminBanksResponse> {
   const res = await fetch("/api/firebase/admin/bank/list", {
     method: "GET",
+    headers: {
+      ...authHeaders(),
+    },
     cache: "no-store",
   });
 
@@ -152,7 +194,9 @@ export async function createAdminBank(payload: any) {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
+      ...authHeaders(),
     },
+    cache: "no-store",
     body: JSON.stringify(payload),
   });
 
@@ -164,7 +208,9 @@ export async function updateAdminBank(payload: any) {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
+      ...authHeaders(),
     },
+    cache: "no-store",
     body: JSON.stringify(payload),
   });
 
@@ -176,7 +222,9 @@ export async function deleteAdminBank(bankId: string) {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
+      ...authHeaders(),
     },
+    cache: "no-store",
     body: JSON.stringify({
       bank_id: bankId,
     }),

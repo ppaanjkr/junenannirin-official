@@ -2,7 +2,6 @@
 
 import { bankOptions } from "@/data/bank";
 import { createOrder } from "@/lib/api/order";
-import { randomNumeric } from "@/lib/workUtils";
 import { Upload } from "lucide-react";
 import { useRef, useState } from "react";
 
@@ -18,6 +17,7 @@ export default function SectionPaymentUpload({
   loading,
   data,
   total,
+  user,
 }: {
   theme: Theme;
   setLoading: (v: boolean) => void;
@@ -25,13 +25,13 @@ export default function SectionPaymentUpload({
   loading: boolean;
   data: any;
   total: number;
+  user: any;
 }) {
   const fileRef = useRef<HTMLInputElement | null>(null);
 
   const [file, setFile] = useState<File | null>(null);
   const [preview, setPreview] = useState<string>("");
 
-  // open file
   function triggerFile() {
     if (file) return;
     fileRef.current?.click();
@@ -41,13 +41,11 @@ export default function SectionPaymentUpload({
     const f = e.target.files?.[0];
     if (!f) return;
 
-    // validate type
     if (!f.type.startsWith("image/")) {
       alert("Please select image file");
       return;
     }
 
-    // validate size (5MB)
     if (f.size > 5 * 1024 * 1024) {
       alert("File size over 5MB");
       return;
@@ -55,7 +53,6 @@ export default function SectionPaymentUpload({
 
     setFile(f);
 
-    // preview
     const reader = new FileReader();
     reader.onload = (ev) => {
       setPreview(ev.target?.result as string);
@@ -63,7 +60,6 @@ export default function SectionPaymentUpload({
     reader.readAsDataURL(f);
   }
 
-  // remove file
   function removeFile(e: React.MouseEvent) {
     e.stopPropagation();
 
@@ -75,7 +71,6 @@ export default function SectionPaymentUpload({
     }
   }
 
-  //  upload file : check api before save data
   async function handleSubmitOrder() {
     setLoading(true);
 
@@ -84,52 +79,64 @@ export default function SectionPaymentUpload({
       return;
     }
 
-    const slip = await verifySlip(file);
-
-    const slipSuccessCode = ["200200", "200000"];
-    if (!slip || !slipSuccessCode.includes(slip.code)) {
-      setLoading(false);
-      const message = slip.message || "Invalid slip";
-      setPopup({
-        open: true,
-        type: "error",
-        message: message,
-      });
-      return;
-    }
-
-    if (Number(slip.data.amount) !== Number(total)) {
+    if (!user?.uuid) {
       setLoading(false);
       setPopup({
         open: true,
         type: "error",
-        message: "Invalid amount",
+        message: "Please login again",
       });
-      return;
-    }
-
-    let referenceId = slip.data.referenceId;
-    let transRef = slip.data.transRef;
-    let dateTime = slip.data.dateTime;
-    let amount = slip.data.amount;
-
-    const payload = getOrderPayload(referenceId, transRef, dateTime, amount);
-
-    if (!payload) {
-      setLoading(false);
-      alert("Something went wrong");
       return;
     }
 
     try {
-      setLoading(true);
-      const data = await createOrder(payload);
+      const slip = await verifySlip(file);
 
-      if (!data.success) {
-        throw new Error(data.message || data.error || "error");
+      const slipSuccessCode = ["200200", "200000"];
+
+      if (!slip || !slipSuccessCode.includes(slip.code)) {
+        setLoading(false);
+        setPopup({
+          open: true,
+          type: "error",
+          message: slip?.message || "Invalid slip",
+        });
+        return;
       }
 
-      // clear cart
+      if (Number(slip.data.amount) !== Number(total)) {
+        setLoading(false);
+        setPopup({
+          open: true,
+          type: "error",
+          message: "Invalid amount",
+        });
+        return;
+      }
+
+      const payload = getOrderPayload({
+        referenceId: slip.data.referenceId,
+        transRef: slip.data.transRef,
+        dateTime: slip.data.dateTime,
+        amount: slip.data.amount,
+      });
+
+      if (!payload) {
+        setLoading(false);
+        setPopup({
+          open: true,
+          type: "error",
+          message: "Something went wrong",
+        });
+        return;
+      }
+
+      const result = await createOrder(payload);
+
+      if (!result.success) {
+        throw new Error(result.message || result.error || "error");
+      }
+
       localStorage.removeItem("fc_order");
       localStorage.removeItem("cart");
 
@@ -144,6 +151,7 @@ export default function SectionPaymentUpload({
       }, 1200);
     } catch (err: any) {
       console.error(err);
+
       setPopup({
         open: true,
         type: "error",
@@ -154,32 +162,58 @@ export default function SectionPaymentUpload({
     }
   }
 
-  function getOrderPayload(
-    referenceId: string,
-    transRef: string,
-    dateTime: string,
-    amount: number,
-  ) {
+  function safeJsonParse(value: string | null) {
+    if (!value) return null;
+
     try {
-      const userRaw = localStorage.getItem("user");
-      const projectRaw = localStorage.getItem("project");
+      return JSON.parse(value);
+    } catch {
+      return value;
+    }
+  }
+
+  function getProjectIdFromStorage() {
+    const projectRaw =
+      localStorage.getItem("fc_project") || localStorage.getItem("project");
+
+    const project = safeJsonParse(projectRaw);
+
+    if (!project) return "";
+
+    if (typeof project === "string") {
+      return project.trim();
+    }
+
+    return String(project.id || project.project?.id || "").trim();
+  }
+
+  function getOrderPayload({
+    referenceId,
+    transRef,
+    dateTime,
+    amount,
+  }: {
+    referenceId: string;
+    transRef: string;
+    dateTime: string;
+    amount: number;
+  }) {
+    try {
       const orderRaw = localStorage.getItem("fc_order");
 
-      if (!userRaw || !projectRaw || !orderRaw) return null;
+      if (!orderRaw) return null;
 
-      const user = JSON.parse(userRaw);
-      const project = JSON.parse(projectRaw);
-      const items = JSON.parse(orderRaw);
+      const projectId = getProjectIdFromStorage();
+      const items = safeJsonParse(orderRaw);
 
-      const projectId = project.id || project.project?.id;
-
-      if (!user.uuid || !projectId || !Array.isArray(items)) {
+      if (!projectId || !Array.isArray(items)) {
         return null;
       }
 
       return {
         action: "createUserOrder",
-        user_id: user.uuid,
+
+        // user_id ไม่ต้องส่งแล้ว backend ใช้จาก token
         project_id: projectId,
 
         items: items.map((i: any) => ({
@@ -194,7 +228,6 @@ export default function SectionPaymentUpload({
                 item_name: s.item_name,
                 option_name: s.option_name || (s.selected_size ? "size" : ""),
                 selected_option: s.selected_option || s.selected_size || "",
-
                 qty: Number(s.qty || 0),
               }))
             : [],
@@ -211,7 +244,6 @@ export default function SectionPaymentUpload({
     }
   }
 
-  //   verfiy slip
   async function verifySlip(file: File) {
     const bank_code = bankOptions.find(
       (b: any) =>
@@ -255,9 +287,7 @@ export default function SectionPaymentUpload({
       body: formData,
     });
 
-    const result = await res.json();
-
-    return result;
+    return res.json();
   }
 
   return (
@@ -284,7 +314,6 @@ export default function SectionPaymentUpload({
             backgroundColor: `${theme.accent}20`,
           }}
         >
-          {/* EMPTY */}
           {!file && (
             <div>
               <div
@@ -301,7 +330,6 @@ export default function SectionPaymentUpload({
             </div>
           )}
 
-          {/* FILLED */}
           {file && (
             <div className="flex items-center gap-3 text-left w-full">
               <img
@@ -332,7 +360,6 @@ export default function SectionPaymentUpload({
             </div>
           )}
 
-          {/* INPUT */}
           <input
             disabled={loading}
             ref={fileRef}

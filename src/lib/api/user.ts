@@ -4,15 +4,26 @@ import type {
   UserPurchaseSummeryResponse,
 } from "./types";
 
-export async function getProfileSummary(
-  userId: string,
-): Promise<ProfileSummaryResponse> {
-  const params = new URLSearchParams({
-    user_id: userId,
-  });
+function getAccessToken() {
+  if (typeof window === "undefined") return "";
 
-  const res = await fetch(`/api/firebase/user/summary?${params}`, {
+  return localStorage.getItem("accessToken") || "";
+}
+
+function authHeaders() {
+  const token = getAccessToken();
+
+  return {
+    Authorization: `Bearer ${token}`,
+  };
+}
+
+export async function getProfileSummary(): Promise<ProfileSummaryResponse> {
+  const res = await fetch("/api/firebase/user/summary", {
     method: "GET",
+    headers: {
+      ...authHeaders(),
+    },
     cache: "no-store",
   });
 
@@ -24,22 +35,21 @@ export async function updateUserProfile(payload: any) {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
+      ...authHeaders(),
     },
+    cache: "no-store",
     body: JSON.stringify(payload),
   });
 
   return res.json();
 }
 
-export async function getProfileHistory(
-  userId: string,
-): Promise<ProfileHistoryResponse> {
-  const params = new URLSearchParams({
-    user_id: userId,
-  });
-
-  const res = await fetch(`/api/firebase/user/history?${params}`, {
+export async function getProfileHistory(): Promise<ProfileHistoryResponse> {
+  const res = await fetch("/api/firebase/user/history", {
     method: "GET",
+    headers: {
+      ...authHeaders(),
+    },
     cache: "no-store",
   });
 
@@ -48,15 +58,16 @@ export async function getProfileHistory(
 
 export async function getUserShopSummary(
   projectId: string,
-  userId: string,
 ): Promise<UserPurchaseSummeryResponse> {
   const params = new URLSearchParams({
     project_id: projectId,
-    user_id: userId,
   });
 
   const res = await fetch(`/api/firebase/user/shop-summary?${params}`, {
     method: "GET",
+    headers: {
+      ...authHeaders(),
+    },
     cache: "no-store",
   });
 

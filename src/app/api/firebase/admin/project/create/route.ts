@@ -1,7 +1,11 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { adminDb } from "@/lib/firebase/admin";
 import { FieldValue } from "firebase-admin/firestore";
 import { uploadImageToDrive } from "@/lib/google/drive";
+import { getBearerToken, verifyAccessToken } from "@/lib/auth/jwt";
+
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
 
 function getYear() {
   return new Date().getFullYear();
@@ -12,7 +16,18 @@ function isBlobUrl(value?: string) {
 }
 
 function cleanUrl(value?: string) {
-  return isBlobUrl(value) ? "" : value || "";
+  return isBlobUrl(value) ? "" : String(value || "").trim();
+}
+
+async function requireAdmin(req: NextRequest) {
+  const token = getBearerToken(req);
+  const auth = await verifyAccessToken(token);
+
+  if (!auth?.uuid || Number(auth.active || 0) !== 1 || auth.team !== "admin") {
+    return null;
+  }
+
+  return auth;
 }
 
 async function generateProjectId() {
@@ -46,8 +61,20 @@ async function uploadFileIfExists(file: any, fileName: string) {
   return uploaded.url;
 }
 
-export async function POST(req: Request) {
+export async function POST(req: NextRequest) {
   try {
+    const auth = await requireAdmin(req);
+
+    if (!auth) {
+      return NextResponse.json(
+        {
+          success: false,
+          message: "Unauthorized",
+        },
+        { status: 401 },
+      );
+    }
+
     const body = await req.json();
     const project = body.project;
 
@@ -109,8 +136,8 @@ export async function POST(req: Request) {
 
     batch.set(projectRef, {
       id: projectId,
-      name: project.name || "",
-      description: project.description || "",
+      name: String(project.name || "").trim(),
+      description: String(project.description || ""),
       image_url: imageUrl,
       img_more: imgMore.join(","),
       start_date: project.start_date || "",
@@ -123,9 +150,9 @@ export async function POST(req: Request) {
       theme_color: project.theme_color || "",
       bank_id: project.bank_id || "",
       created_at: now,
-      created_by: project.created_by || "",
+      created_by: auth.uuid,
       updated_at: now,
-      updated_by: project.updated_by || "",
+      updated_by: auth.uuid,
       closed_at: "",
     });
 
@@ -153,6 +180,9 @@ export async function POST(req: Request) {
         description: target.description || "",
         image_url: targetImageUrl,
         created_at: now,
+        created_by: auth.uuid,
+        updated_at: now,
+        updated_by: auth.uuid,
       });
     }
 
@@ -184,6 +214,9 @@ export async function POST(req: Request) {
         description: reward.description || "",
         image_url: rewardImageUrl,
         created_at: now,
+        created_by: auth.uuid,
+        updated_at: now,
+        updated_by: auth.uuid,
       });
 
       const items = Array.isArray(reward.items) ? reward.items : [];
@@ -201,6 +234,10 @@ export async function POST(req: Request) {
           has_option: Number(item.has_option ? 1 : 0),
           option_name: item.option_name || "",
           active: item.active === undefined ? 1 : Number(item.active ? 1 : 0),
+          created_at: now,
+          created_by: auth.uuid,
+          updated_at: now,
+          updated_by: auth.uuid,
         });
 
         const options = Array.isArray(item.options) ? item.options : [];
@@ -221,6 +258,10 @@ export async function POST(req: Request) {
             sort_order: Number(option.sort_order || optionIndex + 1),
             active:
               option.active === undefined ? 1 : Number(option.active ? 1 : 0),
+            created_at: now,
+            created_by: auth.uuid,
+            updated_at: now,
+            updated_by: auth.uuid,
           });
         }
       }

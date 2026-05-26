@@ -6,6 +6,7 @@ import { useEffect, useState } from "react";
 type Props = {
   user: any;
   setUser: (user: any) => void;
+  validateUser?: () => Promise<void>;
   className?: string;
   setLoading: (loading: boolean) => void;
   setPopup: (popup: any) => void;
@@ -14,6 +15,7 @@ type Props = {
 export default function SectionEditProfile({
   user,
   setUser,
+  validateUser,
   className = "",
   setLoading,
   setPopup,
@@ -79,7 +81,11 @@ export default function SectionEditProfile({
     setLoading(true);
 
     if (form.phone[0] !== "0" || form.phone.length !== 10) {
-      setPopup({ open: true, message: "Invalid phone number", type: "error" });
+      setPopup({
+        open: true,
+        message: "Invalid phone number",
+        type: "error",
+      });
       setLoading(false);
       return;
     }
@@ -103,8 +109,13 @@ export default function SectionEditProfile({
         address: form.address,
       };
 
-      localStorage.setItem("user", JSON.stringify(updatedUser));
+      // ไม่เก็บ user ลง localStorage แล้ว
       setUser(updatedUser);
+
+      // ถ้ามี validateUser ให้ดึงข้อมูลล่าสุดจาก backend อีกรอบ
+      if (validateUser) {
+        await validateUser();
+      }
 
       setPopup({
         open: true,
@@ -125,7 +136,7 @@ export default function SectionEditProfile({
   }
 
   return (
-    <section className="bg-white rounded-lg border p-4 shadow-sm mt-4">
+    <section className={`bg-white rounded-lg border p-4 shadow-sm mt-4 ${className}`}>
       <h2 className="font-semibold mb-4 flex items-center gap-2">
         <span className="w-1.5 h-4 bg-pinkSecondary rounded-full"></span>
         User Profile
@@ -138,6 +149,7 @@ export default function SectionEditProfile({
               <span className="font-semibold">Shipping Name</span>
               <span className="text-red-500">*</span>
             </div>
+
             <input
               type="text"
               id="name"
@@ -160,6 +172,7 @@ export default function SectionEditProfile({
               <span className="font-semibold">Phonenumber</span>
               <span className="text-red-500">*</span>
             </div>
+
             <input
               type="text"
               id="phone"
@@ -180,6 +193,7 @@ export default function SectionEditProfile({
               <span className="font-semibold">Address</span>
               <span className="text-red-500">*</span>
             </div>
+
             <textarea
               id="address"
               rows={3}

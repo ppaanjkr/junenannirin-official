@@ -1,6 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
 import { adminDb } from "@/lib/firebase/admin";
 import { FieldValue } from "firebase-admin/firestore";
+import { getBearerToken, verifyAccessToken } from "@/lib/auth/jwt";
+
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
 
 async function getCurrentMaxNumber(
   collectionName: string,
@@ -107,6 +111,19 @@ function normalizeItems(items: any[]) {
 
 export async function POST(req: NextRequest) {
   try {
+    const token = getBearerToken(req);
+    const auth = await verifyAccessToken(token);
+
+    if (!auth?.uuid || Number(auth.active || 0) !== 1) {
+      return NextResponse.json(
+        {
+          success: false,
+          message: "Unauthorized",
+        },
+        { status: 401 },
+      );
+    }
+
     const data = await req.json();
 
     if (!data) {
@@ -119,13 +136,6 @@ export async function POST(req: NextRequest) {
     if (!Array.isArray(data.items) || data.items.length === 0) {
       return NextResponse.json(
         { success: false, message: "items must be array" },
-        { status: 400 },
-      );
-    }
-
-    if (!data.user_id) {
-      return NextResponse.json(
-        { success: false, message: "Missing user_id" },
         { status: 400 },
       );
     }
@@ -144,7 +154,8 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const userId = String(data.user_id).trim();
+    // ใช้ userId จาก token เท่านั้น ห้ามเชื่อ data.user_id
+    const userId = String(auth.uuid).trim();
     const projectId = String(data.project_id).trim();
     const amount = Number(data.amount || 0);
     const items = normalizeItems(data.items);
@@ -156,6 +167,26 @@ export async function POST(req: NextRequest) {
     if (invalidItem) {
       return NextResponse.json(
         { success: false, message: "Invalid item data" },
+        { status: 400 },
+      );
+    }
+
+    const projectRef = adminDb.collection("projects").doc(projectId);
+    const projectSnap = await projectRef.get();
+
+    if (!projectSnap.exists) {
+      return NextResponse.json(
+        { success: false, message: "Project not found" },
+        { status: 404 },
+      );
+    }
+
+    const projectData = projectSnap.data() || {};
+    const status = String(projectData.status || "").trim();
+
+    if (status !== "open") {
+      return NextResponse.json(
+        { success: false, message: "Project is not open" },
         { status: 400 },
       );
     }
@@ -265,14 +296,7 @@ export async function POST(req: NextRequest) {
       user_id: userId,
     });
 
-    const projectRef = adminDb.collection("projects").doc(projectId);
-    const projectSnap = await projectRef.get();
-
-    if (!projectSnap.exists) {
-      throw new Error("Project not found");
-    }
-
-    const currentAmount = Number(projectSnap.data()?.current_amount || 0);
+    const currentAmount = Number(projectData.current_amount || 0);
 
     batch.update(projectRef, {
       current_amount: currentAmount + amount,

@@ -5,10 +5,25 @@ import {
 } from "@/lib/google/drive";
 import { FieldValue } from "firebase-admin/firestore";
 import { NextRequest, NextResponse } from "next/server";
+import { getBearerToken, verifyAccessToken } from "@/lib/auth/jwt";
+
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
 
 function cleanUrl(url?: string) {
-  if (!url || url.startsWith("blob:")) return "";
-  return url;
+  if (!url || String(url).startsWith("blob:")) return "";
+  return String(url).trim();
+}
+
+async function requireAdmin(req: NextRequest) {
+  const token = getBearerToken(req);
+  const auth = await verifyAccessToken(token);
+
+  if (!auth?.uuid || Number(auth.active || 0) !== 1 || auth.team !== "admin") {
+    return null;
+  }
+
+  return auth;
 }
 
 async function uploadFileIfExists(file: any, fileName: string) {
@@ -23,7 +38,7 @@ async function uploadFileIfExists(file: any, fileName: string) {
 }
 
 async function deleteDriveUrlIfExists(url?: string) {
-  if (!url || url.startsWith("blob:")) return;
+  if (!url || String(url).startsWith("blob:")) return;
 
   try {
     await deleteFileFromDriveByUrl(url);
@@ -34,6 +49,18 @@ async function deleteDriveUrlIfExists(url?: string) {
 
 export async function POST(req: NextRequest) {
   try {
+    const auth = await requireAdmin(req);
+
+    if (!auth) {
+      return NextResponse.json(
+        {
+          success: false,
+          message: "Unauthorized",
+        },
+        { status: 401 },
+      );
+    }
+
     const body = await req.json();
     const project = body.project;
 
@@ -47,8 +74,20 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const projectId = project.id;
-    const now = new Date();
+    const projectId = String(project.id).trim();
+
+    const projectRef = adminDb.collection("projects").doc(projectId);
+    const projectSnap = await projectRef.get();
+
+    if (!projectSnap.exists) {
+      return NextResponse.json(
+        {
+          success: false,
+          message: "Project not found",
+        },
+        { status: 404 },
+      );
+    }
 
     let projectImageUrl = cleanUrl(project.image_url);
 
@@ -78,7 +117,9 @@ export async function POST(req: NextRequest) {
           `${projectId}_more_${i + 1}.webp`,
         );
 
-        imgMoreUrls.push(uploadedUrl);
+        if (uploadedUrl) {
+          imgMoreUrls.push(uploadedUrl);
+        }
       } else if (currentUrl) {
         imgMoreUrls.push(currentUrl);
       }
@@ -89,8 +130,6 @@ export async function POST(req: NextRequest) {
     }
 
     const batch = adminDb.batch();
-
-    const projectRef = adminDb.collection("projects").doc(projectId);
 
     batch.set(
       projectRef,
@@ -112,12 +151,13 @@ export async function POST(req: NextRequest) {
         },
         bank_id: project.bank_id || "",
         sub_status: project.sub_status || "pre-order",
-        updated_at: now,
-        updated_by: project.updated_by || "",
+        updated_at: FieldValue.serverTimestamp(),
+        updated_by: auth.uuid,
       },
       { merge: true },
     );
 
+    // delete old targets
     const oldTargetsSnap = await adminDb
       .collection("targets")
       .where("project_id", "==", projectId)
@@ -131,6 +171,7 @@ export async function POST(req: NextRequest) {
 
     for (let index = 0; index < targets.length; index++) {
       const target = targets[index];
+
       const targetId =
         target.id || `${projectId}_T${String(index + 1).padStart(3, "0")}`;
 
@@ -160,11 +201,13 @@ export async function POST(req: NextRequest) {
         title: target.title || "",
         description: target.description || "",
         image_url: targetImageUrl,
-        created_at: now,
-        updated_at: now,
+        created_at: target.created_at || FieldValue.serverTimestamp(),
+        updated_at: FieldValue.serverTimestamp(),
+        updated_by: auth.uuid,
       });
     }
 
+    // delete old rewards
     const oldRewardsSnap = await adminDb
       .collection("rewards")
       .where("project_id", "==", projectId)
@@ -189,6 +232,7 @@ export async function POST(req: NextRequest) {
 
     for (let index = 0; index < rewards.length; index++) {
       const reward = rewards[index];
+
       const rewardId =
         reward.id || `${projectId}_R${String(index + 1).padStart(3, "0")}`;
 
@@ -218,8 +262,9 @@ export async function POST(req: NextRequest) {
         min_amount: Number(reward.min_amount || reward.price || 0),
         price: Number(reward.price || reward.min_amount || 0),
         image_url: rewardImageUrl,
-        created_at: now,
-        updated_at: now,
+        created_at: reward.created_at || FieldValue.serverTimestamp(),
+        updated_at: FieldValue.serverTimestamp(),
+        updated_by: auth.uuid,
       });
 
       const items = Array.isArray(reward.items) ? reward.items : [];
@@ -242,8 +287,9 @@ export async function POST(req: NextRequest) {
           has_option: Number(item.has_option || 0),
           option_name: item.option_name || "",
           options: Array.isArray(item.options) ? item.options : [],
-          created_at: now,
-          updated_at: now,
+          created_at: item.created_at || FieldValue.serverTimestamp(),
+          updated_at: FieldValue.serverTimestamp(),
+          updated_by: auth.uuid,
         });
       }
     }

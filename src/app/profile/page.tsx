@@ -11,7 +11,7 @@ import { useRouter } from "next/navigation";
 import { use, useEffect, useState } from "react";
 
 export default function Page() {
-  const { user, setUser } = useUserContext();
+  const { user, setUser, validateUser } = useUserContext();
   const { profile, isLoading } = useProfileSummary();
   const [loading, setLoading] = useState(false);
   const isloading = loading || isLoading;
@@ -40,6 +40,7 @@ export default function Page() {
           setUser={setUser}
           setLoading={setLoading}
           setPopup={setPopup}
+          validateUser={validateUser}
         />
       </main>
     </>

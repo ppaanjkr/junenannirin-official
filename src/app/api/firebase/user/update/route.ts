@@ -1,26 +1,40 @@
 import { NextRequest, NextResponse } from "next/server";
 import { adminDb } from "@/lib/firebase/admin";
 import { FieldValue } from "firebase-admin/firestore";
+import { getBearerToken, verifyAccessToken } from "@/lib/auth/jwt";
+
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
 
 function safePhone(phone: string) {
-  return String(phone || "").replace(/\D/g, "").slice(0, 10);
+  return String(phone || "")
+    .replace(/\D/g, "")
+    .slice(0, 10);
 }
 
 export async function POST(req: NextRequest) {
   try {
+    const token = getBearerToken(req);
+    const auth = await verifyAccessToken(token);
+
+    if (!auth?.uuid || Number(auth.active || 0) !== 1) {
+      return NextResponse.json(
+        {
+          success: false,
+          message: "Unauthorized",
+        },
+        { status: 401 },
+      );
+    }
+
     const data = await req.json();
 
-    const userId = String(data.user_id || "").trim();
+    // ใช้ userId จาก token เท่านั้น ห้ามเชื่อ body.user_id
+    const userId = String(auth.uuid || "").trim();
+
     const phone = safePhone(data.phone);
     const name = String(data.name || "").trim();
     const address = String(data.address || "").trim();
-
-    if (!userId) {
-      return NextResponse.json(
-        { success: false, message: "user_id is required" },
-        { status: 400 },
-      );
-    }
 
     if (!name) {
       return NextResponse.json(
@@ -47,10 +61,13 @@ export async function POST(req: NextRequest) {
     const userSnap = await userRef.get();
 
     if (!userSnap.exists) {
-      return NextResponse.json({
-        success: false,
-        message: "User not found",
-      });
+      return NextResponse.json(
+        {
+          success: false,
+          message: "User not found",
+        },
+        { status: 404 },
+      );
     }
 
     const duplicateSnap = await adminDb
@@ -58,16 +75,22 @@ export async function POST(req: NextRequest) {
       .where("phone", "==", phone)
       .get();
 
-    const isDuplicate = duplicateSnap.docs.some(
-      (doc) => String(doc.id) !== userId && String(doc.data().uuid) !== userId,
-    );
+    const isDuplicate = duplicateSnap.docs.some((doc) => {
+      const docId = String(doc.id);
+      const docUuid = String(doc.data().uuid || "");
+
+      return docId !== userId && docUuid !== userId;
+    });
 
     if (isDuplicate) {
-      return NextResponse.json({
-        success: false,
-        code: "PHONENUMBER_DUPLICATE",
-        message: "Phonenumber already taken",
-      });
+      return NextResponse.json(
+        {
+          success: false,
+          code: "PHONENUMBER_DUPLICATE",
+          message: "Phonenumber already taken",
+        },
+        { status: 409 },
+      );
     }
 
     await userRef.update({

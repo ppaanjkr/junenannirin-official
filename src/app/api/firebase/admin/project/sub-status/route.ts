@@ -1,29 +1,58 @@
 import { NextRequest, NextResponse } from "next/server";
 import { adminDb } from "@/lib/firebase/admin";
 import { FieldValue } from "firebase-admin/firestore";
+import { getBearerToken, verifyAccessToken } from "@/lib/auth/jwt";
+
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
 
 const allowSubStatus = ["pre-order", "process", "shipping", "completed"];
 
+async function requireAdmin(req: NextRequest) {
+  const token = getBearerToken(req);
+  const auth = await verifyAccessToken(token);
+
+  if (!auth?.uuid || Number(auth.active || 0) !== 1 || auth.team !== "admin") {
+    return null;
+  }
+
+  return auth;
+}
+
 export async function POST(req: NextRequest) {
   try {
-    const body = await req.json();
-    const { project_id, sub_status, updated_by } = body;
+    const auth = await requireAdmin(req);
 
-    if (!project_id) {
+    if (!auth) {
+      return NextResponse.json(
+        {
+          success: false,
+          message: "Unauthorized",
+        },
+        { status: 401 },
+      );
+    }
+
+    const body = await req.json();
+
+    const projectId = String(body.project_id || "").trim();
+    const subStatus = String(body.sub_status || "").trim();
+
+    if (!projectId) {
       return NextResponse.json(
         { success: false, message: "project_id is required" },
         { status: 400 },
       );
     }
 
-    if (!allowSubStatus.includes(sub_status)) {
+    if (!allowSubStatus.includes(subStatus)) {
       return NextResponse.json(
         { success: false, message: "Invalid sub_status" },
         { status: 400 },
       );
     }
 
-    const projectRef = adminDb.collection("projects").doc(project_id);
+    const projectRef = adminDb.collection("projects").doc(projectId);
     const projectDoc = await projectRef.get();
 
     if (!projectDoc.exists) {
@@ -43,9 +72,9 @@ export async function POST(req: NextRequest) {
     }
 
     await projectRef.update({
-      sub_status,
+      sub_status: subStatus,
       updated_at: FieldValue.serverTimestamp(),
-      updated_by: updated_by || "",
+      updated_by: auth.uuid,
     });
 
     return NextResponse.json({

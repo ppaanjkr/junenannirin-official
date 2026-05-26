@@ -1,19 +1,33 @@
 import { NextRequest, NextResponse } from "next/server";
 import { adminDb } from "@/lib/firebase/admin";
+import { getBearerToken, verifyAccessToken } from "@/lib/auth/jwt";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
 
 export async function GET(req: NextRequest) {
   try {
-    const projectId = req.nextUrl.searchParams.get("project_id");
-    const userId = req.nextUrl.searchParams.get("user_id");
+    const token = getBearerToken(req);
+    const auth = await verifyAccessToken(token);
 
-    if (!projectId || !userId) {
+    if (!auth?.uuid || Number(auth.active || 0) !== 1) {
       return NextResponse.json(
         {
           success: false,
-          message: "project_id and user_id are required",
+          message: "Unauthorized",
+        },
+        { status: 401 },
+      );
+    }
+
+    const projectId = req.nextUrl.searchParams.get("project_id");
+    const userId = String(auth.uuid).trim();
+
+    if (!projectId) {
+      return NextResponse.json(
+        {
+          success: false,
+          message: "project_id is required",
         },
         { status: 400 },
       );
@@ -266,6 +280,7 @@ export async function GET(req: NextRequest) {
           const nameCompare = String(a.item_name).localeCompare(
             String(b.item_name),
           );
+
           if (nameCompare !== 0) return nameCompare;
 
           return String(a.selected_option).localeCompare(
@@ -275,12 +290,14 @@ export async function GET(req: NextRequest) {
         details: item.details
           .map((d: any) => {
             const { key, ...rest } = d;
+
             return rest;
           })
           .sort((a: any, b: any) => {
             const nameCompare = String(a.item_name).localeCompare(
               String(b.item_name),
             );
+
             if (nameCompare !== 0) return nameCompare;
 
             return String(a.selected_option).localeCompare(

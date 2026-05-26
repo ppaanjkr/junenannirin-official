@@ -27,7 +27,7 @@ export default function useProfileSummary() {
       setIsLoading(true);
 
       try {
-        const res = await getProfileSummary(user.uuid);
+        const res = await getProfileSummary();
 
         if (res.success) {
           setProfile(res.data);
@@ -62,7 +62,7 @@ export function useUserPurchaseSummary(project_id: string) {
       setIsLoading(true);
 
       try {
-        const res = await getUserShopSummary(project_id, user.uuid);
+        const res = await getUserShopSummary(project_id);
 
         if (res.success) {
           setShopSummary(res.data);
@@ -97,7 +97,7 @@ export function useProfileHistory() {
       setIsLoading(true);
 
       try {
-        const res = await getProfileHistory(user.uuid);
+        const res = await getProfileHistory();
 
         if (res.success) {
           setShop(res.data?.shop || []);

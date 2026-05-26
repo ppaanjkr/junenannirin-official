@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { adminDb } from "@/lib/firebase/admin";
+import { getBearerToken, verifyAccessToken } from "@/lib/auth/jwt";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
@@ -40,6 +41,7 @@ function toIsoDate(value: any) {
     }
 
     const date = new Date(text);
+
     return isNaN(date.getTime()) ? text : date.toISOString();
   }
 
@@ -62,19 +64,27 @@ function parseDateTime(value: any) {
   }
 
   const date = new Date(value);
+
   return isNaN(date.getTime()) ? 0 : date.getTime();
 }
 
 export async function GET(req: NextRequest) {
   try {
-    const userId = req.nextUrl.searchParams.get("user_id");
+    const token = getBearerToken(req);
+    const auth = await verifyAccessToken(token);
 
-    if (!userId) {
+    if (!auth?.uuid || Number(auth.active || 0) !== 1) {
       return NextResponse.json(
-        { success: false, message: "user_id is required" },
-        { status: 400 },
+        {
+          success: false,
+          message: "Unauthorized",
+        },
+        { status: 401 },
       );
     }
+
+    // ใช้ userId จาก token เท่านั้น ห้ามรับจาก query/body
+    const userId = String(auth.uuid).trim();
 
     const [
       projectsSnap,

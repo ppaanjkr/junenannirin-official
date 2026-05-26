@@ -12,27 +12,37 @@ import useProjectData from "@/hooks/useProjectData";
 import { useEffect, useState } from "react";
 
 export default function Home() {
-  const { user, loading, setUser } = useUserContext();
+  const { user, loading, validateUser } = useUserContext();
   const { popup, setPopup } = useAuthGuard();
   const { projects, activeData, isLoading } = useProjectData();
 
+  const [checkingToken, setCheckingToken] = useState(true);
+
   useEffect(() => {
-    const params = new URLSearchParams(window.location.search);
-    const userParam = params.get("user");
+    async function handleTokenFromUrl() {
+      const params = new URLSearchParams(window.location.search);
+      const token = params.get("token");
 
-    if (!userParam) return;
+      if (!token) {
+        setCheckingToken(false);
+        return;
+      }
 
-    try {
-      const parsed = JSON.parse(decodeURIComponent(userParam));
-
-      localStorage.setItem("user", JSON.stringify(parsed));
-      setUser(parsed);
+      localStorage.setItem("accessToken", token);
 
       window.history.replaceState({}, "", window.location.pathname);
-    } catch (err) {
-      console.error(err);
+
+      if (validateUser) {
+        await validateUser();
+      }
+
+      setCheckingToken(false);
     }
-  }, []);
+
+    handleTokenFromUrl();
+  }, [validateUser]);
+
+  const pageLoading = loading || checkingToken || isLoading;
 
   return (
     <>
@@ -42,11 +52,13 @@ export default function Home() {
         message={popup.message}
         onClose={() => setPopup({ ...popup, open: false })}
       />
-      <main className="max-w-5xl mx-auto px-6 py-4 md:max-w-3xl">
-        {!user && <LineLogin />}
-        {isLoading && <LoadingOverlay />}
 
-        {!isLoading && (
+      <main className="max-w-5xl mx-auto px-6 py-4 md:max-w-3xl">
+        {pageLoading && <LoadingOverlay />}
+
+        {!pageLoading && !user && <LineLogin />}
+
+        {!pageLoading && (
           <>
             {activeData &&
               (activeData.project.type === "donation" ? (
@@ -59,6 +71,7 @@ export default function Home() {
             {/* {!activeData && <ProjectList projects={projects} />} */}
           </>
         )}
+
         <SectionContact />
       </main>
     </>

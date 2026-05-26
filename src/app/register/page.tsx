@@ -13,7 +13,7 @@ import { teamOptions } from "@/data/teams";
 
 export default function Page() {
   const router = useRouter();
-  const { setUser } = useUserContext();
+  const { setUser, validateUser } = useUserContext();
 
   const [tempUser, setTempUser] = useState<any>(null);
   const [loading, setLoading] = useState(false);
@@ -68,15 +68,12 @@ export default function Page() {
   useEffect(() => {
     if (!tempUser) return;
 
+    // ปกติ EXIST ไม่ควรมาหน้านี้แล้ว เพราะ callback จะส่งไป /project พร้อม token
     if (tempUser.status === "EXIST") {
-      localStorage.setItem("user", JSON.stringify(tempUser));
-      setUser(tempUser);
-
       sessionStorage.removeItem("tempUser");
-
       router.replace("/project");
     }
-  }, [tempUser, router, setUser]);
+  }, [tempUser, router]);
 
   function handleChange(e: React.ChangeEvent<HTMLInputElement>) {
     const value = e.target.value.replace(/\D/g, "").slice(0, 10);
@@ -122,11 +119,20 @@ export default function Page() {
       return;
     }
 
+    if (!tempUser?.lineUserId) {
+      setPopup({
+        open: true,
+        type: "error",
+        message: "LINE user not found. Please login again.",
+      });
+      return;
+    }
+
     setLoading(true);
 
     const payload = {
       ...form,
-      lineUserId: tempUser?.lineUserId || "",
+      lineUserId: tempUser.lineUserId,
     };
 
     try {
@@ -135,6 +141,7 @@ export default function Page() {
         headers: {
           "Content-Type": "application/json",
         },
+        cache: "no-store",
         body: JSON.stringify(payload),
       });
 
@@ -175,21 +182,33 @@ export default function Page() {
       }
 
       if (data.status === "CREATED") {
+        if (!data.accessToken) {
+          setPopup({
+            open: true,
+            type: "error",
+            message: "Register success but token not found. Please login again.",
+          });
+          return;
+        }
+
+        localStorage.setItem("accessToken", data.accessToken);
+
         const user = {
-          uuid: data.user?.uuid,
-          lineUserId: data.user?.lineUserId,
-          username: data.user?.username,
-          phone: data.user?.phone,
-          team: data.user?.team,
-          name: data.user?.name,
-          address: data.user?.address,
-          status: data.status,
-          active: data.user?.active,
-          expireAt: Date.now() + 30 * 24 * 60 * 60 * 1000,
+          uuid: data.user?.uuid || "",
+          lineUserId: data.user?.lineUserId || "",
+          username: data.user?.username || "",
+          phone: data.user?.phone || "",
+          team: data.user?.team || "",
+          name: data.user?.name || "",
+          address: data.user?.address || "",
+          active: Number(data.user?.active || 0),
         };
 
-        localStorage.setItem("user", JSON.stringify(user));
         setUser(user);
+
+        if (validateUser) {
+          await validateUser();
+        }
 
         sessionStorage.removeItem("tempUser");
 

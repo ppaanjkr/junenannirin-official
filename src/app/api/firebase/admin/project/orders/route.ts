@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { adminDb } from "@/lib/firebase/admin";
+import { getBearerToken, verifyAccessToken } from "@/lib/auth/jwt";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
@@ -7,8 +8,12 @@ export const revalidate = 0;
 function parseDateTime(value: any) {
   if (!value) return 0;
 
-  if (value?.toDate) {
+  if (typeof value?.toDate === "function") {
     return value.toDate().getTime();
+  }
+
+  if (value?._seconds) {
+    return new Date(value._seconds * 1000).getTime();
   }
 
   if (value instanceof Date) {
@@ -43,8 +48,31 @@ function toData(doc: FirebaseFirestore.QueryDocumentSnapshot) {
   };
 }
 
+async function requireAdmin(req: NextRequest) {
+  const token = getBearerToken(req);
+  const auth = await verifyAccessToken(token);
+
+  if (!auth?.uuid || Number(auth.active || 0) !== 1 || auth.team !== "admin") {
+    return null;
+  }
+
+  return auth;
+}
+
 export async function GET(req: NextRequest) {
   try {
+    const auth = await requireAdmin(req);
+
+    if (!auth) {
+      return NextResponse.json(
+        {
+          success: false,
+          message: "Unauthorized",
+        },
+        { status: 401 },
+      );
+    }
+
     const projectId = req.nextUrl.searchParams.get("project_id");
 
     if (!projectId) {
@@ -223,7 +251,9 @@ export async function GET(req: NextRequest) {
       const rowSelections = selectionMap[userRewardId] || [];
 
       rowSelections.forEach((sel: any) => {
-        const detailKey = `${sel.reward_item_id}_${sel.option_name || "option"}_${sel.selected_option || "nooption"}`;
+        const detailKey = `${sel.reward_item_id}_${sel.option_name || "option"}_${
+          sel.selected_option || "nooption"
+        }`;
 
         if (!grouped[userId].orders_map[rewardId].details_map[detailKey]) {
           grouped[userId].orders_map[rewardId].details_map[detailKey] = {
@@ -286,6 +316,8 @@ export async function GET(req: NextRequest) {
       data: result,
     });
   } catch (err: any) {
+    console.error("get admin project orders error:", err);
+
     return NextResponse.json(
       {
         success: false,

@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { adminDb } from "@/lib/firebase/admin";
+import { getBearerToken, verifyAccessToken } from "@/lib/auth/jwt";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
@@ -9,6 +10,17 @@ function toPlainData(doc: FirebaseFirestore.QueryDocumentSnapshot) {
     docId: doc.id,
     ...doc.data(),
   };
+}
+
+async function requireAdmin(req: NextRequest) {
+  const token = getBearerToken(req);
+  const auth = await verifyAccessToken(token);
+
+  if (!auth?.uuid || Number(auth.active || 0) !== 1 || auth.team !== "admin") {
+    return null;
+  }
+
+  return auth;
 }
 
 function buildOptionUsageSummary(
@@ -110,6 +122,18 @@ function buildOptionUsageSummary(
 
 export async function GET(req: NextRequest) {
   try {
+    const auth = await requireAdmin(req);
+
+    if (!auth) {
+      return NextResponse.json(
+        {
+          success: false,
+          message: "Unauthorized",
+        },
+        { status: 401 },
+      );
+    }
+
     const projectId = req.nextUrl.searchParams.get("project_id");
 
     if (!projectId) {
@@ -140,10 +164,13 @@ export async function GET(req: NextRequest) {
     ]);
 
     if (!projectSnap.exists) {
-      return NextResponse.json({
-        success: false,
-        message: "Project not found",
-      });
+      return NextResponse.json(
+        {
+          success: false,
+          message: "Project not found",
+        },
+        { status: 404 },
+      );
     }
 
     const project = {
@@ -160,7 +187,7 @@ export async function GET(req: NextRequest) {
     const userRewardItemSelections = selectionsSnap.docs.map(toPlainData);
     const targets = targetsSnap.docs.map(toPlainData);
 
-    let summary = {
+    const summary = {
       totalRevenue: 0,
       totalOrders: 0,
       totalUsers: 0,
@@ -464,6 +491,8 @@ export async function GET(req: NextRequest) {
       },
     });
   } catch (err: any) {
+    console.error("get admin project detail error:", err);
+
     return NextResponse.json(
       {
         success: false,

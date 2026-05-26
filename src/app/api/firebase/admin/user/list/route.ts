@@ -1,5 +1,6 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { adminDb } from "@/lib/firebase/admin";
+import { getBearerToken, verifyAccessToken } from "@/lib/auth/jwt";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
@@ -22,8 +23,31 @@ function toIsoDate(value: any) {
   return value;
 }
 
-export async function GET() {
+async function requireAdmin(req: NextRequest) {
+  const token = getBearerToken(req);
+  const auth = await verifyAccessToken(token);
+
+  if (!auth?.uuid || Number(auth.active || 0) !== 1 || auth.team !== "admin") {
+    return null;
+  }
+
+  return auth;
+}
+
+export async function GET(req: NextRequest) {
   try {
+    const auth = await requireAdmin(req);
+
+    if (!auth) {
+      return NextResponse.json(
+        {
+          success: false,
+          message: "Unauthorized",
+        },
+        { status: 401 },
+      );
+    }
+
     const snap = await adminDb.collection("users").get();
 
     const users = snap.docs.map((doc) => {
@@ -52,6 +76,8 @@ export async function GET() {
       data: users,
     });
   } catch (err: any) {
+    console.error("get admin users error:", err);
+
     return NextResponse.json(
       {
         success: false,

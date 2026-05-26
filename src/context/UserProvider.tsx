@@ -12,7 +12,8 @@ export default function UserProvider({
 }: {
   children: React.ReactNode;
 }) {
-  const { user, loading, setUser } = useUser();
+  const { user, loading, setUser, clearUser, validateUser } = useUser();
+
   const router = useRouter();
   const pathname = usePathname();
 
@@ -24,14 +25,22 @@ export default function UserProvider({
     if (isAdminPage && (!user || user.team !== "admin")) {
       router.replace("/");
     }
-  }, [pathname, user, loading]);
+  }, [pathname, user, loading, router]);
 
   if (loading) {
     return <LoadingOverlay />;
   }
 
   return (
-    <UserContext.Provider value={{ user, loading, setUser }}>
+    <UserContext.Provider
+      value={{
+        user,
+        loading,
+        setUser,
+        clearUser,
+        validateUser,
+      }}
+    >
       <div className="text-textMain">
         <Navbar user={user} />
         {children}

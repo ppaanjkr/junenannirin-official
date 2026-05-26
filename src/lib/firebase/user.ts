@@ -12,10 +12,26 @@ export type UserData = {
   name?: string;
 };
 
+function safePhone(phone?: string) {
+  return String(phone || "")
+    .replace(/\D/g, "")
+    .slice(0, 10);
+}
+
+function safeText(value?: string) {
+  return String(value || "").trim();
+}
+
 export async function checkUser(lineUserId: string) {
+  const safeLineUserId = safeText(lineUserId);
+
+  if (!safeLineUserId) {
+    return { status: "NEW" };
+  }
+
   const snap = await adminDb
     .collection("users")
-    .where("lineUserId", "==", lineUserId)
+    .where("lineUserId", "==", safeLineUserId)
     .limit(1)
     .get();
 
@@ -28,7 +44,7 @@ export async function checkUser(lineUserId: string) {
   return {
     status: "EXIST",
     user: {
-      uuid: data.uuid,
+      uuid: data.uuid || snap.docs[0].id,
       username: data.username || "",
       phone: data.phone || "",
       team: data.team || "",
@@ -43,8 +59,61 @@ export async function checkUser(lineUserId: string) {
 export async function createUser(data: UserData) {
   const usersRef = adminDb.collection("users");
 
+  const lineUserId = safeText(data.lineUserId);
+  const username = safeText(data.username);
+  const phone = safePhone(data.phone);
+  const name = safeText(data.name);
+  const address = safeText(data.address);
+  const email = safeText(data.email);
+  const twitter = safeText(data.twitter);
+
+  // กันไม่ให้สมัคร admin จากหน้า register
+  const team = safeText(data.team) === "admin" ? "" : safeText(data.team);
+
+  if (!lineUserId) {
+    return {
+      status: "ERROR",
+      message: "lineUserId is required",
+    };
+  }
+
+  if (!username) {
+    return {
+      status: "ERROR",
+      message: "username is required",
+    };
+  }
+
+  if (!phone || phone[0] !== "0" || phone.length !== 10) {
+    return {
+      status: "ERROR",
+      message: "Invalid phone number",
+    };
+  }
+
+  if (!team) {
+    return {
+      status: "ERROR",
+      message: "team is required",
+    };
+  }
+
+  if (!name) {
+    return {
+      status: "ERROR",
+      message: "name is required",
+    };
+  }
+
+  if (!address) {
+    return {
+      status: "ERROR",
+      message: "address is required",
+    };
+  }
+
   const lineSnap = await usersRef
-    .where("lineUserId", "==", data.lineUserId)
+    .where("lineUserId", "==", lineUserId)
     .limit(1)
     .get();
 
@@ -55,32 +124,28 @@ export async function createUser(data: UserData) {
     };
   }
 
-  if (data.phone) {
-    const phoneSnap = await usersRef
-      .where("phone", "==", data.phone)
-      .limit(1)
-      .get();
+  const phoneSnap = await usersRef
+    .where("phone", "==", phone)
+    .limit(1)
+    .get();
 
-    if (!phoneSnap.empty) {
-      return {
-        status: "PHONENUMBER_DUPLICATE",
-        message: "Phonenumber already taken",
-      };
-    }
+  if (!phoneSnap.empty) {
+    return {
+      status: "PHONENUMBER_DUPLICATE",
+      message: "Phonenumber already taken",
+    };
   }
 
-  if (data.username) {
-    const usernameSnap = await usersRef
-      .where("username", "==", data.username)
-      .limit(1)
-      .get();
+  const usernameSnap = await usersRef
+    .where("username", "==", username)
+    .limit(1)
+    .get();
 
-    if (!usernameSnap.empty) {
-      return {
-        status: "USERNAME_DUPLICATE",
-        message: "Username already taken",
-      };
-    }
+  if (!usernameSnap.empty) {
+    return {
+      status: "USERNAME_DUPLICATE",
+      message: "Username already taken",
+    };
   }
 
   const uuid = randomUUID();
@@ -88,17 +153,17 @@ export async function createUser(data: UserData) {
 
   const user = {
     uuid,
-    name: data.name || "",
-    phone: data.phone || "",
-    team: data.team || "",
-    email: data.email || "",
-    twitter: data.twitter || "",
-    address: data.address || "",
+    name,
+    phone,
+    team,
+    email,
+    twitter,
+    address,
     created_at: now,
     updated_at: now,
-    lineUserId: data.lineUserId || "",
+    lineUserId,
     active: 1,
-    username: data.username || "",
+    username,
   };
 
   await usersRef.doc(uuid).set(user);

@@ -1,4 +1,5 @@
 import { adminDb } from "@/lib/firebase/admin";
+import { getBearerToken, verifyAccessToken } from "@/lib/auth/jwt";
 import { NextRequest, NextResponse } from "next/server";
 
 export const dynamic = "force-dynamic";
@@ -30,6 +31,17 @@ function docData(doc: FirebaseFirestore.QueryDocumentSnapshot) {
     start_date: serializeDate(data.start_date),
     end_date: serializeDate(data.end_date),
   };
+}
+
+async function requireAdmin(req: NextRequest) {
+  const token = getBearerToken(req);
+  const auth = await verifyAccessToken(token);
+
+  if (!auth?.uuid || Number(auth.active || 0) !== 1 || auth.team !== "admin") {
+    return null;
+  }
+
+  return auth;
 }
 
 function normalizeImgMore(project: any) {
@@ -123,7 +135,21 @@ function getItemRewardKeys(item: any) {
 
 export async function GET(req: NextRequest) {
   try {
-    const id = req.nextUrl.searchParams.get("id");
+    const auth = await requireAdmin(req);
+
+    if (!auth) {
+      return NextResponse.json(
+        {
+          success: false,
+          message: "Unauthorized",
+        },
+        { status: 401 },
+      );
+    }
+
+    const id =
+      req.nextUrl.searchParams.get("id") ||
+      req.nextUrl.searchParams.get("project_id");
 
     if (!id) {
       return NextResponse.json(
@@ -135,7 +161,7 @@ export async function GET(req: NextRequest) {
       );
     }
 
-    const projectRef = adminDb.collection("projects").doc(id);
+    const projectRef = adminDb.collection("projects").doc(String(id));
     const projectDoc = await projectRef.get();
 
     if (!projectDoc.exists) {
@@ -149,8 +175,8 @@ export async function GET(req: NextRequest) {
     }
 
     const [targetsSnap, rewardsSnap] = await Promise.all([
-      adminDb.collection("targets").where("project_id", "==", id).get(),
-      adminDb.collection("rewards").where("project_id", "==", id).get(),
+      adminDb.collection("targets").where("project_id", "==", String(id)).get(),
+      adminDb.collection("rewards").where("project_id", "==", String(id)).get(),
     ]);
 
     const targets = targetsSnap.docs

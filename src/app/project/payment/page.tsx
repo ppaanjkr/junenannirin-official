@@ -6,6 +6,7 @@ import SectionPaymentSummary from "@/components/payment/SectionPaymentSummary";
 import SectionPaymentUpload from "@/components/payment/SectionPaymentUpload";
 import SectionBack from "@/components/SectionBack";
 import SectionContact from "@/components/SectionContact";
+import { useUserContext } from "@/context/UserContext";
 import useAuthGuard from "@/hooks/useAuthGuard";
 import useProjectData from "@/hooks/useProjectData";
 import { getThemeColors } from "@/lib/theme";
@@ -15,11 +16,13 @@ import { use, useEffect, useState } from "react";
 export default function Page() {
   const router = useRouter();
 
-  const [loading, setLoading] = useState(false);
+  const { user, loading } = useUserContext();
+
+  const [isloading, setLoading] = useState(false);
 
   const { popup, setPopup } = useAuthGuard();
 
-  const { activeData: projectData, isLoading } = useProjectData();
+  const { activeData: projectData, isLoading: isProjectLoading } = useProjectData();
 
   const [getTheme, setGetTheme] = useState<any>(null); 
   useEffect(() => { 
@@ -48,7 +51,7 @@ export default function Page() {
 
   return (
     <>
-    {(loading||isLoading) && <LoadingOverlay />}
+    {(loading||isloading||isProjectLoading) && <LoadingOverlay />}
       <Popup
         open={popup.open}
         type={popup.type}
@@ -69,6 +72,7 @@ export default function Page() {
           loading={loading}
           data={projectData}
           total={total}
+          user={user}
         />
         <SectionContact />
       </main>
