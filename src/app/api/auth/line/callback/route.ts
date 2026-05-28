@@ -53,20 +53,20 @@ export async function GET(req: NextRequest) {
     const payload = decodeJwtPayload(tokenData.id_token);
     const lineUserId = payload.sub;
 
+    if (!lineUserId) {
+      return NextResponse.redirect(
+        new URL(`/project?error=line_user`, req.url),
+      );
+    }
+
+    const userDataFromDb = await checkUser(lineUserId);
+
     return NextResponse.json({
       success: true,
-      step: "decoded_line_user",
-      payload,
+      step: "check_user",
       lineUserId,
+      userDataFromDb,
     });
-
-    // if (!lineUserId) {
-    //   return NextResponse.redirect(
-    //     new URL(`/project?error=line_user`, req.url),
-    //   );
-    // }
-
-    // const userDataFromDb = await checkUser(lineUserId);
 
     // const userObj = {
     //   uuid: userDataFromDb.user?.uuid || "",
