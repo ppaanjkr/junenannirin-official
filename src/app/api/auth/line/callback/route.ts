@@ -14,7 +14,8 @@ function decodeJwtPayload(idToken: string) {
 export async function GET(req: NextRequest) {
   try {
     const LINE_API_TOKEN = process.env.NEXT_PUBLIC_LINE_API_TOKEN!;
-    const LINE_API_CALLBACKURL = process.env.NEXT_PUBLIC_LINE_API_CALLBACKURL!;
+    const LINE_API_CALLBACKURL =
+      process.env.NEXT_PUBLIC_LINE_API_CALLBACKURL!;
     const LINE_CLIENT_ID = process.env.NEXT_PUBLIC_LINE_CLIENT_ID!;
     const LINE_CLIENT_SECRET = process.env.LINE_CLIENT_SECRET!;
 
@@ -75,21 +76,16 @@ export async function GET(req: NextRequest) {
     };
 
     if (userDataFromDb.status === "EXIST" && userObj.active === 0) {
-      return NextResponse.redirect(new URL(`/project?error=inactive`, req.url));
+      return NextResponse.redirect(
+        new URL(`/project?error=inactive`, req.url),
+      );
     }
 
     let redirectPath = "";
 
     if (userDataFromDb.status === "NEW") {
       const userData = encodeURIComponent(JSON.stringify(userObj));
-
-      return NextResponse.json({
-        success: true,
-        step: "new user",
-        userData
-      });
-
-      // redirectPath = `/register?user=${userData}`;
+      redirectPath = `/register?user=${userData}`;
     } else {
       const accessToken = await signAccessToken({
         uuid: userObj.uuid,
@@ -99,35 +95,18 @@ export async function GET(req: NextRequest) {
         active: userObj.active,
       });
 
-      return NextResponse.json({
-        success: true,
-        step: "sign_token",
-        hasToken: !!accessToken,
-        tokenLength: accessToken?.length,
-        userObj,
-      });
+      const userData = encodeURIComponent(JSON.stringify(userObj));
+      const tokenDataEncoded = encodeURIComponent(accessToken);
 
-      // const userData = encodeURIComponent(JSON.stringify(userObj));
-      // const tokenDataEncoded = encodeURIComponent(accessToken);
-
-      // redirectPath = `/project?user=${userData}&token=${tokenDataEncoded}`;
+      redirectPath = `/project?user=${userData}&token=${tokenDataEncoded}`;
     }
 
-    // return NextResponse.redirect(new URL(redirectPath, req.url));
-  } catch (err: any) {
+    return NextResponse.redirect(new URL(redirectPath, req.url));
+  } catch (err) {
     console.error("LINE callback error:", err);
 
-    return NextResponse.json(
-      {
-        success: false,
-        message: err?.message || "LINE callback failed",
-        stack: err?.stack,
-      },
-      { status: 500 },
+    return NextResponse.redirect(
+      new URL(`/project?error=line_callback`, req.url),
     );
-
-    // return NextResponse.redirect(
-    //   new URL(`/project?error=line_callback`, req.url),
-    // );
   }
 }
