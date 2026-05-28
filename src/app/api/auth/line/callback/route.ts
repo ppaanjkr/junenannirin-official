@@ -14,8 +14,7 @@ function decodeJwtPayload(idToken: string) {
 export async function GET(req: NextRequest) {
   try {
     const LINE_API_TOKEN = process.env.NEXT_PUBLIC_LINE_API_TOKEN!;
-    const LINE_API_CALLBACKURL =
-      process.env.NEXT_PUBLIC_LINE_API_CALLBACKURL!;
+    const LINE_API_CALLBACKURL = process.env.NEXT_PUBLIC_LINE_API_CALLBACKURL!;
     const LINE_CLIENT_ID = process.env.NEXT_PUBLIC_LINE_CLIENT_ID!;
     const LINE_CLIENT_SECRET = process.env.LINE_CLIENT_SECRET!;
 
@@ -44,69 +43,100 @@ export async function GET(req: NextRequest) {
     const tokenData = await tokenRes.json();
 
     if (!tokenRes.ok || !tokenData.id_token) {
-      console.error("LINE token error:", tokenData);
-
-      return NextResponse.redirect(
-        new URL(`/project?error=line_token`, req.url),
-      );
-    }
-
-    const payload = decodeJwtPayload(tokenData.id_token);
-    const lineUserId = payload.sub;
-
-    if (!lineUserId) {
-      return NextResponse.redirect(
-        new URL(`/project?error=line_user`, req.url),
-      );
-    }
-
-    const userDataFromDb = await checkUser(lineUserId);
-
-    const userObj = {
-      uuid: userDataFromDb.user?.uuid || "",
-      lineUserId,
-      username: userDataFromDb.user?.username || "",
-      phone: userDataFromDb.user?.phone || "",
-      team: userDataFromDb.user?.team || "",
-      name: userDataFromDb.user?.name || "",
-      address: userDataFromDb.user?.address || "",
-      status: userDataFromDb.status,
-      active: Number(userDataFromDb.user?.active || 0),
-      expireAt: Date.now() + 30 * 24 * 60 * 60 * 1000,
-    };
-
-    if (userDataFromDb.status === "EXIST" && userObj.active === 0) {
-      return NextResponse.redirect(
-        new URL(`/project?error=inactive`, req.url),
-      );
-    }
-
-    let redirectPath = "";
-
-    if (userDataFromDb.status === "NEW") {
-      const userData = encodeURIComponent(JSON.stringify(userObj));
-      redirectPath = `/register?user=${userData}`;
-    } else {
-      const accessToken = await signAccessToken({
-        uuid: userObj.uuid,
-        lineUserId: userObj.lineUserId,
-        username: userObj.username,
-        team: userObj.team,
-        active: userObj.active,
+      return NextResponse.json({
+        success: false,
+        step: "line_token",
+        status: tokenRes.status,
+        tokenData,
+        envCheck: {
+          callback: LINE_API_CALLBACKURL,
+          clientId: LINE_CLIENT_ID,
+          hasSecret: !!LINE_CLIENT_SECRET,
+          secretLength: LINE_CLIENT_SECRET?.length,
+          secretStart: LINE_CLIENT_SECRET?.slice(0, 3),
+          secretEnd: LINE_CLIENT_SECRET?.slice(-3),
+        },
       });
-
-      const userData = encodeURIComponent(JSON.stringify(userObj));
-      const tokenDataEncoded = encodeURIComponent(accessToken);
-
-      redirectPath = `/project?user=${userData}&token=${tokenDataEncoded}`;
     }
 
-    return NextResponse.redirect(new URL(redirectPath, req.url));
-  } catch (err) {
+    return NextResponse.json({
+      success: true,
+      tokenData,
+    });
+
+    // if (!tokenRes.ok || !tokenData.id_token) {
+    //   console.error("LINE token error:", tokenData);
+
+    //   return NextResponse.redirect(
+    //     new URL(`/project?error=line_token`, req.url),
+    //   );
+    // }
+
+    // const payload = decodeJwtPayload(tokenData.id_token);
+    // const lineUserId = payload.sub;
+
+    // if (!lineUserId) {
+    //   return NextResponse.redirect(
+    //     new URL(`/project?error=line_user`, req.url),
+    //   );
+    // }
+
+    // const userDataFromDb = await checkUser(lineUserId);
+
+    // const userObj = {
+    //   uuid: userDataFromDb.user?.uuid || "",
+    //   lineUserId,
+    //   username: userDataFromDb.user?.username || "",
+    //   phone: userDataFromDb.user?.phone || "",
+    //   team: userDataFromDb.user?.team || "",
+    //   name: userDataFromDb.user?.name || "",
+    //   address: userDataFromDb.user?.address || "",
+    //   status: userDataFromDb.status,
+    //   active: Number(userDataFromDb.user?.active || 0),
+    //   expireAt: Date.now() + 30 * 24 * 60 * 60 * 1000,
+    // };
+
+    // if (userDataFromDb.status === "EXIST" && userObj.active === 0) {
+    //   return NextResponse.redirect(
+    //     new URL(`/project?error=inactive`, req.url),
+    //   );
+    // }
+
+    // let redirectPath = "";
+
+    // if (userDataFromDb.status === "NEW") {
+    //   const userData = encodeURIComponent(JSON.stringify(userObj));
+    //   redirectPath = `/register?user=${userData}`;
+    // } else {
+    //   const accessToken = await signAccessToken({
+    //     uuid: userObj.uuid,
+    //     lineUserId: userObj.lineUserId,
+    //     username: userObj.username,
+    //     team: userObj.team,
+    //     active: userObj.active,
+    //   });
+
+    //   const userData = encodeURIComponent(JSON.stringify(userObj));
+    //   const tokenDataEncoded = encodeURIComponent(accessToken);
+
+    //   redirectPath = `/project?user=${userData}&token=${tokenDataEncoded}`;
+    // }
+
+    // return NextResponse.redirect(new URL(redirectPath, req.url));
+  } catch (err: any) {
     console.error("LINE callback error:", err);
 
-    return NextResponse.redirect(
-      new URL(`/project?error=line_callback`, req.url),
+    return NextResponse.json(
+      {
+        success: false,
+        message: err?.message || "LINE callback failed",
+        stack: err?.stack,
+      },
+      { status: 500 },
     );
+
+    // return NextResponse.redirect(
+    //   new URL(`/project?error=line_callback`, req.url),
+    // );
   }
 }
