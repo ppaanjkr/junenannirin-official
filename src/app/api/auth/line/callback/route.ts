@@ -43,37 +43,22 @@ export async function GET(req: NextRequest) {
     const tokenData = await tokenRes.json();
 
     if (!tokenRes.ok || !tokenData.id_token) {
-      return NextResponse.json({
-        success: false,
-        step: "line_token",
-        status: tokenRes.status,
-        tokenData,
-        envCheck: {
-          callback: LINE_API_CALLBACKURL,
-          clientId: LINE_CLIENT_ID,
-          hasSecret: !!LINE_CLIENT_SECRET,
-          secretLength: LINE_CLIENT_SECRET?.length,
-          secretStart: LINE_CLIENT_SECRET?.slice(0, 3),
-          secretEnd: LINE_CLIENT_SECRET?.slice(-3),
-        },
-      });
+      console.error("LINE token error:", tokenData);
+
+      return NextResponse.redirect(
+        new URL(`/project?error=line_token`, req.url),
+      );
     }
+
+    const payload = decodeJwtPayload(tokenData.id_token);
+    const lineUserId = payload.sub;
 
     return NextResponse.json({
       success: true,
-      tokenData,
+      step: "decoded_line_user",
+      payload,
+      lineUserId,
     });
-
-    // if (!tokenRes.ok || !tokenData.id_token) {
-    //   console.error("LINE token error:", tokenData);
-
-    //   return NextResponse.redirect(
-    //     new URL(`/project?error=line_token`, req.url),
-    //   );
-    // }
-
-    // const payload = decodeJwtPayload(tokenData.id_token);
-    // const lineUserId = payload.sub;
 
     // if (!lineUserId) {
     //   return NextResponse.redirect(
