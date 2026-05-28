@@ -61,51 +61,57 @@ export async function GET(req: NextRequest) {
 
     const userDataFromDb = await checkUser(lineUserId);
 
-    return NextResponse.json({
-      success: true,
-      step: "check_user",
+    const userObj = {
+      uuid: userDataFromDb.user?.uuid || "",
       lineUserId,
-      userDataFromDb,
-    });
+      username: userDataFromDb.user?.username || "",
+      phone: userDataFromDb.user?.phone || "",
+      team: userDataFromDb.user?.team || "",
+      name: userDataFromDb.user?.name || "",
+      address: userDataFromDb.user?.address || "",
+      status: userDataFromDb.status,
+      active: Number(userDataFromDb.user?.active || 0),
+      expireAt: Date.now() + 30 * 24 * 60 * 60 * 1000,
+    };
 
-    // const userObj = {
-    //   uuid: userDataFromDb.user?.uuid || "",
-    //   lineUserId,
-    //   username: userDataFromDb.user?.username || "",
-    //   phone: userDataFromDb.user?.phone || "",
-    //   team: userDataFromDb.user?.team || "",
-    //   name: userDataFromDb.user?.name || "",
-    //   address: userDataFromDb.user?.address || "",
-    //   status: userDataFromDb.status,
-    //   active: Number(userDataFromDb.user?.active || 0),
-    //   expireAt: Date.now() + 30 * 24 * 60 * 60 * 1000,
-    // };
+    if (userDataFromDb.status === "EXIST" && userObj.active === 0) {
+      return NextResponse.redirect(new URL(`/project?error=inactive`, req.url));
+    }
 
-    // if (userDataFromDb.status === "EXIST" && userObj.active === 0) {
-    //   return NextResponse.redirect(
-    //     new URL(`/project?error=inactive`, req.url),
-    //   );
-    // }
+    let redirectPath = "";
 
-    // let redirectPath = "";
+    if (userDataFromDb.status === "NEW") {
+      const userData = encodeURIComponent(JSON.stringify(userObj));
 
-    // if (userDataFromDb.status === "NEW") {
-    //   const userData = encodeURIComponent(JSON.stringify(userObj));
-    //   redirectPath = `/register?user=${userData}`;
-    // } else {
-    //   const accessToken = await signAccessToken({
-    //     uuid: userObj.uuid,
-    //     lineUserId: userObj.lineUserId,
-    //     username: userObj.username,
-    //     team: userObj.team,
-    //     active: userObj.active,
-    //   });
+      return NextResponse.json({
+        success: true,
+        step: "new user",
+        userData
+      });
 
-    //   const userData = encodeURIComponent(JSON.stringify(userObj));
-    //   const tokenDataEncoded = encodeURIComponent(accessToken);
+      // redirectPath = `/register?user=${userData}`;
+    } else {
+      const accessToken = await signAccessToken({
+        uuid: userObj.uuid,
+        lineUserId: userObj.lineUserId,
+        username: userObj.username,
+        team: userObj.team,
+        active: userObj.active,
+      });
 
-    //   redirectPath = `/project?user=${userData}&token=${tokenDataEncoded}`;
-    // }
+      return NextResponse.json({
+        success: true,
+        step: "sign_token",
+        hasToken: !!accessToken,
+        tokenLength: accessToken?.length,
+        userObj,
+      });
+
+      // const userData = encodeURIComponent(JSON.stringify(userObj));
+      // const tokenDataEncoded = encodeURIComponent(accessToken);
+
+      // redirectPath = `/project?user=${userData}&token=${tokenDataEncoded}`;
+    }
 
     // return NextResponse.redirect(new URL(redirectPath, req.url));
   } catch (err: any) {
