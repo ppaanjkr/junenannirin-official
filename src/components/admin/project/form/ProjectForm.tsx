@@ -21,6 +21,7 @@ import ProjectStickyActions from "./ProjectStickyActions";
 import ProjectTargetSection from "./ProjectTargetSection";
 import ProjectThemeSection from "./ProjectThemeSection";
 import ProjectTypeSection from "./ProjectTypeSection";
+import { getAccessToken } from "@/lib/workUtils";
 
 type PopupState = {
   open: boolean;
@@ -142,6 +143,7 @@ export default function ProjectForm({
         method: "POST",
         headers: {
           "Content-Type": "application/json",
+          Authorization: `Bearer ${getAccessToken()}`,
         },
         body: JSON.stringify({
           project: {

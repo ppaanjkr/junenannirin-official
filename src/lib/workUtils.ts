@@ -54,6 +54,12 @@ export function getBankLogo(shortName?: string) {
   return "";
 }
 
+export   function getAccessToken() {
+  if (typeof window === "undefined") return "";
+
+  return localStorage.getItem("accessToken") || "";
+}
+
 
 // export function getEndTime(endDate?: string | null) {
 //   if (!endDate) return null;
