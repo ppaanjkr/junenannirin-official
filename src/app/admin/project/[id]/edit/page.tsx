@@ -5,9 +5,9 @@ import Popup from "@/components/ModalPopup";
 import SectionBack from "@/components/SectionBack";
 import ProjectForm from "@/components/admin/project/form/ProjectForm";
 import { useUserContext } from "@/context/UserContext";
-import { useParams } from "next/navigation";
+import { getAdminProjectEditDetail } from "@/lib/api/admin";
+import { useParams, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
 
 type PopupState = {
   open: boolean;
@@ -39,26 +39,19 @@ export default function AdminProjectEditPage() {
       setPageLoading(true);
 
       try {
-        const res = await fetch(
-          `/api/firebase/admin/project/edit-detail?id=${id}`,
-          {
-            method: "GET",
-            cache: "no-store",
-          },
-        );
+        const res = await getAdminProjectEditDetail(id);
 
-        const data = await res.json();
-
-        if (!data.success) {
+        if (!res.success) {
           setPopup({
             open: true,
             type: "error",
-            message: data.message || "Load project failed",
+            message: res.message || "Load project failed",
           });
+
           return;
         }
 
-        setProjectDetail(data.data);
+        setProjectDetail(res.data);
       } catch (err) {
         console.error(err);
 

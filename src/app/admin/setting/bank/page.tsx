@@ -7,6 +7,7 @@ import SectionBack from "@/components/SectionBack";
 import BankEditModal from "@/components/setting/bank/BankEditModal";
 import { getBankOptionByShortName } from "@/data/bank";
 import { useBankList } from "@/hooks/useAdmin";
+import { getAccessToken } from "@/lib/workUtils";
 import { Plus } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
@@ -82,13 +83,15 @@ export default function Page() {
     setLoading(true);
 
     try {
-      const res = await fetch("/api/firebase/bank/delete", {
+      const token = localStorage.getItem("accessToken") || "";
+
+      const res = await fetch("/api/firebase/admin/bank/delete", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
         },
         body: JSON.stringify({
-          action: "deleteBank",
           bank_id: bank.id,
         }),
       });
@@ -101,6 +104,7 @@ export default function Page() {
           type: "error",
           message: data.message || "Delete bank failed",
         });
+
         return;
       }
 
