@@ -169,7 +169,7 @@ export default function SectionEditProfile({
 
           <div className="col-span-12 md:col-span-6">
             <div>
-              <span className="font-semibold">Phonenumber</span>
+              <span className="font-semibold">Phone Number</span>
               <span className="text-red-500">*</span>
             </div>
 
@@ -215,7 +215,7 @@ export default function SectionEditProfile({
               type="submit"
               className="px-4 py-2 bg-pinkSecondary/80 text-white rounded-lg w-full mt-5"
             >
-              Edit
+              Save
             </button>
           </div>
         </div>
