@@ -42,7 +42,11 @@ export default function SectionProject({
   let imageUrl = project.image_url || "";
   const firstMoreImage = Array.isArray(project.img_more)
     ? project.img_more[0]
-    : project.img_more; 
+    : project.img_more;
+  const images =
+    typeof project.img_more === "string"
+      ? JSON.parse(project.img_more)
+      : project.img_more || [];
 
   // desc
   const desc = (project.description || "")
@@ -60,7 +64,11 @@ export default function SectionProject({
       >
         {/* IMAGE */}
         <div className="relative">
-          <ImagePreviewModal src={driveThumb(imageUrl)} alt={project.name} className="w-full min-h-24 max-h-56 md:max-h-80 object-center"/>
+          <ImagePreviewModal
+            src={driveThumb(imageUrl)}
+            alt={project.name}
+            className="w-full min-h-24 max-h-56 md:max-h-80 object-center"
+          />
 
           {/* days left */}
           <span
@@ -118,9 +126,21 @@ export default function SectionProject({
           </div> */}
 
           {/* more img */}
-          <div>
+          {project.img_more && project.img_more.length > 0 && (
+            <div className="mt-2 grid grid-cols-2 gap-2">
+              {images.map((img: string) => (
+                <ImagePreviewModal
+                  key={img}
+                  src={driveThumb(img)}
+                  alt={project.name}
+                  className="w-full object-center col-span-2 md:col-span-1"
+                />
+              ))}
+            </div>
+          )}
+          {/* <div>
             <ImagePreviewModal src={driveThumb(firstMoreImage)} alt={project.name} className="w-full object-center"/>
-          </div>
+          </div> */}
 
           {/* progress */}
           {project.type === "donation" && (
