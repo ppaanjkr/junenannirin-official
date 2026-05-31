@@ -177,7 +177,7 @@ export default function SectionPaymentMethod({
               : data?.bank.bank_account_no}
           </p>
         </div>
-        {isPromptPay ? (
+        {/* {isPromptPay ? (
           ""
           // <button
           //   className="border px-3 py-1 rounded text-xs"
@@ -211,7 +211,28 @@ export default function SectionPaymentMethod({
           >
             COPY
           </button>
-        )}
+        )} */}
+        <button
+          className="border px-3 py-1 rounded text-xs"
+          style={{
+            borderColor: `${theme.secondary}`,
+            color: `${theme.secondary}`,
+          }}
+          onClick={() => {
+            if (!data?.bank?.account_no) return;
+
+            const cleaned = data.bank.account_no.replace(/-/g, "");
+            navigator.clipboard.writeText(cleaned);
+
+            setPopup({
+              open: true,
+              type: "success",
+              message: "Copied!",
+            });
+          }}
+        >
+          COPY
+        </button>
       </div>
 
       <div
@@ -221,8 +242,12 @@ export default function SectionPaymentMethod({
         }}
       >
         <div className="flex flex-col justify-center items-center pb-1">
-          <span className="text-red-500 italic text-sm">กรุณาชำระเงินเต็มจำนวนให้ตรงกับคำสั่งซื้อเท่านั้น</span>
-          <span className="text-red-500 italic text-sm">Please make the full payment according to your order only.</span>
+          <span className="text-red-500 italic text-sm">
+            กรุณาชำระเงินเต็มจำนวนให้ตรงกับคำสั่งซื้อเท่านั้น
+          </span>
+          <span className="text-red-500 italic text-sm">
+            Please make the full payment according to your order only.
+          </span>
         </div>
         {qrImage ? (
           <img src={qrImage} className="w-36 h-full" />
