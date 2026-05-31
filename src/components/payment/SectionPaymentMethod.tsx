@@ -220,6 +220,7 @@ export default function SectionPaymentMethod({
           borderColor: `${theme.accent}30`,
         }}
       >
+        <span className="text-red-500 italic text-sm pb-2">กรุณาชำระเงินเต็มจำนวนให้ตรงกับคำสั่งซื้อ</span>
         {qrImage ? (
           <img src={qrImage} className="w-36 h-full" />
         ) : (
