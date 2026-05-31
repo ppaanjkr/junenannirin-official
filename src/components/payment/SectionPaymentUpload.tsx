@@ -104,12 +104,12 @@ export default function SectionPaymentUpload({
         return;
       }
 
-      if (Number(slip.data.amount) !== Number(total)) {
+      if (Number(slip.data.amount) < Number(total)) {
         setLoading(false);
         setPopup({
           open: true,
           type: "error",
-          message: "Invalid amount",
+          message: "Invalid amount (จำนวนเงินไม่ถูกต้อง)",
         });
         return;
       }
