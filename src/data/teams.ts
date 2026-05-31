@@ -16,8 +16,8 @@ export const teamOptions: TeamOption[] = [
     image: "/teams/PNan.png",
   },
   {
-    value: "JuneLookchinMoodeng",
-    label: "JuneLookchinMoodeng",
+    value: "JuneLukchinMoodeng",
+    label: "JuneLukchinMoodeng",
     image: "/teams/JuneLookchinMoodeng.png",
   },
   {

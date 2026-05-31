@@ -26,10 +26,12 @@ export default function SectionProfile({
       <div className="bg-white rounded-2xl border border-pink-100 shadow-sm p-5 md:p-6 h-full">
         <div className="flex flex-col items-center text-center md:text-left">
           <div className="relative">
-            <img
-              src={image}
-              alt={team?.label || "avatar"}
-              className="w-24 h-24 md:w-28 md:h-28 rounded-full object-cover ring-4 ring-pinkAccent"
+            <div
+              onContextMenu={(e) => e.preventDefault()}
+              className="w-24 h-24 md:w-28 md:h-28 rounded-full ring-4 ring-pinkAccent bg-cover bg-center"
+              style={{
+                backgroundImage: `url(${image})`,
+              }}
             />
           </div>
 
