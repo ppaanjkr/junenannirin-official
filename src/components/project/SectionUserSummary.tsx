@@ -49,10 +49,12 @@ export default function SectionUserSummary({
               <div className="flex gap-3">
                 {/* Avatar */}
                 <div className="shrink-0">
-                  <ImagePreviewModal
+                  <Image
                     src={team?.image || "/icon/june_logo_circle.png"}
                     alt={item.team}
                     className="w-12 h-12 rounded-full object-cover"
+                    width={48}
+                    height={48}
                   />
                 </div>
 
