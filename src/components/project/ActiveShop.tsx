@@ -10,6 +10,7 @@ import SectionPlaceOrder from "./SectionPlaceOrder";
 import { useUserPurchaseSummary } from "@/hooks/useProfile";
 import SectionPurchaseSummary from "./SectionPurchaseSummary";
 import LoadingOverlay from "../LoadingOverlay";
+import SectionUserSummary from "./SectionUserSummary";
 // import { getEndTime } from "@/lib/workUtils";
 
 type CartSelection = {
@@ -269,6 +270,8 @@ export default function ActiveShop({
       {!previewMode && isLoading && <LoadingOverlay />}
 
       <SectionProject data={data} theme={theme} />
+
+      <SectionUserSummary theme={theme} />
 
       {!previewMode && user && (
         <SectionPurchaseSummary data={shopSummary} theme={theme} user={user} />

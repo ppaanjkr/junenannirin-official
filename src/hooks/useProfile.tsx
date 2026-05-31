@@ -5,6 +5,7 @@ import { useUserContext } from "@/context/UserContext";
 import {
   getProfileHistory,
   getProfileSummary,
+  getTeamPoll,
   getUserShopSummary,
 } from "@/lib/api/user";
 import type {
@@ -116,6 +117,39 @@ export function useProfileHistory() {
   return {
     shop,
     donation,
+    isLoading,
+  };
+}
+
+export function useTeamPoll() {
+  const [teams, setTeams] = useState<any[]>([]);
+  const [total, setTotal] = useState(0);
+  const [isLoading, setIsLoading] = useState(false);
+
+  useEffect(() => {
+    const fetchData = async () => {
+      setIsLoading(true);
+
+      try {
+        const res = await getTeamPoll();
+
+        if (res.success) {
+          setTeams(res.data || []);
+          setTotal(Number(res.total || 0));
+        }
+      } catch (err) {
+        console.error("team poll error:", err);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchData();
+  }, []);
+
+  return {
+    teams,
+    total,
     isLoading,
   };
 }
