@@ -25,7 +25,7 @@ export default function SectionContact() {
           <img src={`/icon/social_ig.png`}/>
         </a>
 
-        <a href="#" className="w-8 h-8" target="_blank">
+        <a href="https://line.me/ti/g2/EYBKFUE6IRE74Oz_gQsGPkAkGpaCSxmFFRwuyA?utm_source=invitation&utm_medium=link_copy&utm_campaign=default" className="w-8 h-8" target="_blank">
           <img src={`/icon/social_line.png`}/>
         </a>
 
