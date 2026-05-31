@@ -45,43 +45,43 @@ export default function SectionUserSummary({
           const team = getTeamInfo(item.team);
 
           return (
-            <div key={item.team} className="flex items-center gap-5">
-              {/* Team */}
-              <div className="w-16 shrink-0 flex flex-col items-center">
-                <div className="w-14">
+            <div key={item.team} className="mb-6">
+              <div className="flex gap-3">
+                {/* Avatar */}
+                <div className="shrink-0">
                   <ImagePreviewModal
                     src={team?.image || "/icon/june_logo_circle.png"}
                     alt={item.team}
-                    className="w-14 h-14 rounded-full object-cover"
+                    className="w-12 h-12 rounded-full object-cover"
                   />
                 </div>
 
-                <div className="text-[11px] mt-2 text-center leading-tight">
-                  {team?.label || item.team}
-                </div>
-              </div>
+                {/* Content */}
+                <div className="flex-1 min-w-0">
+                  <div className="flex justify-between items-center mb-2">
+                    <div className="text-sm font-medium truncate">
+                      {team?.label || item.team}
+                    </div>
 
-              {/* Progress */}
-              <div className="flex-1">
-                <div className="flex justify-end mb-1">
-                  <span
-                    className="text-xs font-semibold"
-                    style={{
-                      color: theme.secondary,
-                    }}
-                  >
-                    {item.percent}%
-                  </span>
-                </div>
+                    <div
+                      className="text-xs font-semibold shrink-0 ml-2"
+                      style={{
+                        color: theme.secondary,
+                      }}
+                    >
+                      {item.percent}%
+                    </div>
+                  </div>
 
-                <div className="h-3 bg-gray-100 rounded-full overflow-hidden">
-                  <div
-                    className="h-full rounded-full transition-all duration-700"
-                    style={{
-                      width: `${item.percent}%`,
-                      background: theme.secondary,
-                    }}
-                  />
+                  <div className="h-2 bg-gray-100 rounded-full overflow-hidden">
+                    <div
+                      className="h-full rounded-full transition-all duration-700"
+                      style={{
+                        width: `${item.percent}%`,
+                        background: theme.secondary,
+                      }}
+                    />
+                  </div>
                 </div>
               </div>
             </div>
