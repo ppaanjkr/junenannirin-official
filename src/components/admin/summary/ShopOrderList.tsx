@@ -7,6 +7,7 @@ import ShopOrderTable from "./ShopOrderTable";
 import Pagination from "@/components/Pagination";
 import Popup from "@/components/ModalPopup";
 import { updateAdminShipments } from "@/lib/api/admin";
+import { useRouter } from "next/navigation";
 
 type Props = {
   projectId: string;
@@ -14,6 +15,8 @@ type Props = {
 };
 
 export default function ShopOrderList({ projectId, orders }: Props) {
+  const router = useRouter();
+  
   const [orderRows, setOrderRows] = useState<any[]>(orders || []);
 
   useEffect(() => {
@@ -201,7 +204,8 @@ export default function ShopOrderList({ projectId, orders }: Props) {
 
         return {
           shipment_id,
-          tracking_no: value.tracking_no ?? current?.shipment?.tracking_no ?? "",
+          tracking_no:
+            value.tracking_no ?? current?.shipment?.tracking_no ?? "",
           carrier: value.carrier ?? current?.shipment?.carrier ?? "",
         };
       },
@@ -312,6 +316,12 @@ export default function ShopOrderList({ projectId, orders }: Props) {
         {/* export */}
         {filtered.length > 0 && (
           <div className="mt-2 flex justify-end gap-2">
+            <button
+              onClick={() => router.push(`/admin/project/${projectId}/create-order`)}
+              className="px-4 py-2 border border-pinkSecondary text-pinkSecondary rounded-lg text-sm"
+            >
+              Create Order
+            </button>
             <button
               onClick={handleExport}
               className="px-4 py-2 border border-pinkSecondary text-pinkSecondary rounded-lg text-sm"

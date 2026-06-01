@@ -13,8 +13,7 @@ export default function SectionUserSummary({
     accent: string;
   };
 }) {
-  const { teams, total, isLoading } = useTeamPoll();
-  console.log(teams);
+  const { teams, total, isLoading } = useTeamPoll();  
 
   function getTeamInfo(teamName: string) {
     return teamOptions.find(

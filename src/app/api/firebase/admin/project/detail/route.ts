@@ -334,6 +334,14 @@ export async function GET(req: NextRequest) {
         itemSummary,
         optionSummary,
         sizeSummary,
+        rewards: projectRewards.map((reward: any) => {
+          const rewardId = String(reward.id || reward.docId);
+          return {
+            ...reward,
+            id: rewardId,
+            items: rewardItemMap[rewardId] || [],
+          };
+        }),
       };
     }
 

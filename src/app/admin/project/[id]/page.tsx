@@ -13,7 +13,6 @@ import { useRouter } from "next/navigation";
 import { useState } from "react";
 
 export default function Page({ params }: { params: { id: string } }) {
-
   const id = params.id;
   const router = useRouter();
   const { user, loading } = useUserContext();
@@ -50,15 +49,15 @@ export default function Page({ params }: { params: { id: string } }) {
         <TabAdmin type="shop" tab={tab} setTab={setTab} />
 
         {tab === "summary" && (
-          <SectionProjectSummary
-            summary={project?.summary}
-            shop={project?.shop}
-            donation={project?.donation}
-            projectId={project?.project?.id ?? ""}
-            orders={orders}
-            project={project?.project}
-            user={user}
-          />
+            <SectionProjectSummary
+              summary={project?.summary}
+              shop={project?.shop}
+              donation={project?.donation}
+              projectId={project?.project?.id ?? ""}
+              orders={orders}
+              project={project?.project}
+              user={user}
+            />
         )}
 
         {tab === "project" && (
