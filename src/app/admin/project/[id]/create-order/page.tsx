@@ -7,9 +7,13 @@ import Popup from "@/components/ModalPopup";
 import SectionBack from "@/components/SectionBack";
 import SectionAdminOrderItems from "@/components/admin/order/SectionAdminOrderItems";
 import SectionAdminOrderPayment from "@/components/admin/order/SectionAdminOrderPayment";
-import { getAdminProjectDetail, getAdminUsers } from "@/lib/api/admin";
+import {
+  getAdminProjectDetail,
+  getAdminTransactions,
+  getAdminUsers,
+} from "@/lib/api/admin";
 import { createAdminOrder } from "@/lib/api/admin-order";
-import { useBankList } from "@/hooks/useAdmin";
+import { useBankList, useTransactionList } from "@/hooks/useAdmin";
 import { bankOptions } from "@/data/bank";
 import Select from "react-select";
 
@@ -65,6 +69,7 @@ export default function Page() {
       ) || null
     );
   }, [banks, project?.project?.bank_id]);
+  const [transactionsList, setTransactionsList] = useState<any[]>([]);
 
   useEffect(() => {
     loadData();
@@ -74,18 +79,23 @@ export default function Page() {
     try {
       setLoading(true);
 
-      const [projectRes, usersRes] = await Promise.all([
+      const [projectRes, usersRes, txRes] = await Promise.all([
         getAdminProjectDetail(projectId),
         getAdminUsers(),
+        getAdminTransactions(projectId),
       ]);
 
       if (projectRes.success) {
         setProject(projectRes.data);
-        console.log(projectRes.data);
       }
 
       if (usersRes.success && Array.isArray(usersRes.data)) {
-        setUsers(usersRes.data || []);
+        setUsers(usersRes.data);
+      }
+
+      if (txRes.success && Array.isArray(txRes.data)) {
+        setTransactionsList(txRes.data);
+        console.log(txRes.data);
       }
     } catch (err) {
       console.error(err);
@@ -214,6 +224,21 @@ export default function Page() {
     return Object.values(cart).reduce((sum, item) => sum + item.qty, 0);
   }, [cart]);
 
+  const matchedTransaction = useMemo(() => {
+    if (!manualTransRef.trim()) {
+      return null;
+    }
+
+    return (
+      transactionsList.find(
+        (x: any) =>
+          String(x.trans_ref || "")
+            .trim()
+            .toLowerCase() === manualTransRef.trim().toLowerCase(),
+      ) || null
+    );
+  }, [manualTransRef, transactionsList]);
+
   async function handleCreateOrder() {
     try {
       if (!selectedUser) {
@@ -222,6 +247,16 @@ export default function Page() {
 
       if (count <= 0) {
         throw new Error("Please select item");
+      }
+
+      if (!verifySlip && matchedTransaction) {
+        setPopup({
+          open: true,
+          type: "error",
+          message: "Transaction Ref already used",
+        });
+
+        return;
       }
 
       setLoading(true);
@@ -392,6 +427,7 @@ export default function Page() {
             total={total}
             loading={loading}
             onSubmit={handleCreateOrder}
+            transactions={transactionsList}
           />
         </div>
       </main>

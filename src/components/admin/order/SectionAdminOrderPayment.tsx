@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 
 type Props = {
   verifySlip: boolean;
@@ -14,6 +14,7 @@ type Props = {
   total: number;
   loading?: boolean;
   onSubmit: () => void;
+  transactions?: any;
 };
 
 export default function SectionAdminOrderPayment({
@@ -28,6 +29,7 @@ export default function SectionAdminOrderPayment({
   total,
   loading = false,
   onSubmit,
+  transactions,
 }: Props) {
   const fileRef = useRef<HTMLInputElement>(null);
   const [preview, setPreview] = useState("");
@@ -43,6 +45,21 @@ export default function SectionAdminOrderPayment({
       URL.revokeObjectURL(url);
     };
   }, [file]);
+
+  const matchedTransaction = useMemo(() => {
+    if (!manualTransRef.trim()) {
+      return null;
+    }
+
+    return (
+      transactions.find(
+        (x: any) =>
+          String(x.trans_ref || "")
+            .trim()
+            .toLowerCase() === manualTransRef.trim().toLowerCase(),
+      ) || null
+    );
+  }, [manualTransRef, transactions]);
 
   function removeFile() {
     setFile(null);
@@ -80,9 +97,7 @@ export default function SectionAdminOrderPayment({
           <div>
             <div className="font-medium">Manual Verify</div>
 
-            <div className="text-xs text-gray-500">
-              ตรวจสอบเองจากธนาคาร
-            </div>
+            <div className="text-xs text-gray-500">ตรวจสอบเองจากธนาคาร</div>
           </div>
         </label>
       </div>
@@ -159,6 +174,35 @@ export default function SectionAdminOrderPayment({
               placeholder="รหัสอ้างอิง ดูได้จากบนสลิป"
               className="w-full border rounded-xl px-4 py-3"
             />
+            {manualTransRef.trim() && (
+              <div className="mt-2">
+                {matchedTransaction ? (
+                  <div className="space-y-2">
+                    <div className="text-sm font-medium text-red-600">
+                      ❌ Already Used
+                    </div>
+
+                    <div className="rounded-xl border border-red-200 bg-red-50 p-3 text-sm">
+                      <div>
+                        <span className="font-medium">Order:</span>{" "}
+                        {matchedTransaction.data_id}
+                      </div>
+
+                      <div>
+                        <span className="font-medium">User:</span>{" "}
+                        {matchedTransaction.username ||
+                          matchedTransaction.name ||
+                          "-"}
+                      </div>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="text-sm font-medium text-green-600">
+                    ✅ Available
+                  </div>
+                )}
+              </div>
+            )}
           </div>
 
           {/* <div>

@@ -232,3 +232,24 @@ export async function deleteAdminBank(bankId: string) {
 
   return res.json();
 }
+
+export async function getAdminTransactions(
+  project_id: string,
+) {
+  const params = new URLSearchParams({
+    project_id,
+  });
+
+  const res = await fetch(
+    `/api/firebase/admin/transaction/list?${params}`,
+    {
+      method: "GET",
+      headers: {
+        ...authHeaders(),
+      },
+      cache: "no-store",
+    },
+  );
+
+  return res.json();
+}

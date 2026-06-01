@@ -5,6 +5,7 @@ import {
   getAdminProjectDetail,
   getAdminProjectOrders,
   getAdminProjects,
+  getAdminTransactions,
   getAdminUsers,
 } from "@/lib/api/admin";
 import { AdminOrderList, AdminProjectDetail, Bank, User } from "@/lib/api/types";
@@ -184,5 +185,45 @@ export function useBankList() {
   return {
     banks,
     isBankLoading,
+  };
+}
+
+export function useTransactionList(
+  projectId: string,
+) {
+  const [transactions, setTransactions] =
+    useState<any[]>([]);
+
+  const [isLoading, setLoading] =
+    useState(true);
+
+  useEffect(() => {
+    if (!projectId) return;
+
+    load();
+  }, [projectId]);
+
+  async function load() {
+    try {
+      setLoading(true);
+
+      const res =
+        await getAdminTransactions(
+          projectId,
+        );
+
+      if (res.success) {
+        setTransactions(
+          res.data || [],
+        );
+      }
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  return {
+    transactions,
+    isLoading,
   };
 }
