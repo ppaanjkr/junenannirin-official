@@ -95,7 +95,6 @@ export default function Page() {
 
       if (txRes.success && Array.isArray(txRes.data)) {
         setTransactionsList(txRes.data);
-        console.log(txRes.data);
       }
     } catch (err) {
       console.error(err);
