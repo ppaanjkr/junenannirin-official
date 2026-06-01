@@ -65,11 +65,11 @@ export async function GET(req: NextRequest) {
       .where("project_id", "==", project_id)
       .get();
 
-    const orderIds = [
-      ...new Set(
+    const orderIds = Array.from(
+      new Set(
         rewardSnap.docs.map((doc) => doc.data().order_id).filter(Boolean),
       ),
-    ];
+    );
 
     if (orderIds.length === 0) {
       return NextResponse.json({
@@ -114,9 +114,9 @@ export async function GET(req: NextRequest) {
         new Date(a.created_at || 0).getTime(),
     );
 
-    const userIds = [
-      ...new Set(transactions.map((x) => x.user_id).filter(Boolean)),
-    ];
+    const userIds = Array.from(
+      new Set(transactions.map((x) => x.user_id).filter(Boolean)),
+    );
 
     const userMap = new Map();
 
