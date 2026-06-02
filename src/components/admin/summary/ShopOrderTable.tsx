@@ -30,39 +30,43 @@ function buildItemSummary(orders: any[] = []) {
   > = {};
 
   orders.forEach((order) => {
-    const details = Array.isArray(order.details) ? order.details : [];
+    const items = Array.isArray(order.items) ? order.items : [];
 
-    details.forEach((detail: any) => {
-      const itemName = String(detail.item_name || "").trim();
+    items.forEach((item: any) => {
+      const details = Array.isArray(item.details) ? item.details : [];
 
-      const optionName = String(
-        detail.option_name || (detail.selected_size ? "size" : ""),
-      ).trim();
+      details.forEach((detail: any) => {
+        const itemName = String(detail.item_name || "").trim();
 
-      const selectedOption = String(
-        detail.selected_option || detail.selected_size || "",
-      )
-        .trim()
-        .toUpperCase();
+        const optionName = String(
+          detail.option_name || (detail.selected_size ? "size" : ""),
+        ).trim();
 
-      if (!itemName) return;
+        const selectedOption = String(
+          detail.selected_option || detail.selected_size || "",
+        )
+          .trim()
+          .toUpperCase();
 
-      const key = [
-        itemName,
-        optionName || "no_option",
-        selectedOption || "no_value",
-      ].join("_");
+        if (!itemName) return;
 
-      if (!summaryMap[key]) {
-        summaryMap[key] = {
-          item_name: itemName,
-          option_name: optionName,
-          selected_option: selectedOption,
-          qty: 0,
-        };
-      }
+        const key = [
+          itemName,
+          optionName || "no_option",
+          selectedOption || "no_value",
+        ].join("_");
 
-      summaryMap[key].qty += Number(detail.qty || 0);
+        if (!summaryMap[key]) {
+          summaryMap[key] = {
+            item_name: itemName,
+            option_name: optionName,
+            selected_option: selectedOption,
+            qty: 0,
+          };
+        }
+
+        summaryMap[key].qty += Number(detail.qty || 0);
+      });
     });
   });
 
@@ -95,8 +99,8 @@ function ItemSummary({ orders }: { orders: any[] }) {
   if (summary.length === 0) return null;
 
   return (
-    <div className="mt-2 border-t border-pinkAccent/40 pt-2">
-      <div className="font-semibold text-xs mb-1 text-pinkSecondary">
+    <div className="mt-2 border-t border-pinkAccent/40 pt-2 text-sm">
+      <div className="font-semibold mb-1 text-pinkSecondary">
         Summary
       </div>
 
@@ -109,7 +113,7 @@ function ItemSummary({ orders }: { orders: any[] }) {
           return (
             <div
               key={`${detail.item_name}_${detail.option_name || "option"}_${detail.selected_option || "value"}_${index}`}
-              className="flex justify-between gap-2 text-[11px] rounded-md bg-pinkAccent/20 px-2 py-1"
+              className="flex justify-between gap-2 rounded-md bg-pinkAccent/20 px-2 py-1"
             >
               <span className="break-words">
                 {detail.item_name}
@@ -176,9 +180,7 @@ export default function ShopOrderTable({
 
                     <div className="flex gap-1 mt-1 min-w-0">
                       <Phone className="w-3 h-3 shrink-0 mt-[2px]" />
-                      <span className="truncate">
-                        {item.user.phone || "-"}
-                      </span>
+                      <span className="truncate">{item.user.phone || "-"}</span>
                     </div>
 
                     <div className="flex gap-1 mt-2 min-w-0">
@@ -192,19 +194,44 @@ export default function ShopOrderTable({
 
                 {/* ORDERS */}
                 <td className="p-2 align-top w-[240px]">
-                  <div className="flex flex-col gap-1">
-                    {orders.map((o: any, orderIndex: number) => (
+                  <ItemSummary orders={orders} />
+                  <div className="flex flex-col gap-3 mt-2 text-sm">
+                    {orders.map((order: any) => (
                       <div
-                        key={`${o.reward_id || "reward"}_${orderIndex}`}
-                        className="flex justify-between gap-2"
+                        key={order.order_id}
+                        className="border border-pinkAccent/40 rounded-lg p-2"
                       >
-                        <span className="break-words">{o.title}</span>
-                        <span className="shrink-0 font-semibold">x{o.qty}</span>
+                        <div className="flex justify-between items-center">
+                          <span className="font-semibold">
+                            {order.order_id}
+                          </span>
+
+                          <span className="font-semibold">
+                            ฿ {formatTHB(order.transaction_amount || 0)}
+                          </span>
+                        </div>
+
+                        <span className="text-textSub mt-1 text-xs">
+                          Ref : {order.trans_ref || "-"}
+                        </span>
+
+                        <div className="mt-2 flex flex-col gap-1">
+                          {(order.items || []).map((item: any) => (
+                            <div
+                              key={`${order.order_id}_${item.reward_id}`}
+                              className="flex justify-between gap-2"
+                            >
+                              <span className="break-words text-sm">{item.title}</span>
+
+                              <span className="shrink-0 font-semibold">
+                                x{item.qty}
+                              </span>
+                            </div>
+                          ))}
+                        </div>
                       </div>
                     ))}
                   </div>
-
-                  <ItemSummary orders={orders} />
                 </td>
 
                 {/* TOTAL */}

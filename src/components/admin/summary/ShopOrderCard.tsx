@@ -30,39 +30,43 @@ function buildItemSummary(orders: any[] = []) {
   > = {};
 
   orders.forEach((order) => {
-    const details = Array.isArray(order.details) ? order.details : [];
+    const items = Array.isArray(order.items) ? order.items : [];
 
-    details.forEach((detail: any) => {
-      const itemName = String(detail.item_name || "").trim();
+    items.forEach((item: any) => {
+      const details = Array.isArray(item.details) ? item.details : [];
 
-      const optionName = String(
-        detail.option_name || (detail.selected_size ? "size" : ""),
-      ).trim();
+      details.forEach((detail: any) => {
+        const itemName = String(detail.item_name || "").trim();
 
-      const selectedOption = String(
-        detail.selected_option || detail.selected_size || "",
-      )
-        .trim()
-        .toUpperCase();
+        const optionName = String(
+          detail.option_name || (detail.selected_size ? "size" : ""),
+        ).trim();
 
-      if (!itemName) return;
+        const selectedOption = String(
+          detail.selected_option || detail.selected_size || "",
+        )
+          .trim()
+          .toUpperCase();
 
-      const key = [
-        itemName,
-        optionName || "no_option",
-        selectedOption || "no_value",
-      ].join("_");
+        if (!itemName) return;
 
-      if (!summaryMap[key]) {
-        summaryMap[key] = {
-          item_name: itemName,
-          option_name: optionName,
-          selected_option: selectedOption,
-          qty: 0,
-        };
-      }
+        const key = [
+          itemName,
+          optionName || "no_option",
+          selectedOption || "no_value",
+        ].join("_");
 
-      summaryMap[key].qty += Number(detail.qty || 0);
+        if (!summaryMap[key]) {
+          summaryMap[key] = {
+            item_name: itemName,
+            option_name: optionName,
+            selected_option: selectedOption,
+            qty: 0,
+          };
+        }
+
+        summaryMap[key].qty += Number(detail.qty || 0);
+      });
     });
   });
 
@@ -95,8 +99,8 @@ function ItemSummary({ orders }: { orders: any[] }) {
   if (summary.length === 0) return null;
 
   return (
-    <div className="mt-4">
-      <div className="font-semibold text-sm mb-2">Summary</div>
+    <div className="mt-2 border-t border-pinkAccent/40 pt-2 text-sm">
+      <div className="font-semibold mb-1 text-pinkSecondary">Summary</div>
 
       <div className="flex flex-col gap-1">
         {summary.map((detail, index) => {
@@ -107,9 +111,9 @@ function ItemSummary({ orders }: { orders: any[] }) {
           return (
             <div
               key={`${detail.item_name}_${detail.option_name || "option"}_${detail.selected_option || "value"}_${index}`}
-              className="flex justify-between gap-2 text-xs rounded-lg border border-pinkAccent/50 bg-white px-3 py-2"
+              className="flex justify-between gap-2 rounded-md bg-pinkAccent/20 px-2 py-1"
             >
-              <span className="truncate">
+              <span className="break-words">
                 {detail.item_name}
                 {hasOption && (
                   <>
@@ -170,27 +174,47 @@ export default function ShopOrderCard({
 
       {/* ORDERS */}
       <div className="mt-4">
-        <div className="font-semibold text-sm mb-2">Orders</div>
+        {/* <div className="font-semibold text-sm mb-2">Orders</div> */}
 
-        <div className="flex flex-col gap-1">
-          {orders.map((o: any, index: number) => (
+        <div className="flex flex-col gap-3">
+          {/* SUMMARY */}
+          <ItemSummary orders={orders} />
+          {orders.map((order: any) => (
             <div
-              key={`${o.reward_id || "reward"}_${index}`}
-              className="flex justify-between text-sm rounded-lg bg-pinkAccent/30 px-3 py-2"
+              key={order.order_id}
+              className="rounded-lg border border-pinkAccent/40 p-3 text-sm"
             >
-              <span className="truncate">{o.title}</span>
-              <span className="font-semibold whitespace-nowrap">x{o.qty}</span>
+              <div className="flex justify-between items-center">
+                <span className="font-semibold">{order.order_id}</span>
+
+                <span className="font-semibold">
+                  ฿ {formatTHB(order.transaction_amount || 0)}
+                </span>
+              </div>
+
+              <div className="text-xs text-textSub mt-1">
+                Ref : {order.trans_ref || "-"}
+              </div>
+
+              <div className="mt-2 flex flex-col gap-1">
+                {(order.items || []).map((item: any) => (
+                  <div
+                    key={`${order.order_id}_${item.reward_id}`}
+                    className="flex justify-between text-sm"
+                  >
+                    <span>{item.title}</span>
+                    <span className="font-medium">x{item.qty}</span>
+                  </div>
+                ))}
+              </div>
             </div>
           ))}
         </div>
       </div>
 
-      {/* SUMMARY */}
-      <ItemSummary orders={orders} />
-
       {/* TOTAL */}
       <div className="mt-4 flex justify-between items-center">
-        <span className="text-sm font-semibold">Total</span>
+        <span className="text-md font-semibold">Total</span>
 
         <span className="font-bold text-pinkSecondary text-lg">
           ฿ {formatTHB(item.total_amount)}

@@ -89,6 +89,7 @@ export async function GET(req: NextRequest) {
       userRewardsSnap,
       selectionsSnap,
       shipmentsSnap,
+      transactionsSnap,
     ] = await Promise.all([
       adminDb.collection("users").get(),
       adminDb.collection("rewards").get(),
@@ -102,6 +103,7 @@ export async function GET(req: NextRequest) {
         .collection("shipments")
         .where("project_id", "==", String(projectId))
         .get(),
+      adminDb.collection("transactions").get(),
     ]);
 
     const users = usersSnap.docs.map(toData);
@@ -110,6 +112,7 @@ export async function GET(req: NextRequest) {
     const projectOrders = userRewardsSnap.docs.map(toData);
     const selections = selectionsSnap.docs.map(toData);
     const shipments = shipmentsSnap.docs.map(toData);
+    const transactions = transactionsSnap.docs.map(toData);
 
     const rewardMap: Record<string, any> = {};
     rewards.forEach((r: any) => {
@@ -163,6 +166,11 @@ export async function GET(req: NextRequest) {
       shipmentMap[key] = s;
     });
 
+    const transactionMap: Record<string, any> = {};
+    transactions.forEach((tx: any) => {
+      transactionMap[String(tx.data_id || "").trim()] = tx;
+    });
+
     const grouped: Record<string, any> = {};
 
     projectOrders.forEach((order: any) => {
@@ -194,6 +202,8 @@ export async function GET(req: NextRequest) {
           latest_order_at: order.created_at || "",
 
           orders_map: {},
+
+          counted_orders: {},
         };
       }
 
@@ -204,25 +214,42 @@ export async function GET(req: NextRequest) {
         grouped[userId].latest_order_at = order.created_at;
       }
 
-      grouped[userId].total_amount += Number(order.total_amount || 0);
+      const orderId = String(order.order_id || "").trim();
+      const tx = transactionMap[orderId];
+
+      if (!grouped[userId].counted_orders[orderId]) {
+        grouped[userId].total_amount += Number(
+          tx?.amount || order.total_amount || 0,
+        );
+
+        grouped[userId].counted_orders[orderId] = true;
+      }
+
       grouped[userId].total_qty += Number(order.qty || 0);
 
       const rewardId = String(order.reward_id);
       const reward = rewardMap[rewardId] || {};
       const userRewardId = String(order.id || order.docId);
+
       const orderQty = Number(order.qty || 0);
 
-      if (!grouped[userId].orders_map[rewardId]) {
-        grouped[userId].orders_map[rewardId] = {
+      // ใช้ orderId + rewardId เป็น key
+      const orderRewardKey = `${orderId}_${rewardId}`;
+
+      if (!grouped[userId].orders_map[orderRewardKey]) {
+        grouped[userId].orders_map[orderRewardKey] = {
           reward_id: rewardId,
+          order_id: orderId,
           title: reward.title || "",
           price: Number(reward.min_amount || 0),
           qty: 0,
           details_map: {},
+          transaction_amount: Number(tx?.amount || 0),
+          trans_ref: tx?.transRef || tx?.trans_ref || tx?.id || "",
         };
       }
 
-      grouped[userId].orders_map[rewardId].qty += orderQty;
+      grouped[userId].orders_map[orderRewardKey].qty += orderQty;
 
       const baseItems = rewardItemsMap[rewardId] || [];
 
@@ -232,19 +259,23 @@ export async function GET(req: NextRequest) {
         if (Number(baseItem.has_option) !== 1) {
           const detailKey = `${baseItem.id}_nooption`;
 
-          if (!grouped[userId].orders_map[rewardId].details_map[detailKey]) {
-            grouped[userId].orders_map[rewardId].details_map[detailKey] = {
-              reward_item_id: baseItem.id,
-              item_name: baseItem.item_name,
-              has_option: 0,
-              option_name: "",
-              selected_option: "",
-              qty: 0,
-            };
+          if (
+            !grouped[userId].orders_map[orderRewardKey].details_map[detailKey]
+          ) {
+            grouped[userId].orders_map[orderRewardKey].details_map[detailKey] =
+              {
+                reward_item_id: baseItem.id,
+                item_name: baseItem.item_name,
+                has_option: 0,
+                option_name: "",
+                selected_option: "",
+                qty: 0,
+              };
           }
 
-          grouped[userId].orders_map[rewardId].details_map[detailKey].qty +=
-            Number(baseItem.qty || 0) * orderQty;
+          grouped[userId].orders_map[orderRewardKey].details_map[
+            detailKey
+          ].qty += Number(baseItem.qty || 0) * orderQty;
         }
       });
 
@@ -255,8 +286,10 @@ export async function GET(req: NextRequest) {
           sel.selected_option || "nooption"
         }`;
 
-        if (!grouped[userId].orders_map[rewardId].details_map[detailKey]) {
-          grouped[userId].orders_map[rewardId].details_map[detailKey] = {
+        if (
+          !grouped[userId].orders_map[orderRewardKey].details_map[detailKey]
+        ) {
+          grouped[userId].orders_map[orderRewardKey].details_map[detailKey] = {
             reward_item_id: sel.reward_item_id,
             item_name: sel.item_name,
             has_option: 1,
@@ -266,38 +299,50 @@ export async function GET(req: NextRequest) {
           };
         }
 
-        grouped[userId].orders_map[rewardId].details_map[detailKey].qty +=
+        grouped[userId].orders_map[orderRewardKey].details_map[detailKey].qty +=
           Number(sel.qty || 0);
       });
     });
 
     const result = Object.values(grouped).map((item: any) => {
-      const orders = Object.values(item.orders_map)
-        .map((order: any) => {
-          const details = Object.values(order.details_map || {}).sort(
-            (a: any, b: any) => {
-              const nameCompare = String(a.item_name).localeCompare(
-                String(b.item_name),
-              );
+      const orderGroupMap: Record<string, any> = {};
 
-              if (nameCompare !== 0) return nameCompare;
+      Object.values(item.orders_map).forEach((row: any) => {
+        const orderId = row.order_id;
 
-              return String(a.selected_option || "").localeCompare(
-                String(b.selected_option || ""),
-              );
-            },
-          );
-
-          delete order.details_map;
-
-          return {
-            ...order,
-            details,
+        if (!orderGroupMap[orderId]) {
+          orderGroupMap[orderId] = {
+            order_id: orderId,
+            transaction_amount: row.transaction_amount || 0,
+            trans_ref: row.trans_ref || "",
+            items: [],
           };
-        })
-        .sort(
-          (a: any, b: any) => Number(a.price || 0) - Number(b.price || 0),
+        }
+
+        const details = Object.values(row.details_map || {}).sort(
+          (a: any, b: any) => {
+            const nameCompare = String(a.item_name).localeCompare(
+              String(b.item_name),
+            );
+
+            if (nameCompare !== 0) return nameCompare;
+
+            return String(a.selected_option || "").localeCompare(
+              String(b.selected_option || ""),
+            );
+          },
         );
+
+        orderGroupMap[orderId].items.push({
+          reward_id: row.reward_id,
+          title: row.title,
+          price: row.price,
+          qty: row.qty,
+          details,
+        });
+      });
+
+      const orders = Object.values(orderGroupMap);
 
       delete item.orders_map;
 

@@ -120,6 +120,12 @@ export default function SectionPaymentUpload({
         dateTime: slip.data.dateTime,
         amount: slip.data.amount,
       });
+      // const payload = getOrderPayload({
+      //   referenceId: `REF${Math.floor(Math.random() * 1000000000)}`,
+      //   transRef: `TR${Math.floor(Math.random() * 1000000000)}`,
+      //   dateTime: new Date().toISOString(),
+      //   amount: total,
+      // });
 
       if (!payload) {
         setLoading(false);
