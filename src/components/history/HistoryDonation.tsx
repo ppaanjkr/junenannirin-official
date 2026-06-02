@@ -17,7 +17,7 @@ export default function SectionHistoryDonation({
 
   return (
     <section>
-      {/* <h2 className="text-sm text-textsub mb-2 font-semibold">Last Donate</h2> */}
+      {/* <h2 className="text-sm text-textsub mb-2 font-semibold">Last Donate</h2> */} 
       <div className="grid grid-cols-12 gap-2">
         {data &&
           data.length > 0 ?
