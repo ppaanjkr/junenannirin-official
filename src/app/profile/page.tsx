@@ -64,7 +64,7 @@ export default function Page() {
       <main className="max-w-5xl mx-auto px-6 py-4 md:max-w-3xl">
         {isloading && <LoadingOverlay />}
         <SectionBack onclick={() => router.replace("/")} title={"Profile"} />
-        <SectionProfile user={user} profile={profile} />
+        <SectionProfile user={user} profile={profile} teams={teamOptions}/>
         <SectionEditProfile
           user={user}
           setUser={setUser}

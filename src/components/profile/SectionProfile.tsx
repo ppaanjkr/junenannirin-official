@@ -1,4 +1,3 @@
-import { teamOptions } from "@/data/teams";
 import { ProfileSummary } from "@/lib/api/types";
 import { formatAmount } from "@/lib/formatAmountK";
 
@@ -6,16 +5,18 @@ type Props = {
   user: any;
   className?: string;
   profile?: ProfileSummary | null;
+  teams?: any[];
 };
 
 export default function SectionProfile({
   user,
   className = "",
   profile,
+  teams
 }: Props) {
   const defaultImage = "/icon/june_logo_circle.png";
 
-  const team = teamOptions.find(
+  const team = teams?.find(
     (item) => String(item.value) === String(user?.team),
   );
 

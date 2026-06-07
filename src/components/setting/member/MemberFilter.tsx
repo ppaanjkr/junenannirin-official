@@ -1,5 +1,3 @@
-import { TeamOption } from "@/data/teams";
-
 type Props = {
   search: string;
   setSearch: (value: string) => void;
@@ -7,7 +5,7 @@ type Props = {
   setTeamFilter: (value: string) => void;
   statusFilter: string;
   setStatusFilter: (value: string) => void;
-  teams: TeamOption[];
+  teams: any[];
   resetPage: () => void;
 };
 
