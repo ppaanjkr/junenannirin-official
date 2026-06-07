@@ -74,6 +74,15 @@ export async function getUserShopSummary(
   return res.json();
 }
 
+export async function getTeam() {
+  const res = await fetch("/api/firebase/user/team", {
+    method: "GET",
+    cache: "no-store",
+  });
+
+  return res.json();
+}
+
 export async function getTeamPoll() {
   const res = await fetch("/api/firebase/user/team-poll", {
     method: "GET",

@@ -6,41 +6,46 @@ export const revalidate = 0;
 
 export async function GET() {
   try {
-    const snap = await adminDb.collection("users").get();
+    const [pollSnap, teamsSnap] = await Promise.all([
+      adminDb.collection("team_poll").get(),
+      adminDb.collection("teams").get(),
+    ]);
 
-    const users = snap.docs.map((doc) => doc.data());
+    const teamMap: Record<string, any> = {};
 
-    const activeUsers = users.filter(
-      (u: any) =>
-        Number(u.active || 0) === 1 &&
-        String(u.team || "").trim() !== "" &&
-        String(u.team || "").toLowerCase() !== "admin",
-    );
+    teamsSnap.docs.forEach((doc) => {
+      const team = doc.data();
 
-    const total = activeUsers.length;
+      const value = String(team.value || "").trim();
 
-    const teamMap: Record<string, number> = {};
+      if (!value) return;
 
-    activeUsers.forEach((user: any) => {
-      const team = String(user.team || "").trim();
-
-      if (!teamMap[team]) {
-        teamMap[team] = 0;
-      }
-
-      teamMap[team]++;
+      teamMap[value] = team;
     });
 
-    const data = Object.entries(teamMap)
-      .map(([team, count]) => ({
-        team,
-        count,
+    const rows = pollSnap.docs
+      .map((doc) => doc.data())
+      .filter((row: any) => String(row.team || "").trim() !== "");
+
+    const total = rows.reduce(
+      (sum: number, row: any) => sum + Number(row.active_count || 0),
+      0,
+    );
+
+    const data = rows.map((row: any) => {
+      const teamInfo = teamMap[row.team] || {};
+
+      return {
+        team: row.team,
+        label: teamInfo.label || row.team,
+        image_url: teamInfo.image_url || "",
+        count: Number(row.active_count || 0),
         percent:
           total > 0
-            ? Number(((count / total) * 100).toFixed(2))
+            ? Number(((Number(row.active_count || 0) / total) * 100).toFixed(2))
             : 0,
-      }))
-      .sort((a, b) => b.count - a.count);
+      };
+    });
 
     return NextResponse.json({
       success: true,

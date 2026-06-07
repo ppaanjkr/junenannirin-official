@@ -2,6 +2,7 @@
 
 import { updateUserProfile } from "@/lib/api/user";
 import { useEffect, useState } from "react";
+import ButtonTeam from "../register/ButtonTeam";
 
 type Props = {
   user: any;
@@ -10,6 +11,11 @@ type Props = {
   className?: string;
   setLoading: (loading: boolean) => void;
   setPopup: (popup: any) => void;
+  settings: {
+    profile_edit_enabled: boolean;
+    team_edit_enabled: boolean;
+  };
+  teams?: any[];
 };
 
 export default function SectionEditProfile({
@@ -19,6 +25,8 @@ export default function SectionEditProfile({
   className = "",
   setLoading,
   setPopup,
+  settings,
+  teams,
 }: Props) {
   const [phone, setPhone] = useState(user?.phone || "");
 
@@ -28,6 +36,7 @@ export default function SectionEditProfile({
     phone: user?.phone || "",
     name: user?.name || "",
     address: user?.address || "",
+    team: user?.team || "",
   });
 
   useEffect(() => {
@@ -41,6 +50,7 @@ export default function SectionEditProfile({
       phone: user?.phone || "",
       name: user?.name || "",
       address: user?.address || "",
+      team: user?.team || "",
     });
   }, [user]);
 
@@ -107,6 +117,7 @@ export default function SectionEditProfile({
         name: form.name,
         phone: form.phone,
         address: form.address,
+        team: form.team,
       };
 
       // ไม่เก็บ user ลง localStorage แล้ว
@@ -136,7 +147,9 @@ export default function SectionEditProfile({
   }
 
   return (
-    <section className={`bg-white rounded-lg border p-4 shadow-sm mt-4 ${className}`}>
+    <section
+      className={`bg-white rounded-lg border p-4 shadow-sm mt-4 ${className}`}
+    >
       <h2 className="font-semibold mb-4 flex items-center gap-2">
         <span className="w-1.5 h-4 bg-pinkSecondary rounded-full"></span>
         User Profile
@@ -144,6 +157,22 @@ export default function SectionEditProfile({
 
       <form onSubmit={handleSubmit}>
         <div className="grid grid-cols-12 gap-4">
+          {user.team != "admin" && (
+            <div className="col-span-12 md:col-span-6">
+              <div>
+                <span className="font-semibold">Teams</span>
+                <span className="text-red-500">*</span>
+              </div>
+              <ButtonTeam
+                name="team"
+                options={teams || []}
+                value={form.team || ""}
+                onChange={(val) => setForm({ ...form, team: val })}
+                disabled={!settings.team_edit_enabled}
+              />
+            </div>
+          )}
+
           <div className="col-span-12 md:col-span-6">
             <div>
               <span className="font-semibold">Shipping Name</span>
@@ -153,7 +182,7 @@ export default function SectionEditProfile({
             <input
               type="text"
               id="name"
-              className="w-full px-4 py-2 rounded-lg outline-none border border-pinkSecondary/40 mt-1"
+              className="w-full px-4 py-2 rounded-lg outline-none border border-pinkSecondary/40 mt-1 read-only:bg-gray-100"
               maxLength={50}
               autoComplete="off"
               required
@@ -164,6 +193,7 @@ export default function SectionEditProfile({
                   name: e.target.value,
                 }))
               }
+              readOnly={!settings.profile_edit_enabled}
             />
           </div>
 
@@ -176,7 +206,7 @@ export default function SectionEditProfile({
             <input
               type="text"
               id="phone"
-              className="w-full px-4 py-2 rounded-lg outline-none border border-pinkSecondary/40 mt-1"
+              className="w-full px-4 py-2 rounded-lg outline-none border border-pinkSecondary/40 mt-1 read-only:bg-gray-100"
               maxLength={10}
               autoComplete="off"
               required
@@ -185,6 +215,7 @@ export default function SectionEditProfile({
               onKeyDown={handleKeyDown}
               onPaste={handlePaste}
               inputMode="numeric"
+              readOnly={!settings.profile_edit_enabled}
             />
           </div>
 
@@ -198,7 +229,7 @@ export default function SectionEditProfile({
               id="address"
               rows={3}
               required
-              className="w-full px-4 py-2 rounded-lg outline-none border border-pinkSecondary/40 mt-1"
+              className="w-full px-4 py-2 rounded-lg outline-none border border-pinkSecondary/40 mt-1 read-only:bg-gray-100"
               autoComplete="off"
               value={form.address || ""}
               onChange={(e) =>
@@ -207,17 +238,21 @@ export default function SectionEditProfile({
                   address: e.target.value,
                 }))
               }
+              readOnly={!settings.profile_edit_enabled}
             />
           </div>
 
-          <div className="col-span-12">
-            <button
-              type="submit"
-              className="px-4 py-2 bg-pinkSecondary/80 text-white rounded-lg w-full mt-5"
-            >
-              Save
-            </button>
-          </div>
+          {settings.profile_edit_enabled && (
+            <div className="col-span-12">
+              <button
+                type="submit"
+                className="px-4 py-2 bg-pinkSecondary/80 text-white rounded-lg w-full mt-5"
+                disabled={!settings.profile_edit_enabled}
+              >
+                Save
+              </button>
+            </div>
+          )}
         </div>
       </form>
     </section>

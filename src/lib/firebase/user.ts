@@ -1,4 +1,5 @@
 import { adminDb } from "@/lib/firebase/admin";
+import { FieldValue } from "firebase-admin/firestore";
 import { randomUUID } from "crypto";
 
 export type UserData = {
@@ -124,10 +125,7 @@ export async function createUser(data: UserData) {
     };
   }
 
-  const phoneSnap = await usersRef
-    .where("phone", "==", phone)
-    .limit(1)
-    .get();
+  const phoneSnap = await usersRef.where("phone", "==", phone).limit(1).get();
 
   if (!phoneSnap.empty) {
     return {
@@ -167,6 +165,29 @@ export async function createUser(data: UserData) {
   };
 
   await usersRef.doc(uuid).set(user);
+
+  try {
+    const teamName = String(team || "")
+      .trim()
+      .toLowerCase();
+
+    if (teamName && teamName !== "admin" && teamName !== "june") {
+      await adminDb
+        .collection("team_poll")
+        .doc(team)
+        .set(
+          {
+            team,
+            count: FieldValue.increment(1),
+            active_count: FieldValue.increment(1),
+            updated_at: now,
+          },
+          { merge: true },
+        );
+    }
+  } catch (err) {
+    console.error("team_poll update failed", err);
+  }
 
   return {
     status: "CREATED",

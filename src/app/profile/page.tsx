@@ -7,8 +7,10 @@ import SectionBack from "@/components/SectionBack";
 import { useUserContext } from "@/context/UserContext";
 import useAuthGuard from "@/hooks/useAuthGuard";
 import useProfileSummary from "@/hooks/useProfile";
+import { getProfileSettings } from "@/lib/api/admin";
 import { useRouter } from "next/navigation";
 import { use, useEffect, useState } from "react";
+import { getTeam } from "@/lib/api/user";
 
 export default function Page() {
   const { user, setUser, validateUser } = useUserContext();
@@ -22,6 +24,34 @@ export default function Page() {
       router.replace("/");
     }
   }, [user]);
+
+  const [settings, setSettings] = useState({
+    profile_edit_enabled: true,
+    team_edit_enabled: false,
+  });
+  useEffect(() => {
+    loadData();
+  }, []);
+
+  async function loadData() {
+    const res = await getProfileSettings();
+
+    if (res.success) {
+      setSettings(res.data);
+    }
+  }
+
+  const [teamOptions, setTeamOptions] = useState<any[]>([]);
+  useEffect(() => {
+    loadTeams();
+  }, []);
+  async function loadTeams() {
+    const res = await getTeam();
+
+    if (res.success) {
+      setTeamOptions(res.data || []);
+    }
+  }
 
   return (
     <>
@@ -41,6 +71,8 @@ export default function Page() {
           setLoading={setLoading}
           setPopup={setPopup}
           validateUser={validateUser}
+          settings={settings}
+          teams={teamOptions}
         />
       </main>
     </>

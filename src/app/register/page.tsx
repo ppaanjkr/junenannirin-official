@@ -9,7 +9,7 @@ import { useUserContext } from "@/context/UserContext";
 import useAuthGuard from "@/hooks/useAuthGuard";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
-import { teamOptions } from "@/data/teams";
+import { getTeam } from "@/lib/api/user";
 
 export default function Page() {
   const router = useRouter();
@@ -31,9 +31,17 @@ export default function Page() {
 
   const [phone, setPhone] = useState("");
 
-  const registerTeamOptions = teamOptions.filter(
-    (team) => team.value !== "admin",
-  );
+  const [teamOptions, setTeamOptions] = useState<any[]>([]);
+  useEffect(() => {
+    loadTeams();
+  }, []);
+  async function loadTeams() {
+    const res = await getTeam();
+
+    if (res.success) {
+      setTeamOptions(res.data || []);
+    }
+  }
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
@@ -186,7 +194,8 @@ export default function Page() {
           setPopup({
             open: true,
             type: "error",
-            message: "Register success but token not found. Please login again.",
+            message:
+              "Register success but token not found. Please login again.",
           });
           return;
         }
@@ -307,7 +316,7 @@ export default function Page() {
 
                 <ButtonTeam
                   name="team"
-                  options={registerTeamOptions}
+                  options={teamOptions}
                   value={form.team}
                   onChange={(val) => setForm({ ...form, team: val })}
                 />

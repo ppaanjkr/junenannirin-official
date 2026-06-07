@@ -1,9 +1,9 @@
 "use client";
 
-import Image from "next/image";
 import { useTeamPoll } from "@/hooks/useProfile";
-import { teamOptions } from "@/data/teams";
 import ImagePreviewModal from "../ImagePreviewModal";
+import { useEffect, useState } from "react";
+import { driveThumb } from "@/lib/workUtils";
 
 export default function SectionUserSummary({
   theme,
@@ -13,13 +13,7 @@ export default function SectionUserSummary({
     accent: string;
   };
 }) {
-  const { teams, total, isLoading } = useTeamPoll();  
-
-  function getTeamInfo(teamName: string) {
-    return teamOptions.find(
-      (t) => t.value === teamName || t.label === teamName,
-    );
-  }
+  const { teams, total, isLoading } = useTeamPoll();
 
   if (isLoading) {
     return (
@@ -40,11 +34,9 @@ export default function SectionUserSummary({
       </div>
 
       <div className="space-y-6">
-        {teams.map((item) => {
-          const team = getTeamInfo(item.team);
-
+        {teams.map((item, index) => {
           return (
-            <div key={item.team} className="mb-6">
+            <div key={`${item.team}-${index}`} className="mb-6">
               <div className="flex gap-3">
                 {/* Avatar */}
                 <div className="shrink-0">
@@ -61,7 +53,11 @@ export default function SectionUserSummary({
                     onDragStart={(e) => e.preventDefault()}
                     className="w-12 h-12 rounded-full bg-cover bg-center select-none"
                     style={{
-                      backgroundImage: `url(${team?.image || "/icon/june_logo_circle.png"})`,
+                      backgroundImage: `url(${
+                        item.image_url
+                          ? driveThumb(item.image_url)
+                          : "/icon/june_logo_circle.png"
+                      })`,
                     }}
                   />
                 </div>
@@ -70,7 +66,7 @@ export default function SectionUserSummary({
                 <div className="flex-1 min-w-0">
                   <div className="flex justify-between items-center mb-2">
                     <div className="text-sm font-medium truncate">
-                      {team?.label || item.team}
+                      {item?.label || item.team}
                     </div>
 
                     <div

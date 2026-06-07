@@ -8,9 +8,9 @@ import MemberFilter from "@/components/setting/member/MemberFilter";
 import MemberPagination from "@/components/setting/member/MemberPagination";
 import MemberTable from "@/components/setting/member/MemberTable";
 import { useUserList } from "@/hooks/useAdmin";
-import { teamOptions } from "@/data/teams";
 import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
+import { getAdminTeams } from "@/lib/api/admin";
 
 export default function Page() {
   const router = useRouter();
@@ -34,6 +34,18 @@ export default function Page() {
   const [openModal, setOpenModal] = useState(false);
 
   const [selectedUser, setSelectedUser] = useState<any>(null);
+
+  const [teams, setTeams] = useState<any[]>([]);
+  useEffect(() => {
+    loadTeams();
+  }, []);
+  async function loadTeams() {
+    const res = await getAdminTeams();
+
+    if (res.success) {
+      setTeams(res.data || []);
+    }
+  }
 
   const handleOpenEdit = (user: any) => {
     setSelectedUser(user);
@@ -116,7 +128,7 @@ export default function Page() {
         setTeamFilter={setTeamFilter}
         statusFilter={statusFilter}
         setStatusFilter={setStatusFilter}
-        teams={teamOptions}
+        teams={teams}
         resetPage={() => setPage(1)}
       />
 
@@ -147,6 +159,7 @@ export default function Page() {
         user={selectedUser}
         onClose={handleCloseEdit}
         onSaved={handleMemberUpdated}
+        teams={teams}
       />
     </main>
   );

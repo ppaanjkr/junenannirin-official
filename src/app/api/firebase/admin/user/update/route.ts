@@ -23,6 +23,14 @@ async function requireAdmin(req: NextRequest) {
   return auth;
 }
 
+const shouldCountTeam = (team: string) => {
+  const value = String(team || "")
+    .trim()
+    .toLowerCase();
+
+  return value && value !== "admin" && value !== "june";
+};
+
 export async function POST(req: NextRequest) {
   try {
     const auth = await requireAdmin(req);
@@ -113,6 +121,25 @@ export async function POST(req: NextRequest) {
       }
     }
 
+    const oldUser = userSnap.data() || {};
+
+    const oldTeam = String(oldUser.team || "").trim();
+    const newTeam = String(team || "").trim();
+
+    const oldActive = Number(oldUser.active ?? 0);
+    const newActive = user.active ? 1 : 0;
+
+    const shouldCountTeam = (teamName: string) => {
+      const value = String(teamName || "")
+        .trim()
+        .toLowerCase();
+
+      return value !== "" && value !== "admin" && value !== "june";
+    };
+
+    const oldIncluded = shouldCountTeam(oldTeam);
+    const newIncluded = shouldCountTeam(newTeam);
+
     await userRef.update({
       name,
       phone,
@@ -122,6 +149,63 @@ export async function POST(req: NextRequest) {
       updated_at: FieldValue.serverTimestamp(),
       updated_by: auth.uuid,
     });
+
+    try {
+      if (oldTeam !== newTeam) {
+        // ออกจากทีมที่ถูกนับ
+        if (oldIncluded) {
+          await adminDb
+            .collection("team_poll")
+            .doc(oldTeam)
+            .set(
+              {
+                count: FieldValue.increment(-1),
+                active_count:
+                  oldActive === 1
+                    ? FieldValue.increment(-1)
+                    : FieldValue.increment(0),
+                updated_at: new Date().toISOString(),
+              },
+              { merge: true },
+            );
+        }
+
+        // เข้าไปทีมที่ถูกนับ
+        if (newIncluded) {
+          await adminDb
+            .collection("team_poll")
+            .doc(newTeam)
+            .set(
+              {
+                team: newTeam,
+                count: FieldValue.increment(1),
+                active_count:
+                  newActive === 1
+                    ? FieldValue.increment(1)
+                    : FieldValue.increment(0),
+                updated_at: new Date().toISOString(),
+              },
+              { merge: true },
+            );
+        }
+      }
+
+      // active เปลี่ยน แต่ยังอยู่ทีมเดิม
+      else if (oldIncluded && oldActive !== newActive) {
+        await adminDb
+          .collection("team_poll")
+          .doc(newTeam)
+          .set(
+            {
+              active_count: FieldValue.increment(newActive === 1 ? 1 : -1),
+              updated_at: new Date().toISOString(),
+            },
+            { merge: true },
+          );
+      }
+    } catch (err) {
+      console.error("team_poll update failed", err);
+    }
 
     return NextResponse.json({
       success: true,

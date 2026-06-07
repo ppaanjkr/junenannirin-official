@@ -10,6 +10,7 @@ type Props = {
   options: Option[];
   value: string;
   onChange: (value: string) => void;
+  disabled?: boolean;
 };
 
 export default function ButtonTeam({
@@ -17,6 +18,7 @@ export default function ButtonTeam({
   options,
   value,
   onChange,
+  disabled = false,
 }: Props) {
   return (
     <div className="flex flex-wrap gap-1 mt-1">
@@ -33,6 +35,7 @@ export default function ButtonTeam({
               checked={isActive}
               onChange={() => onChange(opt.value)}
               className="hidden"
+              disabled={disabled}
             />
 
             {/* chip UI */}

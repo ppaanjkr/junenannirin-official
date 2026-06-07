@@ -2,16 +2,17 @@
 
 import LoadingOverlay from "@/components/LoadingOverlay";
 import Popup from "@/components/ModalPopup";
-import { teamOptions } from "@/data/teams";
 import { X } from "lucide-react";
 import { useEffect, useState } from "react";
 import { updateAdminUser } from "@/lib/api/admin";
+import { driveThumb } from "@/lib/workUtils";
 
 type Props = {
   open: boolean;
   user: any;
   onClose: () => void;
   onSaved?: (user: any) => void;
+  teams?: any[];
 };
 
 export default function MemberEditModal({
@@ -19,7 +20,9 @@ export default function MemberEditModal({
   user,
   onClose,
   onSaved,
+  teams
 }: Props) {
+  const teamData = teams?.filter((item: any) => item.active === 1);
   const [loading, setLoading] = useState(false);
   const [savedPayload, setSavedPayload] = useState<any>(null);
 
@@ -216,9 +219,9 @@ export default function MemberEditModal({
           <div className="px-4 py-3 border-b border-pinkAccent flex justify-between items-center">
             <div>
               <h2 className="font-semibold text-lg">Edit Member</h2>
-              <p className="text-xs text-textSub">
+              {/* <p className="text-xs text-textSub">
                 {user?.username || user?.uuid || ""}
-              </p>
+              </p> */}
             </div>
 
             <button
@@ -231,6 +234,17 @@ export default function MemberEditModal({
           </div>
 
           <form onSubmit={handleSubmit} className="p-4 flex flex-col gap-3 overflow-y-auto">
+            {/* username */}
+            <div>
+              <label className="text-sm font-medium">Username</label>
+              <input
+                name="username"
+                value={user?.username || ""}
+                className="mt-1 w-full border border-pinkAccent rounded-lg px-3 py-2 outline-none read-only:cursor-not-allowed read-only:bg-gray-100"
+                readOnly
+              />
+            </div>
+
             {/* name */}
             <div>
               <label className="text-sm font-medium">Name</label>
@@ -276,7 +290,7 @@ export default function MemberEditModal({
               <label className="text-sm font-medium">Team</label>
 
               <div className="mt-2 grid grid-cols-12 gap-2">
-                {teamOptions.map((team) => {
+                {teamData?.map((team) => {
                   const active = form.team === team.value;
 
                   return (
@@ -291,18 +305,15 @@ export default function MemberEditModal({
                       }
                       className={`col-span-6 rounded-lg border p-2 text-sm flex flex-col items-center justify-center gap-1 ${
                         active
-                          ? "border-pinkSecondary bg-pinkAccent/40 text-pinkSecondary font-semibold"
+                          ? "border-pinkSecondary bg-pinkAccent/40 text-pinkSecondary"
                           : "border-pinkAccent bg-white"
                       }`}
                     >
-                      {team.image && (
-                        <img
-                          src={team.image}
+                      <img
+                          src={team.image_url ? driveThumb(team.image_url) : "/icon/june_logo_circle.png"}
                           alt={team.label}
-                          className="w-10 h-10 rounded-full object-cover"
+                          className="w-10 h-10 rounded-full object-cover border border-pinkAccent"
                         />
-                      )}
-
                       <span>{team.label}</span>
                     </button>
                   );

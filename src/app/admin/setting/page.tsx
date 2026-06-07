@@ -1,6 +1,6 @@
 "use client";
 
-import { ChevronRight, CreditCard, UserRound } from "lucide-react";
+import { ChevronRight, CreditCard, UserRound, UserRoundPen } from "lucide-react";
 import { useRouter } from "next/navigation";
 
 export default function Page() {
@@ -36,6 +36,18 @@ export default function Page() {
           </div>
           <div className="flex justify-between items-center w-full">
             <span>Setting Banks</span>
+            <ChevronRight className="w-4 h-4" />
+          </div>
+        </button>
+        <button
+          onClick={() => handleGoToPage("admin/setting/profile")}
+          className="col-span-12 md:col-span-6 bg-white border border-pinkAccent rounded-xl shadow-sm p-3 cursor-pointer hover:shadow-md transition active:scale-[0.98] flex gap-4 px-4 py-3 items-center"
+        >
+          <div className="w-10 h-10 rounded-md bg-pinkAccent/50 flex items-center justify-center p-1">
+            <UserRoundPen className="w-6 h-6 text-pinkSecondary" />
+          </div>
+          <div className="flex justify-between items-center w-full">
+            <span>Setting Editable Profile & Teams</span>
             <ChevronRight className="w-4 h-4" />
           </div>
         </button>
