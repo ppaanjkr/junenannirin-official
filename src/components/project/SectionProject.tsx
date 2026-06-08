@@ -63,31 +63,33 @@ export default function SectionProject({
         }}
       >
         {/* IMAGE */}
-        <div className="relative">
-          <ImagePreviewModal
-            src={driveThumb(imageUrl)}
-            alt={project.name}
-            className="w-full min-h-24 max-h-56 md:max-h-80 object-center"
-          />
+        {imageUrl && (
+          <div className="relative">
+            <ImagePreviewModal
+              src={driveThumb(imageUrl)}
+              alt={project.name}
+              className="w-full min-h-24 max-h-56 md:max-h-80 object-center"
+            />
 
-          {/* days left */}
-          <span
-            className="absolute top-1 left-1 bg-white/90 backdrop-blur px-3 py-1 rounded-full text-xs font-semibold shadow flex items-center gap-1"
-            style={{ color: theme.secondary }}
-          >
-            <span className="relative flex w-2 h-2">
-              <span
-                className="absolute inline-flex h-full w-full rounded-full animate-ping"
-                style={{ backgroundColor: theme.secondary, opacity: 0.6 }}
-              ></span>
-              <span
-                className="relative inline-flex rounded-full w-2 h-2"
-                style={{ backgroundColor: theme.secondary }}
-              ></span>
+            {/* days left */}
+            <span
+              className="absolute top-1 left-1 bg-white/90 backdrop-blur px-3 py-1 rounded-full text-xs font-semibold shadow flex items-center gap-1"
+              style={{ color: theme.secondary }}
+            >
+              <span className="relative flex w-2 h-2">
+                <span
+                  className="absolute inline-flex h-full w-full rounded-full animate-ping"
+                  style={{ backgroundColor: theme.secondary, opacity: 0.6 }}
+                ></span>
+                <span
+                  className="relative inline-flex rounded-full w-2 h-2"
+                  style={{ backgroundColor: theme.secondary }}
+                ></span>
+              </span>
+              {daysLeft <= 0 ? "Expired" : `${daysLeft} day left`}
             </span>
-            {daysLeft <= 0 ? "Expired" : `${daysLeft} day left`}
-          </span>
-        </div>
+          </div>
+        )}
 
         {/* CONTENT */}
         <div className="p-4 md:p-6 space-y-3">
@@ -126,14 +128,16 @@ export default function SectionProject({
           </div> */}
 
           {/* more img */}
-          {project.img_more && project.img_more.length > 0 && (
+          {images.length > 0 && (
             <div className="mt-2 grid grid-cols-2 gap-2">
               {images.map((img: string) => (
                 <ImagePreviewModal
                   key={img}
                   src={driveThumb(img)}
                   alt={project.name}
-                  className="w-full object-center col-span-2 md:col-span-1"
+                  className={`w-full object-center col-span-2 ${
+                    images.length > 1 ? "md:col-span-1" : ""
+                  }`}
                 />
               ))}
             </div>
