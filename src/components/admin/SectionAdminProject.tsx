@@ -133,20 +133,24 @@ export default function SectionAdminProject({
                 <h3 className="font-bold line-clamp-2 mt-1">{p.name}</h3>
 
                 <span className="text-xs text-gray-500 mt-1">
-                  {formatThaiDate(p.start_date)} - {formatThaiDate(p.end_date)}
+                  {p.start_date === p.end_date ? formatThaiDate(p.start_date) : `${formatThaiDate(p.start_date)} - ${formatThaiDate(p.end_date)}`}
                 </span>
 
-                <div className="mt-auto flex justify-between items-end">
-                  <div>
-                    <div className="font-bold text-pinkSecondary flex items-center gap-1">
-                      <CircleDollarSign className="w-4 h-4 inline-block" />
-                      {formatTHB(p.current_amount)}
-                      {p.type === "donation" ? (
-                        <span> / {formatTHB(p.target_amount)} THB</span>
-                      ) : " THB"}
+                {p.type !== "event" && (
+                  <div className="mt-auto flex justify-between items-end">
+                    <div>
+                      <div className="font-bold text-pinkSecondary flex items-center gap-1">
+                        <CircleDollarSign className="w-4 h-4 inline-block" />
+                        {formatTHB(p.current_amount)}
+                        {p.type === "donation" ? (
+                          <span> / {formatTHB(p.target_amount)} THB</span>
+                        ) : (
+                          " THB"
+                        )}
+                      </div>
                     </div>
                   </div>
-                </div>
+                )}
               </div>
             </div>
           </div>

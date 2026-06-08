@@ -18,14 +18,16 @@ export default function ProjectBasicDetail({ project }: Props) {
         </div>
 
         <div className="mt-4 grid grid-cols-12 gap-2">
-          <div className="col-span-12">
+          {project.image_url && (
+            <div className="col-span-12">
             <ImagePreviewModal
               src={driveThumb(project.image_url)}
               alt={project.name}
               className="w-full object-cover rounded-md border border-pinkAccent flex-shrink-0"
             />
-            {/* upload file when edit mode */}
           </div>
+          )}
+          
           <div className="col-span-12 flex flex-col">
             <span>Project Name</span>
             <input

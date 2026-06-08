@@ -68,7 +68,7 @@ export default function SectionProject({
             <ImagePreviewModal
               src={driveThumb(imageUrl)}
               alt={project.name}
-              className="w-full min-h-24 max-h-56 md:max-h-80 object-center"
+              className="w-full min-h-24 object-center"
             />
 
             {/* days left */}
