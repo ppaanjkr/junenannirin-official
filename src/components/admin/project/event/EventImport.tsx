@@ -214,35 +214,46 @@ export default function EventImport({
           <div className="bg-white border border-pinkAccent rounded-xl p-6">
             <h2 className="font-semibold text-lg">Import Participants</h2>
 
+            {/* desktop */}
             <div className="text-sm mt-1">
               Example for import
-              <table className="w-full text-sm">
-                <thead className="bg-pinkAccent/40 border">
-                  <tr>
-                    <td className="text-center p-2 border">queue</td>
-                    <td className="text-center p-2 border">name</td>
-                    <td className="text-center p-2 border">uuid</td>
-                    <td className="text-center p-2 border">phone</td>
-                    <td className="text-center p-2 border">x</td>
-                  </tr>
-                </thead>
-                <tbody>
-                  <tr>
-                    <td className="text-center p-2 border">1</td>
-                    <td className="text-center p-2 border">JUNE NANNIRIN</td>
-                    <td className="text-center p-2 border">copy from Profile page or blank</td>
-                    <td className="text-center p-2 border">0900000000</td>
-                    <td className="text-center p-2 border">@JUNE_NANNIRIN</td>
-                  </tr>
-                  <tr>
-                    <td className="text-center p-2 border">2</td>
-                    <td className="text-center p-2 border">JUNE NANNIRIN OFFICIAL</td>
-                    <td className="text-center p-2 border">copy from Profile page or blank</td>
-                    <td className="text-center p-2 border">0900000000</td>
-                    <td className="text-center p-2 border">@Junenannirin_TH</td>
-                  </tr>
-                </tbody>
-              </table>
+              <div className="overflow-x-auto">
+                <table className="text-sm min-w-[700px] md:w-full">
+                  <thead className="bg-pinkAccent/40 border">
+                    <tr>
+                      <td className="text-center p-2 border">queue</td>
+                      <td className="text-center p-2 border">name</td>
+                      <td className="text-center p-2 border">uuid</td>
+                      <td className="text-center p-2 border">phone</td>
+                      <td className="text-center p-2 border">x</td>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td className="text-center p-2 border">1</td>
+                      <td className="text-center p-2 border">JUNE NANNIRIN</td>
+                      <td className="text-center p-2 border">
+                        copy from Profile page or blank
+                      </td>
+                      <td className="text-center p-2 border">0900000000</td>
+                      <td className="text-center p-2 border">@JUNE_NANNIRIN</td>
+                    </tr>
+                    <tr>
+                      <td className="text-center p-2 border">2</td>
+                      <td className="text-center p-2 border">
+                        JUNE NANNIRIN OFFICIAL
+                      </td>
+                      <td className="text-center p-2 border">
+                        copy from Profile page or blank
+                      </td>
+                      <td className="text-center p-2 border">0900000000</td>
+                      <td className="text-center p-2 border">
+                        @Junenannirin_TH
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
             </div>
 
             <div className="mt-4 h-[220px] border-2 border-dashed border-pinkAccent rounded-xl flex items-center justify-center">
