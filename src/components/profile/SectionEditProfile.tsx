@@ -16,6 +16,9 @@ type Props = {
     team_edit_enabled: boolean;
   };
   teams?: any[];
+  onClick?: () => void;
+  copied?: boolean;
+  setCopied?: (copied: boolean) => void;
 };
 
 export default function SectionEditProfile({
@@ -27,6 +30,9 @@ export default function SectionEditProfile({
   setPopup,
   settings,
   teams,
+  onClick,
+  copied,
+  setCopied,
 }: Props) {
   const [phone, setPhone] = useState(user?.phone || "");
 
@@ -150,11 +156,14 @@ export default function SectionEditProfile({
     <section
       className={`bg-white rounded-lg border p-4 shadow-sm mt-4 ${className}`}
     >
-      <h2 className="font-semibold mb-4 flex items-center gap-2">
-        <span className="w-1.5 h-4 bg-pinkSecondary rounded-full"></span>
-        User Profile
-      </h2>
-
+      <div className="flex justify-between items-center">
+        <h2 className="font-semibold mb-4 flex items-center gap-2">
+          <span className="w-1.5 h-4 bg-pinkSecondary rounded-full"></span>
+          User Profile
+        </h2>
+        <button onClick={onClick} className="italic underline text-xs text-textSub hover:text-pinkSecondary/80">COPY UUID</button>
+      </div>
+      
       <form onSubmit={handleSubmit}>
         <div className="grid grid-cols-12 gap-4">
           {user.team != "admin" && (

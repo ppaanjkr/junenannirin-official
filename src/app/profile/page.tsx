@@ -53,6 +53,19 @@ export default function Page() {
     }
   }
 
+  const [copied, setCopied] = useState(false);
+  async function handleCopyUuid() {
+    try {
+      await navigator.clipboard.writeText(user?.uuid || "");
+
+      setCopied(true);
+
+      setTimeout(() => {
+        setCopied(false);
+      }, 1500);
+    } catch {}
+  }
+
   return (
     <>
       <Popup
@@ -64,7 +77,14 @@ export default function Page() {
       <main className="max-w-5xl mx-auto px-6 py-4 md:max-w-3xl">
         {isloading && <LoadingOverlay />}
         <SectionBack onclick={() => router.replace("/")} title={"Profile"} />
-        <SectionProfile user={user} profile={profile} teams={teamOptions}/>
+        <SectionProfile
+          user={user}
+          profile={profile}
+          teams={teamOptions}
+          onClick={handleCopyUuid}
+          copied={copied}
+          setCopied={setCopied}
+        />
         <SectionEditProfile
           user={user}
           setUser={setUser}
@@ -73,6 +93,9 @@ export default function Page() {
           validateUser={validateUser}
           settings={settings}
           teams={teamOptions}
+          onClick={handleCopyUuid}
+          copied={copied}
+          setCopied={setCopied}
         />
       </main>
     </>

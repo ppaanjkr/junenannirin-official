@@ -7,6 +7,9 @@ type Props = {
   className?: string;
   profile?: ProfileSummary | null;
   teams?: any[];
+  onClick?: () => void;
+  copied?: boolean;
+  setCopied?: (copied: boolean) => void;
 };
 
 export default function SectionProfile({
@@ -14,6 +17,9 @@ export default function SectionProfile({
   className = "",
   profile,
   teams,
+  onClick,
+  copied,
+  setCopied,
 }: Props) {
   const defaultImage = "/icon/june_logo_circle.png";
 
@@ -21,18 +27,7 @@ export default function SectionProfile({
 
   const image = team?.image || defaultImage;
 
-  const [copied, setCopied] = useState(false);
-  async function handleCopyUuid() {
-    try {
-      await navigator.clipboard.writeText(user?.uuid || "");
-
-      setCopied(true);
-
-      setTimeout(() => {
-        setCopied(false);
-      }, 1500);
-    } catch {}
-  }
+  
 
   return (
     <section className={className}>
@@ -50,7 +45,7 @@ export default function SectionProfile({
 
           <div className="mt-4 text-center">
             <button
-              onClick={handleCopyUuid}
+              onClick={onClick}
               className="text-lg md:text-xl font-semibold hover:text-pinkSecondary transition"
             >
               {user?.username || "-"}
