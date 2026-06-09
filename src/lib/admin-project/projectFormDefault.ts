@@ -1,4 +1,4 @@
-export type ProjectType = "donation" | "shop";
+export type ProjectType = "donation" | "shop" | "event";
 
 export type ProjectStatus = "draft" | "open" | "paused" | "closed" | "close";
 
@@ -72,6 +72,11 @@ export type ProjectFormState = {
   sub_status: string;
   targets: ProjectFormTarget[];
   rewards: ProjectFormReward[];
+
+  event_enabled: boolean;
+  event_type: "restricted" | "open";
+  event_location_name: string;
+  event_location_url: string;
 };
 
 export const defaultProjectForm: ProjectFormState = {
@@ -94,7 +99,12 @@ export const defaultProjectForm: ProjectFormState = {
     accent: "#ffe4ec",
   },
   bank_id: "",
-  sub_status: "pre-order",
+  sub_status: "",
   targets: [],
   rewards: [],
+
+  event_enabled: false,
+  event_type: "restricted",
+  event_location_name: "",
+  event_location_url: "",
 };

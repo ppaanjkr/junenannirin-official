@@ -95,6 +95,7 @@ export async function GET(req: NextRequest) {
       rewardItemsSnap,
       selectionsSnap,
       shipmentsSnap,
+      eventParticipantsSnap,
     ] = await Promise.all([
       adminDb.collection("projects").get(),
       adminDb.collection("donations").where("user_id", "==", userId).get(),
@@ -104,6 +105,10 @@ export async function GET(req: NextRequest) {
       adminDb.collection("rewarditems").get(),
       adminDb.collection("userrewarditemselections").get(),
       adminDb.collection("shipments").where("user_id", "==", userId).get(),
+      adminDb
+        .collection("event_participants")
+        .where("user_id", "==", userId)
+        .get(),
     ]);
 
     const projects = projectsSnap.docs.map((doc) => ({
@@ -159,6 +164,12 @@ export async function GET(req: NextRequest) {
     const donationProjectIds = new Set(
       projects
         .filter((p) => String(p.type) === "donation")
+        .map((p) => String(p.id || p.docId)),
+    );
+
+    const eventProjectIds = new Set(
+      projects
+        .filter((p) => String(p.type) === "event")
         .map((p) => String(p.id || p.docId)),
     );
 
@@ -368,6 +379,29 @@ export async function GET(req: NextRequest) {
       };
     });
 
+    const event = eventParticipantsSnap.docs
+      .map((doc) => ({
+        docId: doc.id,
+        ...doc.data(),
+      }))
+      .filter((e: any) => eventProjectIds.has(String(e.project_id)))
+      .map((e: any) => {
+        const project = projectMap[String(e.project_id)] || {};
+
+        return {
+          event_id: e.id || e.docId,
+          queue: Number(e.queue || 0),
+          checked_in: Boolean(e.checked_in),
+          checked_in_at: e.checked_in_at || null,
+          project: {
+            id: project.id || "",
+            name: project.name || "",
+            image_url: project.image_url || "",
+          },
+          created_at: toIsoDate(e.created_at),
+        };
+      });
+
     shop.sort(
       (a, b) => parseDateTime(b.created_at) - parseDateTime(a.created_at),
     );
@@ -376,11 +410,16 @@ export async function GET(req: NextRequest) {
       (a, b) => parseDateTime(b.created_at) - parseDateTime(a.created_at),
     );
 
+    event.sort(
+      (a, b) => parseDateTime(b.created_at) - parseDateTime(a.created_at),
+    );
+
     return NextResponse.json({
       success: true,
       data: {
         shop,
         donation,
+        event,
       },
     });
   } catch (err: any) {

@@ -22,6 +22,7 @@ import ProjectTargetSection from "./ProjectTargetSection";
 import ProjectThemeSection from "./ProjectThemeSection";
 import ProjectTypeSection from "./ProjectTypeSection";
 import { getAccessToken } from "@/lib/workUtils";
+import ProjectLocationSection from "./ProjectLocationSection";
 
 type PopupState = {
   open: boolean;
@@ -96,7 +97,7 @@ export default function ProjectForm({
       return false;
     }
 
-    if (!form.bank_id) {
+    if (!form.bank_id && form.type !== "event") {
       setPopup({
         open: true,
         type: "error",
@@ -211,7 +212,11 @@ export default function ProjectForm({
             <ProjectTargetSection form={form} updateForm={updateForm} />
           )}
 
-          <ProjectRewardSection form={form} updateForm={updateForm} />
+          {form.type !== "event" ? (
+            <ProjectRewardSection form={form} updateForm={updateForm} />
+          ) : (
+            <ProjectLocationSection form={form} updateForm={updateForm} />
+          )}
         </div>
 
         <div className="col-span-12 lg:col-span-4 space-y-4">
@@ -219,11 +224,13 @@ export default function ProjectForm({
 
           <ProjectThemeSection form={form} updateForm={updateForm} />
 
-          <ProjectBankSection
-            form={form}
-            updateForm={updateForm}
-            banks={banks || []}
-          />
+          {form.type !== "event" && (
+            <ProjectBankSection
+              form={form}
+              updateForm={updateForm}
+              banks={banks || []}
+            />
+          )}
         </div>
       </div>
 

@@ -37,6 +37,10 @@ export async function GET(req: NextRequest) {
     const donationProjectIds = projects
       .filter((p) => String(p.type) === "donation")
       .map((p) => String(p.id || p.docId));
+    
+    const eventProjectIds = projects
+      .filter((p) => String(p.type) === "event")
+      .map((p) => String(p.id || p.docId));
 
     const userRewardsSnap = await adminDb
       .collection("userrewards")
@@ -98,11 +102,33 @@ export async function GET(req: NextRequest) {
       0,
     );
 
+    const eventsSnap = await adminDb
+      .collection("event_participants")
+      .where("user_id", "==", userId)
+      .get();
+    
+    const events = eventsSnap.docs.map((doc) => ({
+      docId: doc.id,
+      ...doc.data(),
+    })) as any[];
+
+    const eventList = events.filter((o) =>
+      eventProjectIds.includes(String(o.project_id)),
+    );
+
+    const uniqueEventProjectIds = Array.from(
+      new Set(
+        eventList
+          .map((o) => String(o.project_id || "").trim())
+          .filter(Boolean),
+      ),
+    );
+
     return NextResponse.json({
       success: true,
       data: {
         totalProjects:
-          uniqueShopProjectIds.length + uniqueDonationProjectIds.length,
+          uniqueShopProjectIds.length + uniqueDonationProjectIds.length + uniqueEventProjectIds.length,
         totalOrders: shopOrders.length,
         totalAmount,
       },

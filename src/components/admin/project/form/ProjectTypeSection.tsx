@@ -26,11 +26,11 @@ export default function ProjectTypeSection({ form, updateForm }: Props) {
               : "border-pinkAccent bg-white"
           }`}
         >
-          <div className="text-2xl mb-1">💝</div>
-          <div className="text-sm font-semibold">Donation</div>
-          <div className="text-xs text-textSub mt-0.5">
-            Fundraising project
+          <div className="text-2xl mb-1">
+            <img src="/icon/type_donation.svg" className="h-6" />
           </div>
+          <div className="text-sm font-semibold">Donation</div>
+          <div className="text-xs text-textSub mt-0.5">Fundraising project</div>
         </button>
 
         <button
@@ -42,9 +42,27 @@ export default function ProjectTypeSection({ form, updateForm }: Props) {
               : "border-pinkAccent bg-white"
           }`}
         >
-          <div className="text-2xl mb-1">🛍️</div>
+          <div className="text-2xl mb-1">
+            <img src="/icon/type_shop.svg" className="h-6" />
+          </div>
           <div className="text-sm font-semibold">Shop</div>
           <div className="text-xs text-textSub mt-0.5">Merchandise shop</div>
+        </button>
+
+        <button
+          type="button"
+          onClick={() => updateForm("type", "event")}
+          className={`rounded-xl border-2 p-4 text-left transition-all ${
+            form.type === "event"
+              ? "border-pinkSecondary bg-pinkAccent/40"
+              : "border-pinkAccent bg-white"
+          }`}
+        >
+          <div className="text-2xl mb-1">
+            <img src="/icon/type_event.svg" className="h-6" />
+          </div>
+          <div className="text-sm font-semibold">Event</div>
+          <div className="text-xs text-textSub mt-0.5">Joining event</div>
         </button>
       </div>
 
@@ -82,6 +100,37 @@ export default function ProjectTypeSection({ form, updateForm }: Props) {
             <option value="ready-stock">Ready stock</option>
             <option value="closed">Closed</option>
           </select>
+        </div>
+      )}
+
+      {form.type === "event" && (
+        <div className="mt-4 space-y-4">
+          <div>
+            <label className="block text-xs font-medium text-textSub mb-1.5">
+              Event Type
+            </label>
+
+            <select
+              value={form.event_type}
+              onChange={(e) =>
+                updateForm(
+                  "event_type",
+                  e.target.value as "restricted" | "open",
+                )
+              }
+              className="w-full rounded-lg border border-pinkAccent bg-white px-3 py-2.5 text-sm"
+            >
+              <option value="restricted">Restricted Event</option>
+
+              <option value="open">Open Event</option>
+            </select>
+
+            <p className="text-xs text-gray-500 mt-1">
+              Restricted = import participant list
+            </p>
+
+            <p className="text-xs text-gray-500">Open = anyone can check-in</p>
+          </div>
         </div>
       )}
     </section>

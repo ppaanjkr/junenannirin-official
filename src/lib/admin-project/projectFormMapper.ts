@@ -73,7 +73,7 @@ export function mapProjectDetailToForm(data: any): ProjectFormState {
     },
 
     bank_id: project.bank_id || "",
-    sub_status: project.sub_status || "pre-order",
+    sub_status: project.sub_status || "",
 
     targets: safeArray(data?.targets || project.targets).map(
       (target: any, index: number) => ({
@@ -109,6 +109,11 @@ export function mapProjectDetailToForm(data: any): ProjectFormState {
         })),
       })),
     })),
+
+    event_enabled: Boolean(project.event_enabled),
+    event_type: project.event_type || "restricted",
+    event_location_name: project.event_location_name || "",
+    event_location_url: project.event_location_url || "",
   };
 }
 
@@ -138,7 +143,7 @@ export function buildProjectPayload(form: ProjectFormState) {
     theme_color: form.theme_color,
 
     bank_id: form.bank_id || "",
-    sub_status: form.sub_status || "pre-order",
+    sub_status: form.sub_status || "",
 
     targets: form.targets.map((target, index) => ({
       id: target.id || "",
@@ -170,5 +175,10 @@ export function buildProjectPayload(form: ProjectFormState) {
         options: item.options || [],
       })),
     })),
+
+    event_enabled: form.event_enabled,
+    event_type: form.event_type,
+    event_location_name: form.event_location_name || "",
+    event_location_url: form.event_location_url || "",
   };
 }

@@ -91,3 +91,17 @@ export async function getTeamPoll() {
 
   return res.json();
 }
+
+export async function getMyQueue(projectId: string) {
+  const res = await fetch(
+    `/api/firebase/user/my-queue?project_id=${projectId}`,
+    {
+      headers: {
+        ...authHeaders(),
+      },
+      cache: "no-store",
+    },
+  );
+
+  return res.json();
+}

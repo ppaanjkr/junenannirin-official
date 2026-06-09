@@ -6,13 +6,14 @@ import ShopItemSummary from "./summary/ShopItemSummary";
 import ShopOrderList from "./summary/ShopOrderList";
 import SummaryDetail from "./summary/SummaryDetail";
 import { closeProject, updateProjectSubStatus } from "@/lib/api/admin";
+import { useOrderList } from "@/hooks/useAdmin";
 
 type Props = {
   summary: any;
   shop: any;
   donation: any;
   projectId: string;
-  orders: any;
+  // orders: any;
   project?: any;
   user?: any;
 };
@@ -22,11 +23,13 @@ export default function SectionProjectSummary({
   shop,
   donation,
   projectId,
-  orders,
+  // orders,
   project,
   user
 }: Props) {
   const router = useRouter();
+
+  const { orders, isOrderLoading } = useOrderList(projectId.toString());
 
   return (
     <section className="mt-2 mb-12">

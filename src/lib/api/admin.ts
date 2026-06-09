@@ -233,158 +233,164 @@ export async function deleteAdminBank(bankId: string) {
   return res.json();
 }
 
-export async function getAdminTransactions(
-  project_id: string,
-) {
+export async function getAdminTransactions(project_id: string) {
   const params = new URLSearchParams({
     project_id,
   });
 
-  const res = await fetch(
-    `/api/firebase/admin/transaction/list?${params}`,
-    {
-      method: "GET",
-      headers: {
-        ...authHeaders(),
-      },
-      cache: "no-store",
+  const res = await fetch(`/api/firebase/admin/transaction/list?${params}`, {
+    method: "GET",
+    headers: {
+      ...authHeaders(),
     },
-  );
+    cache: "no-store",
+  });
 
   return res.json();
 }
 
 // enable edit profile
 export async function getProfileSettings() {
-  const res = await fetch(
-    "/api/firebase/admin/profile",
-    {
-      method: "GET",
-      headers: {
-        ...authHeaders(),
-      },
-      cache: "no-store",
+  const res = await fetch("/api/firebase/admin/profile", {
+    method: "GET",
+    headers: {
+      ...authHeaders(),
     },
-  );
+    cache: "no-store",
+  });
 
   return res.json();
 }
-export async function updateProfileEditable(
-  enabled: boolean,
-) {
-  const res = await fetch(
-    "/api/firebase/admin/profile/profile",
-    {
-      method: "PUT",
-      headers: {
-        "Content-Type":
-          "application/json",
-        ...authHeaders(),
-      },
-      body: JSON.stringify({
-        profile_edit_enabled:
-          enabled,
-      }),
+export async function updateProfileEditable(enabled: boolean) {
+  const res = await fetch("/api/firebase/admin/profile/profile", {
+    method: "PUT",
+    headers: {
+      "Content-Type": "application/json",
+      ...authHeaders(),
     },
-  );
+    body: JSON.stringify({
+      profile_edit_enabled: enabled,
+    }),
+  });
 
   return res.json();
 }
-export async function updateTeamEditable(
-  enabled: boolean,
-) {
-  const res = await fetch(
-    "/api/firebase/admin/profile/team",
-    {
-      method: "PUT",
-      headers: {
-        "Content-Type":
-          "application/json",
-        ...authHeaders(),
-      },
-      body: JSON.stringify({
-        team_edit_enabled:
-          enabled,
-      }),
+export async function updateTeamEditable(enabled: boolean) {
+  const res = await fetch("/api/firebase/admin/profile/team", {
+    method: "PUT",
+    headers: {
+      "Content-Type": "application/json",
+      ...authHeaders(),
     },
-  );
+    body: JSON.stringify({
+      team_edit_enabled: enabled,
+    }),
+  });
 
   return res.json();
 }
 export async function getAdminTeams() {
-  const res = await fetch(
-    "/api/firebase/admin/team/list",
-    {
-      method: "GET",
-      headers: {
-        ...authHeaders(),
-      },
-      cache: "no-store",
+  const res = await fetch("/api/firebase/admin/team/list", {
+    method: "GET",
+    headers: {
+      ...authHeaders(),
     },
-  );
+    cache: "no-store",
+  });
 
   return res.json();
 }
-export async function createAdminTeam(
-  payload: any,
-) {
-  const res = await fetch(
-    "/api/firebase/admin/team/create",
-    {
-      method: "POST",
-      headers: {
-        "Content-Type":
-          "application/json",
-        ...authHeaders(),
-      },
-      cache: "no-store",
-      body: JSON.stringify(
-        payload,
-      ),
+export async function createAdminTeam(payload: any) {
+  const res = await fetch("/api/firebase/admin/team/create", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      ...authHeaders(),
     },
-  );
+    cache: "no-store",
+    body: JSON.stringify(payload),
+  });
 
   return res.json();
 }
-export async function updateAdminTeam(
-  payload: any,
-) {
-  const res = await fetch(
-    "/api/firebase/admin/team/update",
-    {
-      method: "POST",
-      headers: {
-        "Content-Type":
-          "application/json",
-        ...authHeaders(),
-      },
-      cache: "no-store",
-      body: JSON.stringify(
-        payload,
-      ),
+export async function updateAdminTeam(payload: any) {
+  const res = await fetch("/api/firebase/admin/team/update", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      ...authHeaders(),
     },
-  );
+    cache: "no-store",
+    body: JSON.stringify(payload),
+  });
 
   return res.json();
 }
-export async function deleteAdminTeam(
-  teamId: string,
-) {
-  const res = await fetch(
-    "/api/firebase/admin/team/delete",
-    {
-      method: "POST",
-      headers: {
-        "Content-Type":
-          "application/json",
-        ...authHeaders(),
-      },
-      cache: "no-store",
-      body: JSON.stringify({
-        team_id: teamId,
-      }),
+export async function deleteAdminTeam(teamId: string) {
+  const res = await fetch("/api/firebase/admin/team/delete", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      ...authHeaders(),
     },
-  );
+    cache: "no-store",
+    body: JSON.stringify({
+      team_id: teamId,
+    }),
+  });
+
+  return res.json();
+}
+
+// event
+export async function importEventParticipants(payload: {
+  project_id: string;
+  participants: {
+    queue: number;
+    name: string;
+    uuid: string;
+    phone?: string;
+    twitter?: string;
+  }[];
+}) {
+  const res = await fetch("/api/firebase/admin/event/import", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      ...authHeaders(),
+    },
+    cache: "no-store",
+    body: JSON.stringify(payload),
+  });
+
+  return res.json();
+}
+export async function getEventParticipants(projectId: string) {
+  const params = new URLSearchParams({
+    project_id: projectId,
+  });
+
+  const res = await fetch(`/api/firebase/admin/event/participants?${params}`, {
+    method: "GET",
+    headers: {
+      ...authHeaders(),
+    },
+    cache: "no-store",
+  });
+
+  return res.json();
+}
+export async function checkInParticipant(participantId: string) {
+  const res = await fetch("/api/firebase/admin/event/checkin", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      ...authHeaders(),
+    },
+    body: JSON.stringify({
+      participant_id: participantId,
+    }),
+  });
 
   return res.json();
 }

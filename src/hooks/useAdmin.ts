@@ -7,8 +7,14 @@ import {
   getAdminProjects,
   getAdminTransactions,
   getAdminUsers,
+  getEventParticipants,
 } from "@/lib/api/admin";
-import { AdminOrderList, AdminProjectDetail, Bank, User } from "@/lib/api/types";
+import {
+  AdminOrderList,
+  AdminProjectDetail,
+  Bank,
+  User,
+} from "@/lib/api/types";
 import { useEffect, useRef, useState } from "react";
 
 export default function useProjectList() {
@@ -188,14 +194,10 @@ export function useBankList() {
   };
 }
 
-export function useTransactionList(
-  projectId: string,
-) {
-  const [transactions, setTransactions] =
-    useState<any[]>([]);
+export function useTransactionList(projectId: string) {
+  const [transactions, setTransactions] = useState<any[]>([]);
 
-  const [isLoading, setLoading] =
-    useState(true);
+  const [isLoading, setLoading] = useState(true);
 
   useEffect(() => {
     if (!projectId) return;
@@ -207,15 +209,10 @@ export function useTransactionList(
     try {
       setLoading(true);
 
-      const res =
-        await getAdminTransactions(
-          projectId,
-        );
+      const res = await getAdminTransactions(projectId);
 
       if (res.success) {
-        setTransactions(
-          res.data || [],
-        );
+        setTransactions(res.data || []);
       }
     } finally {
       setLoading(false);
@@ -228,3 +225,35 @@ export function useTransactionList(
   };
 }
 
+//event
+export function useEventParticipants(projectId: string) {
+  const [participants, setParticipants] = useState<any[]>([]);
+
+  const [isLoading, setLoading] = useState(true);
+
+  useEffect(() => {
+    if (!projectId) return;
+
+    load();
+  }, [projectId]);
+
+  async function load() {
+    try {
+      setLoading(true);
+
+      const res = await getEventParticipants(projectId);
+
+      if (res.success) {
+        setParticipants(res.data || []);
+      }
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  return {
+    participants,
+    isLoading,
+    reload: load,
+  };
+}

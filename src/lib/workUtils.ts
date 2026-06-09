@@ -1,3 +1,5 @@
+import { formatThaiDateWithTime } from "./formatThaiDate";
+
 export function splitComma(v?: string) {
   if (!v) return [];
   return v.split(",").map(s => s.trim()).filter(Boolean);
@@ -96,4 +98,17 @@ function toIsoDate(value: any) {
   }
 
   return value;
+}
+
+export function formatFirestoreTimestamp(
+  timestamp: any,
+) {
+  if (!timestamp?._seconds)
+    return "-";
+
+  return formatThaiDateWithTime(
+    new Date(
+      timestamp._seconds * 1000
+    ),
+  );
 }

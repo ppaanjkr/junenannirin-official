@@ -154,6 +154,11 @@ export async function POST(req: NextRequest) {
       updated_at: now,
       updated_by: auth.uuid,
       closed_at: "",
+
+      event_enabled: Boolean(project.event_enabled),
+      event_type: project.event_type || "",
+      event_location_name: project.event_location_name || "",
+      event_location_url: project.event_location_url || "",
     });
 
     const targets = Array.isArray(project.targets) ? project.targets : [];

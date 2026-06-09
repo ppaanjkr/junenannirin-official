@@ -1,5 +1,6 @@
 "use client";
 
+import SectionEventSummary from "@/components/admin/project/event/SectionEventSummary";
 import SectionProjectDetail from "@/components/admin/SectionProjectDetail";
 import SectionProjectSummary from "@/components/admin/SectionProjectSummary";
 import TabAdmin from "@/components/admin/TabAdmin";
@@ -25,11 +26,11 @@ export default function Page({ params }: { params: { id: string } }) {
 
   const { popup, setPopup } = useAuthGuard();
 
-  const { orders, isOrderLoading } = useOrderList(id.toString());
+  // const { orders, isOrderLoading } = useOrderList(id.toString());
 
   return (
     <>
-      {(isDetailLoading || loading || isOrderLoading) && <LoadingOverlay />}
+      {(isDetailLoading || loading) && <LoadingOverlay />}
 
       <Popup
         open={popup.open}
@@ -49,15 +50,26 @@ export default function Page({ params }: { params: { id: string } }) {
         <TabAdmin type="shop" tab={tab} setTab={setTab} />
 
         {tab === "summary" && (
-            <SectionProjectSummary
-              summary={project?.summary}
-              shop={project?.shop}
-              donation={project?.donation}
-              projectId={project?.project?.id ?? ""}
-              orders={orders}
-              project={project?.project}
-              user={user}
-            />
+          <>
+            {project?.project?.type === "shop" && (
+              <SectionProjectSummary
+                summary={project?.summary}
+                shop={project?.shop}
+                donation={project?.donation}
+                projectId={project?.project?.id ?? ""}
+                project={project?.project}
+                user={user}
+              />
+            )}
+
+            {/* {project?.project?.type === "donation" && (
+              
+            )} */}
+
+            {project?.project?.type === "event" && (
+              <SectionEventSummary projectId={project?.project?.id ?? ""} />
+            )}
+          </>
         )}
 
         {tab === "project" && (

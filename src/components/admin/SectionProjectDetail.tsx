@@ -5,6 +5,7 @@ import ProjectImageMore from "./project/ProjectImageMore";
 import ProjectShopItem from "./project/ProjectShopItem";
 import { useRouter } from "next/navigation";
 import { closeProject, updateProjectSubStatus } from "@/lib/api/admin";
+import ProjectLocationDetail from "./project/ProjectLocationDetail";
 
 type Props = {
   project?: Project | null;
@@ -28,7 +29,9 @@ export default function SectionProjectDetail({
   return (
     <section className="mt-2">
       <ProjectBasicDetail project={project} />
-      <ProjectImageMore project={project} />
+      {(project?.img_more && project?.img_more.length > 0) && <ProjectImageMore project={project} />}
+
+      {project?.type === "event" && <ProjectLocationDetail project={project} />}
 
       {shop && <ProjectShopItem items={shop} />}
 

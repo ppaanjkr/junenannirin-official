@@ -150,9 +150,12 @@ export async function POST(req: NextRequest) {
           accent: "#ffe4ec",
         },
         bank_id: project.bank_id || "",
-        sub_status: project.sub_status || "pre-order",
+        sub_status: project.sub_status || "",
         updated_at: FieldValue.serverTimestamp(),
         updated_by: auth.uuid,
+        event_type: project.event_type || "",
+        event_location_name: project.event_location_name || "",
+        event_location_url: project.event_location_url || "",
       },
       { merge: true },
     );

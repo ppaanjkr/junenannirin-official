@@ -1,5 +1,6 @@
 import { ProfileSummary } from "@/lib/api/types";
 import { formatAmount } from "@/lib/formatAmountK";
+import { useState } from "react";
 
 type Props = {
   user: any;
@@ -12,15 +13,26 @@ export default function SectionProfile({
   user,
   className = "",
   profile,
-  teams
+  teams,
 }: Props) {
   const defaultImage = "/icon/june_logo_circle.png";
 
-  const team = teams?.find(
-    (item) => String(item.value) === String(user?.team),
-  );
+  const team = teams?.find((item) => String(item.value) === String(user?.team));
 
   const image = team?.image || defaultImage;
+
+  const [copied, setCopied] = useState(false);
+  async function handleCopyUuid() {
+    try {
+      await navigator.clipboard.writeText(user?.uuid || "");
+
+      setCopied(true);
+
+      setTimeout(() => {
+        setCopied(false);
+      }, 1500);
+    } catch {}
+  }
 
   return (
     <section className={className}>
@@ -36,9 +48,18 @@ export default function SectionProfile({
             />
           </div>
 
-          <h2 className="mt-4 text-lg md:text-xl font-semibold">
-            {user?.username || "-"}
-          </h2>
+          <div className="mt-4 text-center">
+            <button
+              onClick={handleCopyUuid}
+              className="text-lg md:text-xl font-semibold hover:text-pinkSecondary transition"
+            >
+              {user?.username || "-"}
+            </button>
+
+            {copied && (
+              <div className="mt-1 text-xs text-pinkSecondary">✓ UUID Copied</div>
+            )}
+          </div>
         </div>
 
         {/* Mini Stats */}

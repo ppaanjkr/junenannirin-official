@@ -10,6 +10,7 @@ import {
 } from "@/lib/api/user";
 import type {
   HistoryDonation,
+  HistoryEvent,
   HistoryShop,
   ProfileSummary,
   UserPurchaseSummery,
@@ -89,6 +90,7 @@ export function useProfileHistory() {
 
   const [shop, setShop] = useState<HistoryShop[] | null>(null);
   const [donation, setDonation] = useState<HistoryDonation[] | null>(null);
+  const [event, setEvent] = useState<HistoryEvent[] | null>(null);
   const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {
@@ -103,6 +105,7 @@ export function useProfileHistory() {
         if (res.success) {
           setShop(res.data?.shop || []);
           setDonation(res.data?.donation || []);
+          setEvent(res.data?.event || []);
         }
       } catch (err) {
         console.error("fetch profile history error:", err);
@@ -117,6 +120,7 @@ export function useProfileHistory() {
   return {
     shop,
     donation,
+    event,
     isLoading,
   };
 }

@@ -1,5 +1,6 @@
 "use client";
 import SectionHistoryDonation from "@/components/history/HistoryDonation";
+import SectionHistoryEvent from "@/components/history/HistoryEvent";
 import SectionHistoryShop from "@/components/history/HistoryShop";
 import TabButton from "@/components/history/TabButton";
 import LoadingOverlay from "@/components/LoadingOverlay";
@@ -13,7 +14,7 @@ import { use, useEffect, useState } from "react";
 
 export default function Page() {
   const { user, setUser } = useUserContext();
-  const { shop, donation, isLoading } = useProfileHistory();
+  const { shop, donation, event, isLoading } = useProfileHistory();
   const [loading, setLoading] = useState(false);
   const isloading = loading || isLoading;
   const { popup, setPopup } = useAuthGuard();
@@ -43,8 +44,13 @@ export default function Page() {
             setTab={setTab}
             active={tab === "donate"}
           />
+          <TabButton title={"Event"} setTab={setTab} active={tab === "event"} />
         </section>
-        {tab === "shop" ? <SectionHistoryShop data={shop} /> : <SectionHistoryDonation data={donation} />}
+        {tab === "shop" && <SectionHistoryShop data={shop} />}
+
+        {tab === "donate" && <SectionHistoryDonation data={donation} />}
+
+        {tab === "event" && <SectionHistoryEvent data={event} />}
       </main>
     </>
   );

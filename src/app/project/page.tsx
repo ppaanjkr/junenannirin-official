@@ -4,6 +4,7 @@ import LineLogin from "@/components/LineLogin";
 import LoadingOverlay from "@/components/LoadingOverlay";
 import Popup from "@/components/ModalPopup";
 import SectionContact from "@/components/SectionContact";
+import ActiveEvent from "@/components/project/ActiveEvent";
 import ActiveProject from "@/components/project/ActiveProject";
 import ActiveShop from "@/components/project/ActiveShop";
 import { useUserContext } from "@/context/UserContext";
@@ -60,14 +61,20 @@ export default function Home() {
 
         {!pageLoading && (
           <>
-            {activeData &&
-              (activeData.project.type === "donation" ? (
-                <ActiveProject data={activeData} />
-              ) : (
-                <ActiveShop data={activeData} user={user} />
-              ))}
-
-            {/* ถ้าจะเปิด ProjectList ทีหลัง ค่อยใช้ตรงนี้ */}
+            {activeData && (
+              <>
+                {activeData.project.type === "donation" && (
+                  <ActiveProject data={activeData} />
+                )}
+                {activeData.project.type === "shop" && (
+                  <ActiveShop data={activeData} user={user} />
+                )}
+                {activeData.project.type === "event" && (
+                  <ActiveEvent data={activeData} user={user} />
+                )}
+              </>
+            )}
+            {/* ถ้าเป็น ProjectList ที่หลัง ควรใช้ตรงนี้ */}
             {/* {!activeData && <ProjectList projects={projects} />} */}
           </>
         )}

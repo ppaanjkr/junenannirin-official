@@ -30,10 +30,14 @@ export type Project = {
   status: "open" | "closed";
   created_at: string;
   closed_at: string | null;
-  type: "shop" | "donation";
+  type: "shop" | "donation" | "event";
   theme_color?: string;
   status_sub?: string;
   img_more?: string;
+  event_enabled?: boolean;
+  event_type?: "restricted" | "open";
+  event_location_name?: string;
+  event_location_url?: string;
 };
 
 // ------------------------
@@ -155,10 +159,23 @@ export type HistoryDonation = {
   amount: number;
   created_at: string;
 };
+export type HistoryEvent = {
+  event_id: string;
+  project: {
+    id: string;
+    name: string;
+    image_url: string;
+  };
+  queue: number;
+  created_at: string;
+  checked_in_at: string;
+};
 export type History = {
   shop: HistoryShop[];
   donation: HistoryDonation[];
+  event: HistoryEvent[];
 };
+
 
 export type UserPurchaseSummery = {
   total_amount: number;

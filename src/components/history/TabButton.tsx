@@ -19,8 +19,10 @@ export default function TabButton({
       onClick={() => {
         if (title === "Shop") {
           setTab("shop");
-        } else {
+        } else if (title === "Donate") {
           setTab("donate");
+        }else if (title === "Event"){
+          setTab("event");
         }
       }}
     >
