@@ -67,7 +67,7 @@ export default function Page({ params }: { params: { id: string } }) {
             )} */}
 
             {project?.project?.type === "event" && (
-              <SectionEventSummary projectId={project?.project?.id ?? ""} />
+              <SectionEventSummary projectId={project?.project?.id ?? ""} projectName={project?.project?.name ?? ""} />
             )}
           </>
         )}

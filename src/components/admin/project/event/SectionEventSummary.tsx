@@ -6,8 +6,9 @@ import { useEventParticipants } from "@/hooks/useAdmin";
 
 type Prop = {
   projectId: string;
+  projectName: string;
 };
-export default function SectionEventSummary({ projectId }: Prop) {
+export default function SectionEventSummary({ projectId, projectName }: Prop) {
   const { participants, isLoading } = useEventParticipants(projectId);
 
   const [participantData, setParticipantData] = useState<Participant[]>([]);
@@ -34,6 +35,7 @@ export default function SectionEventSummary({ projectId }: Prop) {
         checkinRate={checkinRate}
       />
       <EventImport
+        projectName={projectName}
         projectId={projectId}
         participants={participantData}
         setParticipants={setParticipantData}

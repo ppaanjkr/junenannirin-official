@@ -13,6 +13,7 @@ type Props = {
   projectId: string;
   isLoading?: boolean;
   setParticipants: React.Dispatch<React.SetStateAction<Participant[]>>;
+  projectName: string;
 };
 
 export default function EventImport({
@@ -20,6 +21,7 @@ export default function EventImport({
   projectId,
   isLoading,
   setParticipants,
+  projectName
 }: Props) {
   const [previewRows, setPreviewRows] = useState<ImportRow[]>([]);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -294,7 +296,7 @@ export default function EventImport({
               </thead>
 
               <tbody>
-                {previewRows.slice(0, 10).map((row, index) => (
+                {previewRows.map((row, index) => (
                   <tr key={index}>
                     <td className="p-2 text-center">{row.queue}</td>
                     <td className="p-2 text-center">{row.name}</td>
@@ -337,6 +339,8 @@ export default function EventImport({
 
       {participants.length > 0 && !isImportMode && (
         <EventParticipantList
+          projectName={projectName}
+          projectId={projectId}
           participants={participants}
           onCheckIn={handleCheckIn}
         />
