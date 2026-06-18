@@ -1,6 +1,8 @@
 import { ProfileSummary } from "@/lib/api/types";
 import { formatAmount } from "@/lib/formatAmountK";
+import { driveThumb } from "@/lib/workUtils";
 import { useState } from "react";
+import ImagePreviewModal from "../ImagePreviewModal";
 
 type Props = {
   user: any;
@@ -25,9 +27,7 @@ export default function SectionProfile({
 
   const team = teams?.find((item) => String(item.value) === String(user?.team));
 
-  const image = team?.image || defaultImage;
-
-  
+  const image = driveThumb(team?.image_url || "") || defaultImage;
 
   return (
     <section className={className}>
@@ -36,7 +36,8 @@ export default function SectionProfile({
           <div className="relative">
             <div
               onContextMenu={(e) => e.preventDefault()}
-              className="w-24 h-24 md:w-28 md:h-28 rounded-full ring-4 ring-pinkAccent bg-cover bg-center"
+              onDragStart={(e) => e.preventDefault()}
+              className="w-24 h-24 md:w-28 md:h-28 rounded-full ring-2 ring-pinkAccent bg-cover bg-center select-none pointer-events-none"
               style={{
                 backgroundImage: `url(${image})`,
               }}
@@ -52,7 +53,9 @@ export default function SectionProfile({
             </button>
 
             {copied && (
-              <div className="mt-1 text-xs text-pinkSecondary">✓ UUID Copied</div>
+              <div className="mt-1 text-xs text-pinkSecondary">
+                ✓ UUID Copied
+              </div>
             )}
           </div>
         </div>
