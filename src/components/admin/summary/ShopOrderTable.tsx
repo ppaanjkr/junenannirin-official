@@ -2,6 +2,7 @@
 
 import { formatTHB } from "@/lib/formatTHB";
 import { House, Phone, Save, UserRound } from "lucide-react";
+import { buildItemSummary } from "@/lib/buildItemSummary";
 
 type Props = {
   data: any[];
@@ -9,89 +10,6 @@ type Props = {
   handleChange: any;
   handleSave: any;
 };
-
-function formatOptionName(optionName: string) {
-  const value = String(optionName || "").trim();
-
-  if (!value) return "";
-
-  return value.charAt(0).toUpperCase() + value.slice(1);
-}
-
-function buildItemSummary(orders: any[] = []) {
-  const summaryMap: Record<
-    string,
-    {
-      item_name: string;
-      option_name: string;
-      selected_option: string;
-      qty: number;
-    }
-  > = {};
-
-  orders.forEach((order) => {
-    const items = Array.isArray(order.items) ? order.items : [];
-
-    items.forEach((item: any) => {
-      const details = Array.isArray(item.details) ? item.details : [];
-
-      details.forEach((detail: any) => {
-        const itemName = String(detail.item_name || "").trim();
-
-        const optionName = String(
-          detail.option_name || (detail.selected_size ? "size" : ""),
-        ).trim();
-
-        const selectedOption = String(
-          detail.selected_option || detail.selected_size || "",
-        )
-          .trim()
-          .toUpperCase();
-
-        if (!itemName) return;
-
-        const key = [
-          itemName,
-          optionName || "no_option",
-          selectedOption || "no_value",
-        ].join("_");
-
-        if (!summaryMap[key]) {
-          summaryMap[key] = {
-            item_name: itemName,
-            option_name: optionName,
-            selected_option: selectedOption,
-            qty: 0,
-          };
-        }
-
-        summaryMap[key].qty += Number(detail.qty || 0);
-      });
-    });
-  });
-
-  const optionOrder = ["XS", "S", "M", "L", "XL", "2XL", "3XL"];
-
-  return Object.values(summaryMap).sort((a, b) => {
-    const nameCompare = a.item_name.localeCompare(b.item_name);
-    if (nameCompare !== 0) return nameCompare;
-
-    const optionNameCompare = a.option_name.localeCompare(b.option_name);
-    if (optionNameCompare !== 0) return optionNameCompare;
-
-    const aIndex = optionOrder.indexOf(a.selected_option);
-    const bIndex = optionOrder.indexOf(b.selected_option);
-
-    if (aIndex === -1 && bIndex === -1) {
-      return a.selected_option.localeCompare(b.selected_option);
-    }
-
-    if (aIndex === -1) return 1;
-    if (bIndex === -1) return -1;
-
-    return aIndex - bIndex;
-  });
-}
 
 function ItemSummary({ orders }: { orders: any[] }) {
   const summary = buildItemSummary(orders);
@@ -120,7 +38,7 @@ function ItemSummary({ orders }: { orders: any[] }) {
                 {hasOption && (
                   <>
                     {" "}
-                    ({formatOptionName(detail.option_name)}{" "}
+                    ({detail.option_name}{" "}
                     {String(detail.selected_option).toUpperCase()})
                   </>
                 )}

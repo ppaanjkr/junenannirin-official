@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import { buildItemSummary } from "@/lib/buildItemSummary";
 
 const LABELS_PER_PAGE = 8;
 
@@ -12,6 +13,16 @@ function chunkArray<T>(array: T[], size: number) {
   }
 
   return result;
+}
+
+function buildOrderText(orders: any[] = []) {
+  return orders.map((order) => {
+    const items = (order.items || [])
+      .map((item: any) => `${item.title} x${item.qty}`)
+      .join(", ");
+
+    return `• ${order.order_id} : ${items}`;
+  });
 }
 
 export default function Page() {
@@ -44,26 +55,65 @@ export default function Page() {
       <main className="bg-white min-h-screen print-main">
         {pages.map((pageItems, pageIndex) => (
           <section key={pageIndex} className="print-page">
-
             <div className="label-grid">
-              {pageItems.map((item, index) => (
-                <div
-                  key={`${item.user.uuid}_${pageIndex}_${index}`}
-                  className="label-card"
-                >
-                  <div className="text-base font-semibold">
-                    Name: {item.user.name ?? "-"}
-                  </div>
+              {pageItems.map((item, index) => {
+                const summary = buildItemSummary(item.orders || []);
 
-                  <div className="mt-1 text-base">
-                    Tel: {item.user.phone ?? "-"}
-                  </div>
+                const orderLines = buildOrderText(item.orders || []);
 
-                  <div className="mt-1 whitespace-pre-wrap text-base leading-6 address-text">
-                    Address: {item.user.address ?? "-"}
+                return (
+                  <div
+                    key={`${item.user.uuid}_${pageIndex}_${index}`}
+                    className="label-card"
+                  >
+                    <div className="text-sm font-semibold">
+                      Name: {item.user.name ?? "-"}
+                    </div>
+
+                    <div className="mt-1 text-sm">
+                      Tel: {item.user.phone ?? "-"}
+                    </div>
+
+                    <div className="mt-1 whitespace-pre-wrap text-sm leading-6 address-text">
+                      Address: {item.user.address ?? "-"}
+                    </div>
+
+                    {/* Summary */}
+                    <div className="mt-2 text-xs">
+                      <span className="font-semibold">Summary:</span>
+
+                      <div className="leading-5">
+                        {summary
+                          .map((detail) => {
+                            const hasOption =
+                              String(detail.option_name || "").trim() !== "" &&
+                              String(detail.selected_option || "").trim() !==
+                                "";
+
+                            return `${detail.item_name}${
+                              hasOption
+                                ? ` (${detail.option_name} ${detail.selected_option})`
+                                : ""
+                            } x${detail.qty}`;
+                          })
+                          .join(", ")}
+                      </div>
+                    </div>
+
+                    {/* Order */}
+                    <div className="mt-1 text-xs">
+                      <span className="font-semibold">Order:</span>
+
+                      <div className="flex flex-col gap-1">
+                        {orderLines.map((line, i) => (
+                          <div key={i}>{line}</div>
+                        ))}
+                      </div>
+                    </div>
+
                   </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
           </section>
         ))}
