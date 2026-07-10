@@ -66,15 +66,15 @@ export default function Page() {
                     key={`${item.user.uuid}_${pageIndex}_${index}`}
                     className="label-card"
                   >
-                    <div className="text-sm font-semibold">
+                    <div className="text-base font-semibold">
                       Name: {item.user.name ?? "-"}
                     </div>
 
-                    <div className="mt-1 text-sm">
+                    <div className="mt-1 text-base">
                       Tel: {item.user.phone ?? "-"}
                     </div>
 
-                    <div className="mt-1 whitespace-pre-wrap text-sm leading-6 address-text">
+                    <div className="mt-1 whitespace-pre-wrap text-base leading-6 address-text">
                       Address: {item.user.address ?? "-"}
                     </div>
 
@@ -186,7 +186,7 @@ export default function Page() {
             flex: 1;
             display: grid;
             grid-template-columns: repeat(2, 1fr);
-            grid-template-rows: repeat(4, 1fr);
+            grid-template-rows: repeat(3, 1fr);
             border-top: 1px solid #e5e7eb;
             border-left: 1px solid #e5e7eb;
           }
