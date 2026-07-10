@@ -78,6 +78,7 @@ export default function ShopOrderList({ projectId, orders }: Props) {
       const tracking = String(item.shipment?.tracking_no || "").toLowerCase();
       const carrier = String(item.shipment?.carrier || "").toLowerCase();
 
+
       const orderText = Array.isArray(item.orders)
         ? item.orders
             .map((order: any) => {
@@ -251,6 +252,7 @@ export default function ShopOrderList({ projectId, orders }: Props) {
   }
 
   function handleExport() {
+    console.log(filtered);
     localStorage.setItem("print_labels", JSON.stringify(filtered));
 
     window.open(`/admin/project/${projectId}/print`, "_blank");
