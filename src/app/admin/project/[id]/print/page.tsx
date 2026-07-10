@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { buildItemSummary } from "@/lib/buildItemSummary";
 
-const LABELS_PER_PAGE = 8;
+const LABELS_PER_PAGE = 6;
 
 function chunkArray<T>(array: T[], size: number) {
   const result: T[][] = [];
